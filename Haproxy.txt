@@ -1,0 +1,36 @@
+xFusionCorp Industries has an application running on Nautlitus infrastructure in Stratos Datacenter. 
+The monitoring tool recognised that there is an issue with the haproxy service on LBR server. That need to fixed to make the application work properly.
+
+
+Troubleshoot and fix the issue, and make sure haproxy service is running on Nautilus LBR server.
+
+
+
+
+root@stlb01 sbin]# /usr/sbin/haproxy -v
+
+/etc/haproxy/haproxy.cfg
+
+[root@stlb01 ~]# vi /etc/haproxy/haproxy.cfg
+[root@stlb01 ~]# /usr/sbin/haproxy -c -f /etc/haproxy/haproxy.cfg
+
+root@stlb01 ~]# systemctl restart haproxy
+[root@stlb01 ~]# systemcyl status haproxy
+-bash: systemcyl: command not found
+[root@stlb01 ~]# systemctl status haproxy
+● haproxy.service - HAProxy Load Balancer
+   Loaded: loaded (/usr/lib/systemd/system/haproxy.service; disabled; vendor preset: disabled)
+   Active: active (running) since Mon 2020-06-15 08:04:23 UTC; 21s ago
+ Main PID: 117 (haproxy-systemd)
+   CGroup: /docker/ce294e2eac2ddc6e2a6acc6b4ae9994abb8ca58daf0972b3db71c6a69a545d01/system.slice/haproxy.service
+           ├─117 /usr/sbin/haproxy-systemd-wrapper -f /etc/haproxy/haproxy.cfg -p /run/haproxy.pid
+           ├─118 /usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -p /run/haproxy.pid -Ds
+           └─119 /usr/sbin/haproxy -f /etc/haproxy/haproxy.cfg -p /run/haproxy.pid -Ds
+
+Jun 15 08:04:23 stlb01 systemd[1]: Enqueued job haproxy.service/restart as 112
+Jun 15 08:04:23 stlb01 systemd[1]: Job haproxy.service/restart finished, result=done
+Jun 15 08:04:23 stlb01 systemd[1]: Converting job haproxy.service/restart -> haproxy.service/start
+Jun 15 08:04:23 stlb01 systemd[1]: About to execute: /usr/sbin/haproxy-systemd-wrapper -f /etc/haprox...TIONS
+Jun 15 08:04:23 stlb01 systemd[1]: Forked /usr/sbin/haproxy-systemd-wrapper as 117
+Jun 15 08:04:23 stlb01 systemd[1]: haproxy.service changed dead -> running
+Jun 15 08:04:23 stlb01 systemd[1]: Job haproxy.service/start finished, result=done

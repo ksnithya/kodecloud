@@ -1,0 +1,11 @@
+As per details shared by development team the new application release has some dependencies on back end. There are some packages/services need to be installed on all app servers under Stratos Datacenter. As per requirements please perform below given steps:
+
+
+a. Install nscd package on all the application servers.
+yum install epel-release
+yum install nscd
+
+b. Once installed, make sure it is enabled to start during boot.
+systemctl enable nscd
+systemctl restart nscd
+systemctl status nscd

@@ -1,0 +1,245 @@
+The Nautilus DevOps team wants to install and set up a simple httpd web server on all app servers in Stratos DC. Additionally, they want to deploy a sample web page for now using Ansible only. Therefore, prepare the required playbook to complete this task. Find more details about the task below.
+
+
+We already have an inventory file under /home/thor/ansible on jump host. Create a playbook.yml under /home/thor/ansible on jump host itself.
+
+Using the playbook, install httpd web server on all app servers. Additionally, make sure its service should up and running.
+
+Using blockinfile Ansible module add some content in /var/www/html/index.html file. Below is the content:
+
+Welcome to XfusionCorp!
+
+This is Nautilus sample file, created using Ansible!
+
+Please do not modify this file manually!
+
+The /var/www/html/index.html file's user and group owner should be apache on all app servers.
+
+The /var/www/html/index.html file's permissions should be 0755 on all app servers.
+
+Note:
+
+i. Validation will try to run playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way, without passing any extra arguments.
+
+ii. Do not use any custom or empty marker for blockinfile module.
+
+
+- name: blocks
+  hosts: all
+  become: true
+  tasks:
+  - name: install httpd
+    yum:
+      name:
+        - httpd
+      state: latest
+  - name: enable services
+    service:
+      name: httpd
+      state:  started
+      enabled: yes
+  - name: Ansible Insert multiple lines using blockinfile
+    blockinfile:
+      dest: /var/www/html/index.html
+      state: present
+      create: yes
+      block: |
+        Welcome to XfusionCorp!
+
+        This is Nautilus sample file, created using Ansible!
+
+        Please do not modify this file manually!
+      owner: apache
+      group: apache
+      mode: 0744
+
+ansible all -i inventory -b -m command -a "ls -l /var/www/html/index.html;cat /var/www/html/index.html;systemctl status httpd"
+
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml --syntax-check
+
+playbook: playbook.yml
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml
+
+PLAY [blocks] ***********************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************
+ok: [stapp01]
+ok: [stapp02]
+ok: [stapp03]
+
+TASK [install httpd] ****************************************************************************************
+changed: [stapp01]
+changed: [stapp03]
+changed: [stapp02]
+
+TASK [enable services] **************************************************************************************
+changed: [stapp02]
+changed: [stapp01]
+changed: [stapp03]
+
+TASK [Ansible Insert multiple lines using blockinfile] ******************************************************
+changed: [stapp01]
+changed: [stapp03]
+changed: [stapp02]
+
+PLAY RECAP **************************************************************************************************
+stapp01                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+stapp02                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+stapp03                    : ok=4    changed=3    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0
+
+thor@jump_host ~/ansible$ ansible all -i inventory -b -m command -a "ls -l /var/www/html/index.html;cat /var/www/html/index.html;systemctl status httpd"
+stapp02 | FAILED | rc=2 >>
+ls: cannot access /var/www/html/index.html;cat: No such file or directory
+ls: cannot access /var/www/html/index.html;systemctl: No such file or directory
+ls: cannot access status: No such file or directory
+ls: cannot access httpd: No such file or directorynon-zero return code
+stapp01 | FAILED | rc=2 >>
+ls: cannot access /var/www/html/index.html;cat: No such file or directory
+ls: cannot access /var/www/html/index.html;systemctl: No such file or directory
+ls: cannot access status: No such file or directory
+ls: cannot access httpd: No such file or directorynon-zero return code
+stapp03 | FAILED | rc=2 >>
+ls: cannot access /var/www/html/index.html;cat: No such file or directory
+ls: cannot access /var/www/html/index.html;systemctl: No such file or directory
+ls: cannot access status: No such file or directory
+ls: cannot access httpd: No such file or directorynon-zero return code
+thor@jump_host ~/ansible$ ansible all -i inventory -b -m command -a "ls -l /var/www/html/index.html"stapp01 | CHANGED | rc=0 >>
+-rwxr--r-- 1 apache apache 178 Nov 28 19:06 /var/www/html/index.html
+stapp02 | CHANGED | rc=0 >>
+-rwxr--r-- 1 apache apache 178 Nov 28 19:06 /var/www/html/index.html
+stapp03 | CHANGED | rc=0 >>
+-rwxr--r-- 1 apache apache 178 Nov 28 19:06 /var/www/html/index.html
+thor@jump_host ~/ansible$ ansible all -i inventory -b -m command -a "cat /var/www/html/index.html"
+stapp03 | CHANGED | rc=0 >>
+# BEGIN ANSIBLE MANAGED BLOCK
+Welcome to XfusionCorp!
+
+This is Nautilus sample file, created using Ansible!
+
+Please do not modify this file manually!
+# END ANSIBLE MANAGED BLOCK
+stapp01 | CHANGED | rc=0 >>
+# BEGIN ANSIBLE MANAGED BLOCK
+Welcome to XfusionCorp!
+
+This is Nautilus sample file, created using Ansible!
+
+Please do not modify this file manually!
+# END ANSIBLE MANAGED BLOCK
+stapp02 | CHANGED | rc=0 >>
+# BEGIN ANSIBLE MANAGED BLOCK
+Welcome to XfusionCorp!
+
+This is Nautilus sample file, created using Ansible!
+
+Please do not modify this file manually!
+# END ANSIBLE MANAGED BLOCK
+thor@jump_host ~/ansible$ ansible all -i inventory -b -m command -a "systemctl status httpd"
+stapp02 | CHANGED | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Sat 2020-11-28 19:06:27 UTC; 1min 33s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 410 (httpd)
+   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+   CGroup: /docker/9dcd623019296bf5fc52535d6c4a00f60070d076f264f83610516ea4f3e1ce2c/system.slice/httpd.service
+           ├─410 /usr/sbin/httpd -DFOREGROUND
+           ├─411 /usr/sbin/httpd -DFOREGROUND
+           ├─412 /usr/sbin/httpd -DFOREGROUND
+           ├─413 /usr/sbin/httpd -DFOREGROUND
+           ├─414 /usr/sbin/httpd -DFOREGROUND
+           └─415 /usr/sbin/httpd -DFOREGROUND
+
+Nov 28 19:07:36 stapp02 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:36 stapp02 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:46 stapp02 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:46 stapp02 systemd[1]: httpd.service: Got notification message from PID 410 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:46 stapp02 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:46 stapp02 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:56 stapp02 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:56 stapp02 systemd[1]: httpd.service: Got notification message from PID 410 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:56 stapp02 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:56 stapp02 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+stapp01 | CHANGED | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Sat 2020-11-28 19:06:27 UTC; 1min 33s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 414 (httpd)
+   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+   CGroup: /docker/0f3feb86b4573221b8f6c60b3405269c270a995b32405f20f862ce132df7fec0/system.slice/httpd.service
+           ├─414 /usr/sbin/httpd -DFOREGROUND
+           ├─415 /usr/sbin/httpd -DFOREGROUND
+           ├─416 /usr/sbin/httpd -DFOREGROUND
+           ├─417 /usr/sbin/httpd -DFOREGROUND
+           ├─418 /usr/sbin/httpd -DFOREGROUND
+           └─419 /usr/sbin/httpd -DFOREGROUND
+
+Nov 28 19:07:36 stapp01 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:36 stapp01 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:46 stapp01 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:46 stapp01 systemd[1]: httpd.service: Got notification message from PID 414 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:46 stapp01 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:46 stapp01 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:56 stapp01 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:56 stapp01 systemd[1]: httpd.service: Got notification message from PID 414 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:56 stapp01 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:56 stapp01 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+stapp03 | CHANGED | rc=0 >>
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Sat 2020-11-28 19:06:27 UTC; 1min 33s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 411 (httpd)
+   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+   CGroup: /docker/86ff7acb1251907221b88f6ab0d198f9f197881fe41e0755431e7cc5c3c1a46a/system.slice/httpd.service
+           ├─411 /usr/sbin/httpd -DFOREGROUND
+           ├─412 /usr/sbin/httpd -DFOREGROUND
+           ├─413 /usr/sbin/httpd -DFOREGROUND
+           ├─414 /usr/sbin/httpd -DFOREGROUND
+           ├─415 /usr/sbin/httpd -DFOREGROUND
+           └─416 /usr/sbin/httpd -DFOREGROUND
+
+Nov 28 19:07:36 stapp03 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:36 stapp03 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:46 stapp03 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:46 stapp03 systemd[1]: httpd.service: Got notification message from PID 411 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:46 stapp03 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:46 stapp03 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Nov 28 19:07:56 stapp03 systemd[1]: Got notification message for unit httpd.service
+Nov 28 19:07:56 stapp03 systemd[1]: httpd.service: Got notification message from PID 411 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Nov 28 19:07:56 stapp03 systemd[1]: httpd.service: got READY=1
+Nov 28 19:07:56 stapp03 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+thor@jump_host ~/ansible$ cat playbook.yml
+- name: blocks
+  hosts: all
+  become: true
+  tasks:
+  - name: install httpd
+    yum:
+      name:
+        - httpd
+      state: latest
+  - name: enable services
+    service:
+      name: httpd
+      state:  started
+      enabled: yes
+  - name: Ansible Insert multiple lines using blockinfile
+    blockinfile:
+      dest: /var/www/html/index.html
+      state: present
+      create: yes
+      block: |
+        Welcome to XfusionCorp!
+
+        This is Nautilus sample file, created using Ansible!
+
+        Please do not modify this file manually!
+      owner: apache
+      group: apache
+      mode: 0744
+thor@jump_host ~/ansible$

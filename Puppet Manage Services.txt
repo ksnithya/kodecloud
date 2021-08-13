@@ -1,0 +1,118 @@
+New packages need to be installed on all app servers in Stratos Datacenter. The Nautilus DevOps team has decided to install the same using Puppet. Since jump host is already configured to run as Puppet master server and all app servers are already configured to work as puppet agent nodes, we need to create required manifests on the Puppet master server so that the same can be applied on all Puppet agent nodes. Please find more details about the task below.
+
+
+Create a Puppet programming file official.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server and 
+using puppet package resource perform the tasks below.
+
+Install package nginx through puppet package resource and start its service through puppet service resource on all Puppet agent nodes i.e all App Servers.
+Note: Please perform this task using official.pp only, do not create any separate inventory file.
+
+
+ 
+
+
+class nginxpkg {
+
+  package { 'nginx':
+    ensure => 'installed',
+  }
+  service { 'nginx':
+  ensure => running,
+  enable => true,
+  } 
+
+}
+
+node 'stapp01.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+
+root@jump_host /# cd /etc/puppetlabs/code/environments/production/manifests
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi ecommerce.pp
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat ecommerce.pp
+class nginxpkg {
+
+  package { 'nginx':
+    ensure => 'installed',
+  }
+  service { 'nginx':
+  ensure => running,
+  enable => true,
+  }
+
+}
+node 'stapp01.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include nginxpkg
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests#
+
+root@jump_host /# ssh tony@stapp01
+The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:30uiJljY4+5idSohfA79C/RKiabsVGj5J59TZpr+H1g.
+ECDSA key fingerprint is MD5:5f:9d:5d:b3:a1:81:04:1c:58:c4:97:59:d8:f3:c5:dd.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+tony@stapp01's password:
+[tony@stapp01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for tony:
+[root@stapp01 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+Info: Applying configuration version '1604319536'
+Notice: /Stage[main]/Nginxpkg/Package[nginx]/ensure: created
+Notice: /Stage[main]/Nginxpkg/Service[nginx]/ensure: ensure changed 'stopped' to 'running'
+Info: /Stage[main]/Nginxpkg/Service[nginx]: Unscheduling refresh on Service[nginx]
+Notice: Applied catalog in 27.60 seconds
+[root@stapp01 ~]# systemctl status nginx
+● nginx.service - The nginx HTTP and reverse proxy server
+   Loaded: loaded (/usr/lib/systemd/system/nginx.service; enabled; vendor preset: disabled)
+   Active: active (running) since Mon 2020-11-02 12:19:26 UTC; 9s ago
+ Main PID: 434 (nginx)
+   CGroup: /docker/9004bfaece77b74de1aa700db4fb4b1be223232c2d546268f2214a54957e6120/system.slice/nginx.service
+           ├─434 nginx: master process /usr/sbin/nginx
+           ├─435 nginx: worker process
+           └─436 nginx: worker process
+
+Nov 02 12:19:26 stapp01 systemd[1]: About to execute: /usr/sbin/nginx
+Nov 02 12:19:26 stapp01 systemd[1]: Forked /usr/sbin/nginx as 433
+Nov 02 12:19:26 stapp01 systemd[1]: nginx.service changed start-pre -> start
+Nov 02 12:19:26 stapp01 systemd[1]: Child 433 belongs to nginx.service
+Nov 02 12:19:26 stapp01 systemd[1]: nginx.service: control process exited, code=exited status=0
+Nov 02 12:19:26 stapp01 systemd[1]: nginx.service got final SIGCHLD for state start
+Nov 02 12:19:26 stapp01 systemd[1]: Main PID loaded: 434
+Nov 02 12:19:26 stapp01 systemd[1]: nginx.service changed start -> running
+Nov 02 12:19:26 stapp01 systemd[1]: Job nginx.service/start finished, result=done
+Nov 02 12:19:26 stapp01 systemd[1]: Started The nginx HTTP and reverse proxy server.
+[root@stapp01 ~]# rpm -qa|grep -i nginx
+nginx-mod-mail-1.16.1-2.el7.x86_64
+nginx-mod-http-image-filter-1.16.1-2.el7.x86_64
+nginx-mod-http-perl-1.16.1-2.el7.x86_64
+nginx-filesystem-1.16.1-2.el7.noarch
+nginx-mod-stream-1.16.1-2.el7.x86_64
+nginx-mod-http-xslt-filter-1.16.1-2.el7.x86_64
+nginx-1.16.1-2.el7.x86_64
+nginx-all-modules-1.16.1-2.el7.noarch
+[root@stapp01 ~]#

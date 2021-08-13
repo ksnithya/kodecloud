@@ -1,0 +1,385 @@
+The xFusionCorp development team added updates to the project that is maintained under /opt/official.git repo and cloned under /usr/src/kodekloudrepos/official. 
+Recently some changes were made on Git server that is hosted on Storage server in Stratos DC. The DevOps team added some new Git remotes, 
+so we need to update remote on /usr/src/kodekloudrepos/official repository as per details mentioned below:
+
+
+a. In /usr/src/kodekloudrepos/official repo add a new remote dev_official and point it to /opt/xfusioncorp_official.git repository.
+
+b. There is a file /tmp/index.html on same server; copy this file to the repo and add/commit to master branch.
+
+c. Finally push master branch to this new remote origin.
+
+hor@jump_host /$ cd /usr/src/kodekloudrepos/official
+bash: cd: /usr/src/kodekloudrepos/official: No such file or directory
+thor@jump_host /$ ssh natasha@ststor01
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:HmWCPT2tpA3tUEZ0L8aCdtO80E9reWUVo1YFy8NQ2UM.
+ECDSA key fingerprint is MD5:90:98:a8:22:28:31:a9:89:db:11:ba:58:9f:c0:15:df.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/official
+[root@ststor01 official]# ls -l
+total 4
+-rw-r--r-- 1 root root 34 Sep 12 14:26 info.txt
+[root@ststor01 official]# cat info.txt
+Welcome to xFusionCorp Industries
+[root@ststor01 official]# git remote add dev_official /opt/xfusioncorp_official.git
+[root@ststor01 official]# ls -l
+total 4
+-rw-r--r-- 1 root root 34 Sep 12 14:26 info.txt
+[root@ststor01 official]# cp /tmp/index.html .
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 14:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 14:26 info.txt
+[root@ststor01 official]# cat index.html
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>Welcome to xFusionCorp Industries</h1>
+
+<p>These are DevOps Labs</p>
+
+</body>
+</html>[root@ststor01 official]# git init
+Reinitialized existing Git repository in /usr/src/kodekloudrepos/official/.git/
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 14:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 14:26 info.txt
+[root@ststor01 official]# git add index.html
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 14:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 14:26 info.txt
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# git commit -m “add index.html”
+error: pathspec '"index.html\342\200\235"' did not match any file(s) known to git.
+[root@ststor01 official]# git commit -m “add index.html”
+error: pathspec '"index.html\342\200\235"' did not match any file(s) known to git.
+[root@ststor01 official]# git commit -m
+error: switch `m' requires a value
+usage: git commit [options] [--] <pathspec>...
+
+    -q, --quiet           suppress summary after successful commit
+    -v, --verbose         show diff in commit message template
+
+Commit message options
+    -F, --file <file>     read message from file
+    --author <author>     override author for commit
+    --date <date>         override date for commit
+    -m, --message <message>
+                          commit message
+    -c, --reedit-message <commit>
+                          reuse and edit message from specified commit
+    -C, --reuse-message <commit>
+                          reuse message from specified commit
+    --fixup <commit>      use autosquash formatted message to fixup specified commit
+    --squash <commit>     use autosquash formatted message to squash specified commit
+    --reset-author        the commit is authored by me now (used with -C/-c/--amend)
+    -s, --signoff         add Signed-off-by:
+    -t, --template <file>
+                          use specified template file
+    -e, --edit            force edit of commit
+    --cleanup <default>   how to strip spaces and #comments from message
+    --status              include status in commit message template
+    -S, --gpg-sign[=<key id>]
+                          GPG sign commit
+
+Commit contents options
+    -a, --all             commit all changed files
+    -i, --include         add specified files to index for commit
+    --interactive         interactively add files
+    -p, --patch           interactively add changes
+    -o, --only            commit only specified files
+    -n, --no-verify       bypass pre-commit hook
+    --dry-run             show what would be committed
+    --short               show status concisely
+    --branch              show branch information
+    --porcelain           machine-readable output
+    --long                show status in long format (default)
+    -z, --null            terminate entries with NUL
+    --amend               amend previous commit
+    --no-post-rewrite     bypass post-rewrite hook
+    -u, --untracked-files[=<mode>]
+                          show untracked files, optional modes: all, normal, no. (Default: all)
+
+[root@ststor01 official]# git commit -m "add index.html"
+[master 2433d99] add index.html
+ 1 file changed, 10 insertions(+)
+ create mode 100644 index.html
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 14:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 14:26 info.txt
+[root@ststor01 official]# git push origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 375 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/official.git
+   8c5bf83..2433d99  master -> master
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# git remote show origin
+* remote origin
+  Fetch URL: /opt/official.git
+  Push  URL: /opt/official.git
+  HEAD branch: master
+  Remote branch:
+    master tracked
+  Local branch configured for 'git pull':
+    master merges with remote master
+  Local ref configured for 'git push':
+    master pushes to master (up to date)
+[root@ststor01 official]# ls -l /opt/xfusioncorp_official.git
+total 32
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 branches
+-rw-r--r-- 1 root root   66 Sep 12 14:26 config
+-rw-r--r-- 1 root root   73 Sep 12 14:26 description
+-rw-r--r-- 1 root root   23 Sep 12 14:26 HEAD
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 hooks
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 info
+drwxr-xr-x 4 root root 4096 Sep 12 14:26 objects
+drwxr-xr-x 4 root root 4096 Sep 12 14:26 refs
+[root@ststor01 official]# cd /opt/xfusioncorp_official.git
+[root@ststor01 xfusioncorp_official.git]# ls -l
+total 32
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 branches
+-rw-r--r-- 1 root root   66 Sep 12 14:26 config
+-rw-r--r-- 1 root root   73 Sep 12 14:26 description
+-rw-r--r-- 1 root root   23 Sep 12 14:26 HEAD
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 hooks
+drwxr-xr-x 2 root root 4096 Sep 12 14:26 info
+drwxr-xr-x 4 root root 4096 Sep 12 14:26 objects
+drwxr-xr-x 4 root root 4096 Sep 12 14:26 refs
+[root@ststor01 xfusioncorp_official.git]# cd  branches/
+[root@ststor01 branches]# ls -l
+total 0
+[root@ststor01 branches]# cd ..
+[root@ststor01 xfusioncorp_official.git]# find . -name "index.html"
+[root@ststor01 xfusioncorp_official.git]# find . -name "index.html" -print
+[root@ststor01 xfusioncorp_official.git]# cd /usr/src/kodekloudrepos
+[root@ststor01 kodekloudrepos]# ls -l
+total 4
+drwxr-xr-x 3 root root 4096 Sep 12 14:34 official
+[root@ststor01 kodekloudrepos]# cd official/
+[root@ststor01 official]# git show
+commit 2433d99b4734b4216562a49f928238e545bca31b
+Author: Admin <admin@kodekloud.com>
+Date:   Sat Sep 12 14:40:37 2020 +0000
+
+    add index.html
+
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000..df9a7b1
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1,10 @@
++<!DOCTYPE html>
++<html>
++<body>
++
++<h1>Welcome to xFusionCorp Industries</h1>
++
++<p>These are DevOps Labs</p>
++
++</body>
++</html>
+\ No newline at end of file
+[root@ststor01 official]#
+---------------------------------------------------------
+thor@jump_host /$ ssh natasha@ststor01
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:57qMR4NrEXASfdpfaj6qnD0g7A5pko3hBTJrvvljWZI.
+ECDSA key fingerprint is MD5:88:c6:ea:c5:c0:82:fa:ad:a6:e0:1d:5f:ea:94:f5:7e.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/official
+[root@ststor01 official]# ls -l
+total 4
+-rw-r--r-- 1 root root 34 Sep 12 15:29 info.txt
+[root@ststor01 official]# cat info.txt
+Welcome to xFusionCorp Industries
+[root@ststor01 official]# git remote add dev_official ^C
+[root@ststor01 official]# cd /opt/xfusioncorp_official.git
+[root@ststor01 xfusioncorp_official.git]# ls -l
+total 32
+drwxr-xr-x 2 root root 4096 Sep 12 15:29 branches
+-rw-r--r-- 1 root root   66 Sep 12 15:29 config
+-rw-r--r-- 1 root root   73 Sep 12 15:29 description
+-rw-r--r-- 1 root root   23 Sep 12 15:29 HEAD
+drwxr-xr-x 2 root root 4096 Sep 12 15:29 hooks
+drwxr-xr-x 2 root root 4096 Sep 12 15:29 info
+drwxr-xr-x 4 root root 4096 Sep 12 15:29 objects
+drwxr-xr-x 4 root root 4096 Sep 12 15:29 refs
+[root@ststor01 xfusioncorp_official.git]# cd /usr/src/kodekloudrepos/official
+[root@ststor01 official]# git remote -v
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# git remote add dev_official /opt/xfusioncorp_official.git
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# cp /tmp/index.html .
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 15:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 15:29 info.txt
+[root@ststor01 official]# git init
+Reinitialized existing Git repository in /usr/src/kodekloudrepos/official/.git/
+[root@ststor01 official]# git remote add dev_official /opt/xfusioncorp_official.git
+fatal: remote dev_official already exists.
+[root@ststor01 official]# git add index.html
+[root@ststor01 official]# git commit -m "add index.html"
+[master cc936a8] add index.html
+ 1 file changed, 10 insertions(+)
+ create mode 100644 index.html
+[root@ststor01 official]# git push origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 373 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/official.git
+   28a3aff..cc936a8  master -> master
+[root@ststor01 official]# cd /opt/official.git/
+[root@ststor01 official.git]# ls -l
+total 32
+drwxr-xr-x  2 root root 4096 Sep 12 15:29 branches
+-rw-r--r--  1 root root   66 Sep 12 15:29 config
+-rw-r--r--  1 root root   73 Sep 12 15:29 description
+-rw-r--r--  1 root root   23 Sep 12 15:29 HEAD
+drwxr-xr-x  2 root root 4096 Sep 12 15:29 hooks
+drwxr-xr-x  2 root root 4096 Sep 12 15:29 info
+drwxr-xr-x 10 root root 4096 Sep 12 15:36 objects
+drwxr-xr-x  4 root root 4096 Sep 12 15:29 refs
+[root@ststor01 official.git]# cd branches/
+[root@ststor01 branches]# ls -l
+total 0
+[root@ststor01 branches]# cd /usr/src/kodekloudrepos/official
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Sep 12 15:34 index.html
+-rw-r--r-- 1 root root  34 Sep 12 15:29 info.txt
+[root@ststor01 official]# git push -u dev_official master
+Counting objects: 6, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 582 bytes | 0 bytes/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To /opt/xfusioncorp_official.git
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from dev_official.
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]#
+
+----------------------------------------
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/official
+[root@ststor01 official]# ls -l
+total 4
+-rw-r--r-- 1 root root 34 Mar 21 03:25 info.txt
+[root@ststor01 official]# ls -al
+total 16
+drwxr-xr-x 3 root root 4096 Mar 21 03:25 .
+drwxr-xr-x 3 root root 4096 Mar 21 03:25 ..
+drwxr-xr-x 8 root root 4096 Mar 21 03:25 .git
+-rw-r--r-- 1 root root   34 Mar 21 03:25 info.txt
+[root@ststor01 official]# git remote add dev_official /opt/xfusioncorp_official.git^C
+[root@ststor01 official]# git remote -v
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# git remote add dev_official /opt/xfusioncorp_official.git
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# cp /tmp/index.html .
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Mar 21 03:29 index.html
+-rw-r--r-- 1 root root  34 Mar 21 03:25 info.txt
+[root@ststor01 official]# git add .
+[root@ststor01 official]# git status
+# On branch master
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   index.html
+#
+[root@ststor01 official]# git commit -m "index file added"
+[master 81aeb8a] index file added
+ 1 file changed, 10 insertions(+)
+ create mode 100644 index.html
+[root@ststor01 official]# git push -u origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (3/3), done.
+Writing objects: 100% (3/3), 374 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/official.git
+   6582096..81aeb8a  master -> master
+Branch master set up to track remote branch master from origin.
+[root@ststor01 official]# ls -l
+total 8
+-rw-r--r-- 1 root root 120 Mar 21 03:29 index.html
+-rw-r--r-- 1 root root  34 Mar 21 03:25 info.txt
+[root@ststor01 official]# git pust -u dev_official master
+git: 'pust' is not a git command. See 'git --help'.
+
+Did you mean this?
+        push
+[root@ststor01 official]# git push -u dev_official master
+Counting objects: 6, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (4/4), done.
+Writing objects: 100% (6/6), 584 bytes | 0 bytes/s, done.
+Total 6 (delta 0), reused 0 (delta 0)
+To /opt/xfusioncorp_official.git
+ * [new branch]      master -> master
+Branch master set up to track remote branch master from dev_official.
+[root@ststor01 official]# git branch
+* master
+[root@ststor01 official]# git remote -v
+dev_official    /opt/xfusioncorp_official.git (fetch)
+dev_official    /opt/xfusioncorp_official.git (push)
+origin  /opt/official.git (fetch)
+origin  /opt/official.git (push)
+[root@ststor01 official]# 

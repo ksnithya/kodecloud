@@ -1,0 +1,50 @@
+The Nautilus DevOps team has installed and configured new Jenkins server in Stratos DC which they will use for CI/CD and for some automation tasks. There is a requirement to add all app servers as slave nodes in Jenkins so that they can perform tasks on these servers using Jenkins. Find below more details and accomplish the task accordingly.
+
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8081 and click on Display Port. You should be able to access the Jenkins login page. Login using username theadmin and Adm!n321 password.
+
+Add all app servers as slave nodes in Jenkins. Slave node name for app server 1, app server 2 and app server 3 must be App_server_1, App_server_2, App_server_3 respectively.
+
+Add labels as below
+
+App_server_1 : stapp01
+
+App_server_2 : stapp02
+
+App_server_3 : stapp03
+
+Remote root directory for App_server_1 must be /home/tony/jenkins, for App_server_2 must be /home/steve/jenkins and for App_server_3 must be /home/banner/jenkins.
+
+Make sure slave nodes are online and working properly.
+
+Note:
+
+You might need to install some plugins and restart Jenkins service. So, we recommend clicking on Restart Jenkins when installation is complete and no jobs are running on plugin installation/update page i.e update centre. Also, Jenkins UI sometimes gets stuck when Jenkins service restarts in the back end. In this case, please make sure to refresh the UI page.
+
+For these kind of scenarios requiring changes to be done in a web UI, please take screenshots so that you can share it with us for review in case your task is marked incomplete. You may also consider using a screen recording software such as loom.com to record and share your work.
+
+
+1. First copy ssh key from jenkins to app server
+login to jenkins serevr
+
+ssh-keygen
+ssh-copy-id tony@stapp01
+ssh-copy-id steve@stapp02
+ssh-copy-id banner@stapp03
+
+2. Then login to each app server and create directory and install Java
+mkdir /home/tony/jenkins
+sudo yum install java
+
+mkdir /home/steve/jenkins
+sudo yum install java
+
+mkdir /home/banner/jenkins
+sudo yum install java
+
+3. Then login to jenkin console
+Then install ssh plugins
+
+manage jenkins -> Manage Plugins - > Sllech ssh agent, ssh build
+
+Manage Jenkins -> Manage Node -> Add each node -> as per description -> Then Launch agent

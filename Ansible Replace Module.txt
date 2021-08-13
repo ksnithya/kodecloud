@@ -1,0 +1,91 @@
+There is data on all app servers in Stratos DC. The Nautilus development team shared some requirement with the DevOps team to alter some of the data as per recent changes. The DevOps team is working to prepare an Ansible playbook to accomplish the same. Below you can find more details about the task.
+
+
+Create a playbook.yml under /home/thor/ansible on jump host; an inventory is already place under /home/thor/ansible on Jump host itself.
+
+We have a file /opt/finance/blog.txt on app server 1. Using Ansible replace module replace string xFusionCorp to Nautilus in that file.
+
+We have a file /opt/finance/story.txt on app server 2. Using Ansiblereplace module replace string Nautilus to KodeKloud in that file.
+
+We have a file /opt/finance/media.txt on app server 3. Using Ansible replace module replace string KodeKloud to xFusionCorp Industries in that file.
+
+Note: Validation will try to run playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way, without passing any extra arguments.
+
+
+- name: replace module
+  hosts: all
+  become: true
+  tasks:
+  -  name: replace module
+     replace:
+       path: /opt/finance/blog.txt
+       regexp: 'xFusionCorp'
+       replace: 'Nautilus'
+     when: inventory_hostname == 'stapp01'
+  -  name: replace module
+     replace:
+       path: /opt/finance/story.txt
+       regexp: 'Nautilus'
+       replace: 'KodeKloud'
+     when: inventory_hostname == 'stapp02'
+ -  name: replace module
+     replace:
+       path: /opt/finance/media.txt
+       regexp: 'KodeKloud'
+       replace: 'xFusionCorp Industries'
+     when: inventory_hostname == 'stapp03'
+
+
+hor@jump_host ~/ansible$ cat playbook.yml
+- name: replace module
+  hosts: all
+  become: true
+  tasks:
+  -  name: replace module
+     replace:
+       path: /opt/finance/blog.txt
+       regexp: 'xFusionCorp'
+       replace: 'Nautilus'
+     when: inventory_hostname == 'stapp01'
+  -  name: replace module
+     replace:
+       path: /opt/finance/story.txt
+       regexp: 'Nautilus'
+       replace: 'KodeKloud'
+     when: inventory_hostname == 'stapp02'
+  -  name: replace module
+     replace:
+       path: /opt/finance/media.txt
+       regexp: 'KodeKloud'
+       replace: 'xFusionCorp Industries'
+     when: inventory_hostname == 'stapp03'
+thor@jump_host ~/ansible$ cat inventory
+stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=bannerthor@jump_host ~/ansible$
+thor@jump_host ~/ansible$ ls -l
+total 12
+-rw-r--r-- 1 thor thor  36 Dec 22 13:29 ansible.cfg
+-rw-r--r-- 1 thor thor 237 Dec 22 13:29 inventory
+-rw-rw-r-- 1 thor thor 594 Dec 22 13:41 playbook.yml
+thor@jump_host ~/ansible$ cat ansible.cfg
+[defaults]
+host_key_checking = Falsethor@jump_host ~/ansible$
+
+[root@stapp01 ~]# cat /opt/finance/blog.txt
+Welcome to xFusionCorp Industries !
+[root@stapp01 ~]# cat /opt/finance/blog.txt
+Welcome to Nautilus Industries !
+[root@stapp01 ~]#
+
+[root@stapp02 ~]# cat /opt/finance/story.txt
+Welcome to Nautilus Group !
+[root@stapp02 ~]# cat /opt/finance/story.txt
+Welcome to KodeKloud Group !
+[root@stapp02 ~]#
+
+[root@stapp03 ~]# cat /opt/finance/media.txt
+Welcome to KodeKloud !
+[root@stapp03 ~]# cat /opt/finance/media.txt
+Welcome to xFusionCorp Industries !
+[root@stapp03 ~]#

@@ -1,0 +1,503 @@
+The Nautilus DevOps team want to deploy a WordPress website on Kubernetes cluster. They are going to use Apache as a web server and Mysql for database. The team had already gathered the requirements and now they want to make this website live. Below you can find more details:
+
+
+1) Create a persistent volume named lamp-pv, storage class must be standard, storage capacity must be 750Mi, 
+access mode must be ReadWriteOnce, it must be of type hostPath, path must be /mnt/data and persistentVolumeReclaimPolicy must be Retain.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: lamp-pv
+spec:
+  capacity:
+    storage: 750Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard
+  hostPath:
+    path: "/mnt/data"
+
+kubectl create -f 
+
+pv.yml
+pvc.yml
+
+
+
+2) Create a persistent volume claim named lamp-pv-claim , storage class name must be standard, access mode must be ReadWriteOnce and resources requests storage must be 550Mi
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: lamp-pv-claim
+spec:
+  storageClassName: standard
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 550Mi
+
+kubectl create -f pvc.yml
+
+
+3) Create a deployment named lamp-wp, use labels for the deployment app must be lamp, tier should be frontend. Further strategy type must be Recreate.
+
+4) Create two containers under it. httpd-php-wp-container from image wordpress:php7.4-apache and mysql-container from image mysql:5.6.
+
+5) Volume must be mounted on both containers name: lamp-persistent-storage mountPath: /var/www/html.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lamp-wp
+  labels:
+    app: lamp
+    tier: frontend
+spec:
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lamp
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: lamp
+        tier: frontend
+    spec:
+      containers:
+      
+      - name: httpd-php-wp-container
+        image: wordpress:php7.4-apache
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+      - name: mysql-container
+        image: mysql:5.6
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: lamp-persistent-storage
+        persistentVolumeClaim:
+          claimName: lamp-pv-claim
+
+Create some secrets for mysql.
+
+a) Create secret for mysql-root-pass
+
+
+name: password and value: R00t
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-root-pass
+type: Opaque
+data:
+  password: R00t
+
+b) Create secret for mysql-user-pass
+
+name: username, value: kodekloud_aim and name: password, value: dCV3szSGNA
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-user-pass
+data:
+  username: kodekloud_top
+  password: 8FmzjvFU6S
+
+c) Create secret for mysql-db-url
+
+name: database and value: kodekloud_db3
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-db-url
+data:
+  database: kodekloud_db2
+
+d) Create secret for mysql-host
+
+name: host and value: mysql-service
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-host
+data:
+  host: mysql-service
+
+
+Add some environment variables for both containers:
+
+a) name: MYSQL_ROOT_PASSWORD and take it value from secret key reference name: mysql-root-pass and key: password
+
+b) name: MYSQL_DATABASE and take it value from secret key reference name: mysql-db-url and key: database
+
+c) name: MYSQL_USER, and take it value from secret key reference name: mysql-user-pass and key: username
+
+d) name: MYSQL_PASSWORD and take it value from secret key reference name: mysql-user-pass and key: password
+
+e ) name: MYSQL_HOST and take it value from secret key reference name: mysql-host and key: host
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lamp-wp
+  labels:
+    app: lamp
+    tier: frontend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lamp
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: lamp
+        tier: frontend
+    spec:
+      containers:
+      - name: httpd-php-wp-container
+        image: wordpress:php7.4-apache
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+      - name: mysql-container
+        image: mysql:5.6
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+
+
+Create a service for lamp named lamp-service, port must be 80, nodePort must be 30008 and its type must be LoadBalancer
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamp-service
+spec:
+  ports:
+  - port: 80
+    nodePort: 30008
+  type: LoadBalancer
+  selector:
+    app: app: lamp
+    tier: frontend
+
+Create a service for mysql named mysql-service and its port must be 3306.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  ports:
+  - port: 3306
+
+
+We already have a sql dump under /tmp/db.sql on jump_host server.
+
+a) import the db.sql dump to the database which you are created in mysql-container.
+
+kubectl cp <file-spec-src> <file-spec-dest> -c <specific-container>
+
+kubectl cp /tmp/db.sql /tmp/db.sql -c mysql-container
+
+
+b) Configure wordpress to make it work with the mysql db.
+
+c) You must be able to run pre-configured WordPress website on node port 30008 at the end.
+
+Note:
+
+Please do not hardcode DB credentials in any configuration file.
+
+The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+thor@jump_host /$ cat sv*
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-root-pass
+type: Opaque
+stringData:
+  password: R00t
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-user-pass
+stringData:
+  username: kodekloud_sam
+  password: TmPcZjtRQx
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-db-url
+stringData:
+  database: kodekloud_db8
+
+apiVersion: v1
+kind: Secret
+metadata:
+  name: mysql-host
+stringData:
+  host: mysql-service
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamp-service
+spec:
+  ports:
+  - port: 80
+    nodePort: 30008
+  type: LoadBalancer
+  selector:
+    app: lamp
+    tier: frontend
+thor@jump_host /$ cat svc.yml
+apiVersion: v1
+kind: Service
+metadata:
+  name: lamp-service
+spec:
+  ports:
+  - port: 80
+    nodePort: 30008
+  type: LoadBalancer
+  selector:
+    app: lamp
+    tier: frontend
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-service
+spec:
+  ports:
+  - port: 3306
+    targetPort: 3306
+  selector:
+    app: lamp
+    tier: frontend
+
+thor@jump_host /$ cat deploy.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: lamp-wp
+  labels:
+    app: lamp
+    tier: frontend
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: lamp
+      tier: frontend
+  template:
+    metadata:
+      labels:
+        app: lamp
+        tier: frontend
+    spec:
+      containers:
+
+      - name: httpd-php-wp-container
+        image: wordpress:php7.4-apache
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+      - name: mysql-container
+        image: mysql:5.6
+        env:
+          - name: MYSQL_ROOT_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-root-pass
+                key: password
+          - name: MYSQL_DATABASE
+            valueFrom:
+              secretKeyRef:
+                name: mysql-db-url
+                key: database
+          - name: MYSQL_USER
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: username
+          - name: MYSQL_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: mysql-user-pass
+                key: password
+          - name: MYSQL_HOST
+            valueFrom:
+              secretKeyRef:
+                name: mysql-host
+                key: host
+        volumeMounts:
+        - name: lamp-persistent-storage
+          mountPath: /var/www/html
+      volumes:
+      - name: lamp-persistent-storage
+        persistentVolumeClaim:
+          claimName: lamp-pv-claim
+thor@jump_host /$
+
+mysql -u root -pR00t kodekloud_db8 < /tmp/db.sql
+
+ kubectl exec -it lamp-wp-b84f6db5c-96b2h -c mysql-container -- /bin/bash
+kubectl cp /tmp/db.sql lamp-wp-b84f6db5c-96b2h:/tmp -c mysql-container
+
+ kubectl exec -it lamp-wp-b84f6db5c-96b2h -c httpd-php-wp-container -- /bin/bash
+
+apt-get update
+apt-get install -y vim

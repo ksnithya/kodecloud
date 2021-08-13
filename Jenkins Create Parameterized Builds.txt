@@ -1,0 +1,35 @@
+A new DevOps Engineer has joined the team and he will be assigned some Jenkins related tasks. Before that, the team wanted to test a simple parameterized job to understand basic functionality of parameterized builds. He is given a simple parameterized job to build in Jenkins. Please find more details below:
+
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8081 and click on Display Port. You should be able to access the Jenkins login page. Login using user theadmin and Adm!n321 password.
+
+Create a parameterized job which should be named as parameterized-job.
+
+Add a string parameter named Stage; its default value should be Build.
+
+Add a choice parameter named env; its choices should be Development, Staging and Production.
+
+Configure job to execute a shell command, which should echo both parameter values (you are passing in the job).
+
+Build the Jenkins job at least once with choice parameter value Staging.
+
+Note: You might need to install some plugins and restart Jenkins service. So, we recommend clicking on Restart Jenkins when installation is complete and no jobs are running on plugin installation/update page i.e update centre. Also, Jenkins UI sometimes gets stuck when Jenkins service restarts in the back end. In this case, please make sure to refresh the UI page.
+
+New Item -> parameterized-job -> Freestyle -> General -> This project is parameterized -> Setect String and give name and value, Then select choice gine name and values
+-> Build -> Ececute Shell -> echo ${Stage}
+echo ${env} - >save
+
+
+Started by user Admin User
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/parameterized-job
+[parameterized-job] $ /bin/sh -xe /tmp/jenkins3547518768230674858.sh
++ echo Build
+Build
++ echo Staging
+Staging
+Finished: SUCCESS
+ 
+
+Task Status - Failed
+- job 'parameterized-job' is not built with env value 'Staging' or

@@ -1,0 +1,22 @@
+
+The Nautilus production support team was trying to fix issues with their storage server. The storage server has a shared directory /webapp, 
+which is mounted on all app servers at location /var/www/html so that whatever data they store on storage server under /webapp can be shared among all app servers. 
+Somehow NFS server is broken and having some issues.
+
+
+Identify the root cause of the issue and fix it to make sure sharing works fine among all app servers and storage server.
+
+
+
+
+
+Modify /etc/exports
+/webapp 172.16.238.11(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+/webapp 172.16.238.12(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+/webapp 172.16.238.10(rw,sync,no_subtree_check,no_root_squash,fsid=0)
+
+systemctl restart nfs
+
+on all app servers
+
+mount ststor01:/webapp /var/www/html

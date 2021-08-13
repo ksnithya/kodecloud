@@ -1,0 +1,92 @@
+The Nautilus development team has completed development of one of the node applications which they are planning deploy on a Kubernetes cluster. They recently had a meeting with the DevOps team to share their requirements. Based on the DevOps team has listed out the exact requirement to setup the cluster the same way. Fine below more details:
+
+
+Create a namespace named node-namespace-devops.
+
+Create a deployment named node-deployment-devops under this new namespace. Replica count should be 2, container should be named as node-container-devops, use gcr.io/kodekloud/centos-ssh-enabled:node image and container port should be 80.
+
+Create a service named node-service-devops. Service type should be NodePort, target port should be 8080, port should be 80 and nodePort should be 30012.
+
+Make sure all pods are in Running state after the deployment.
+
+You can check the application page by clicking on + button on top left corner and clicking on Select port to view on Host 1, then enter your nodePort.
+
+You can use any labels as per your choice.
+
+Note: The kubectl on jump_host has been configured to work with the kubernetes cluster.
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: node-deployment-devops
+  namespace: node-namespace-devops
+  labels:
+    app: node-deployment
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: node-deployment
+  template:
+    metadata:
+      labels:
+        app: node-deployment
+    spec:
+      containers:
+      - name: node-container-devops
+        image: gcr.io/kodekloud/centos-ssh-enabled:node
+        ports:
+        - containerPort: 80
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: node-service-devops
+  namespace: node-namespace-devops
+spec:
+  ports:
+  - port: 80
+    targetPort: 8080
+    nodePort: 30012   
+  type: NodePort
+  selector:
+    app: node-deployment
+
+
+thor@jump_host /$ kubectl create namespace node-namespace-devops
+namespace/node-namespace-devops created
+thor@jump_host /$ kubectl get namespace
+NAME                    STATUS   AGE
+default                 Active   14m
+kube-node-lease         Active   14m
+kube-public             Active   14m
+kube-system             Active   14m
+node-namespace-devops   Active   9s
+thor@jump_host /$ vi deploy.yml
+thor@jump_host /$ sudo vi deploy.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor: 
+thor@jump_host /$ kubectl create -f deploy.yml 
+deployment.apps/node-deployment-devops created
+thor@jump_host /$ sudo vi svc.yml
+thor@jump_host /$ kubectl create -f svc.yml 
+service/node-service-devops created
+thor@jump_host /$ kubectl get pods -n node-namespace-devops
+NAME                                      READY   STATUS    RESTARTS   AGE
+node-deployment-devops-7f4bfdd954-fbgb9   1/1     Running   0          49s
+node-deployment-devops-7f4bfdd954-m955g   1/1     Running   0          49s
+thor@jump_host /$ kubectl get deploy -n node-namespace-devops
+NAME                     READY   UP-TO-DATE   AVAILABLE   AGE
+node-deployment-devops   2/2     2            2           58s
+thor@jump_host /$ kubectl get svc -n node-namespace-devops
+NAME                  TYPE       CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+node-service-devops   NodePort   10.108.173.48   <none>        80:30012/TCP   41s

@@ -1,0 +1,52 @@
+Nautilus system admin's team is planning to deploy a front end application for their backup utility on Nautilus Backup Server, so that they can manage the backups of different websites graphically. 
+They have shared some requirements to setup the same, please accomplish the tasks as per detail given below:
+
+
+a. Install Apache Server on Nautilus Backup Server and configure it to use 3001 port (do not bind it to 127.0.0.1 only, keep it default i.e let Apache listen on server's IP, hostname, localhost, 127.0.0.1 etc).
+yum install httpd
+vi  /etc/httpd/conf/httpd.conf
+Listen 5002
+
+b. Install Nginx webserver on Nautilus Backup Server and configure it ot use 8094.
+yum install epel-release
+yum install nginx
+systemctl enable nginx
+vi /etc/nginx/nginx.conf 
+        listen       8099 default_server;
+        listen       [::]:8099 default_server;
+
+
+c. Configure Nginx as a reverse proxy server for Apache.
+
+d. There is a sample index file /home/index.html on Jump Host, copy that file to Apache's document root.
+DocumentRoot "/usr/share/nginx/html/"    
+
+
+e. Make sure to start Apache and Nginx services.
+
+f. You can test final changes using curl command, e.g curl http://<backup server IP or Hostname>:8094
+
+
+server {
+ listen 8094;
+
+root /var/www/html/; 
+ index index.php index.html index.htm;
+
+server_name_;
+
+location / {
+ root /var/www/html;
+ index index.html index.htm;
+ proxy_pass http://127.0.0.1:3001;
+ proxy_redirect off;
+ proxy_read_timeout 1200;
+ proxy_send_timeout 1200;
+ proxy_connect_timeout 75;
+ proxy_set_header X-Real-IP $remote_addr;
+ proxy_set_header Host $host;
+ }
+ location ~* ^.+\.(jpg|gif|jpeg|ico|avi|mpeg|mpg|wmv|png|css|js|xml)$ {
+ root /var/www/html;
+ }
+ }

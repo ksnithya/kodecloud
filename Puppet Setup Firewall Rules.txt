@@ -1,0 +1,166 @@
+The Nautilus DevOps team was auditing some of the applications running on all app servers in Stratos Datacenter. 
+They found some security loop holes like they observed there is no firewall installed on these apps. So team has decided to install 
+firewalld on all app servers and also some rules need to be added. This task needs to be done using Puppet so as per details mentioned below please compete the task:
+
+
+Create an inventory file code.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master node i.e on Jump Server. 
+In this inventory file you need to define nodes specific classes only which are mentioned below.
+
+Define a class firewall_node1 for agent node 1 i.e app server 1, firewall_node2 for agent node 2 i.e app server 2, firewall_node3 and for agent node3 i.e app server
+Also create a puppet programming file cluster.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master 
+node i.e on Jump Server and write code to perform below mention task.
+
+Install puppet firewall module on master node i.e on Jump Server (you can install manually).
+
+There are some different applications running on all three apps. One of the application is using port 5002 on App server 1 , 5009 on App server 2 and 8096 on App server 3. 
+Complete below mentioned tasks:
+
+a. Open all incoming connection for 5002/tcp port on App Server 1 and zone should be public.
+
+b. Open all incoming connection for 5009/tcp port on App Server 2 and zone should be public.
+
+c. Open all incoming connection for 8096/tcp port on App Server 3 and zone should be public.
+
+Note: Please do not add firewall rich rules.
+
+puppet module install puppet-firewalld --version 4.4.0
+
+code.pp
+node 'stapp01.stratos.xfusioncorp.com'{
+        include firewall_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include firewall_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include firewall_node3
+}
+
+cluster.pp
+class { 'firewalld': }
+
+class firewall_node1 {
+firewalld_port { 'Open port 8083 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 8083,
+    protocol => 'tcp',
+  }
+}
+class firewall_node2 {
+firewalld_port { 'Open port 5009 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 5009,
+    protocol => 'tcp',
+  }
+}
+class firewall_node3 {
+firewalld_port { 'Open port 8094 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 8094,
+    protocol => 'tcp',
+  }
+}
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# puppet module install puppet-firewalld
+Notice: Preparing to install into /etc/puppetlabs/code/environments/production/modules ...
+Notice: Downloading from https://forgeapi.puppet.com ...
+Notice: Installing -- do not interrupt ...
+/etc/puppetlabs/code/environments/production/modules
+└─┬ puppet-firewalld (v4.4.0)
+  └── puppetlabs-stdlib (v6.5.0)
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi games.pp
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat site.pp
+node 'stapp01.stratos.xfusioncorp.com'{
+        include firewall_node1}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include firewall_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include firewall_node3
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat games.pp
+class { 'firewalld': }
+
+class firewall_node1 {
+firewalld_port { 'Open port 8083 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 8083,
+    protocol => 'tcp',
+  }
+}
+class firewall_node2 {
+firewalld_port { 'Open port 5009 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 5009,
+    protocol => 'tcp',
+  }
+}
+class firewall_node3 {
+firewalld_port { 'Open port 8094 in the public zone':
+    ensure   => present,
+    zone     => 'public',
+    port     => 8094,
+    protocol => 'tcp',
+  }
+}
+root@jump_host /etc/puppetlabs/code/environments/produ
+
+[root@stapp01 ~]# firewall-cmd --list-all
+public
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports: 8083/tcp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+[root@stapp01 ~]#
+
+[root@stapp02 ~]# firewall-cmd --list-ports
+5009/tcp
+[root@stapp02 ~]# firewall-cmd --list-all
+public
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports: 5009/tcp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+[root@stapp02 ~]#
+
+[root@stapp03 ~]# firewall-cmd --list-ports
+8094/tcp
+[root@stapp03 ~]# firewall-cmd --list-all
+public
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports: 8094/tcp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+[root@stapp03 ~]#

@@ -1,0 +1,106 @@
+The Nautilus application development team was working on a git repository /usr/src/kodekloudrepos/games present on Storage server in Stratos DC.
+ However, they reported an issue with the recent commits being pushed to this repo. They have asked the DevOps team to revert repo HEAD to last commit. 
+Below are more details about the task:
+
+
+In /usr/src/kodekloudrepos/games git repository, revert the latest commit ( HEAD ) to the previous commit (JFYI the previous commit hash should be with initial commit message ).
+
+Use revert games message (please use all small letters for commit message) for the new revert commit.
+
+
+ thor@jump_host /$ ssh natasha@ststor01The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:ypt6i+QFh25LivTcX4NmbmccwZl9dMbJnQzeBiblj+U.
+ECDSA key fingerprint is MD5:5d:2b:02:6d:de:29:6e:c3:0f:8e:5d:d6:e3:9c:ab:73.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/beta
+[root@ststor01 beta]# ls -al
+total 16
+drwxr-xr-x 3 root root 4096 Oct 15 04:48 .
+drwxr-xr-x 3 root root 4096 Oct 15 04:48 ..
+-rw-r--r-- 1 root root   33 Oct 15 04:48 beta.txt
+drwxr-xr-x 8 root root 4096 Oct 15 04:48 .git
+[root@ststor01 beta]# git status
+# On branch master
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       beta.txt
+nothing added to commit but untracked files present (use "git add" to track)
+[root@ststor01 beta]# git log
+commit c2df2a37f80de84a270a03ab037856d725c1648b
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    add data.txt file
+
+commit dd1e7c6f45fc962fb8d85afc7ddaecf7ba1d7dc1
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    initial commit
+[root@ststor01 beta]# git revert c2df2a37f80d
+[master a8eb8a4] Revert "revert beta"
+ 1 file changed, 1 insertion(+)
+ create mode 100644 info.txt
+[root@ststor01 beta]# git log
+commit a8eb8a443e2028512527b5818309322b6bba8e0a
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:49:57 2020 +0000
+
+    Revert "revert beta"
+
+    This reverts commit c2df2a37f80de84a270a03ab037856d725c1648b.
+
+commit c2df2a37f80de84a270a03ab037856d725c1648b
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    add data.txt file
+
+commit dd1e7c6f45fc962fb8d85afc7ddaecf7ba1d7dc1
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    initial commit
+[root@ststor01 beta]# git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       beta.txt
+nothing added to commit but untracked files present (use "git add" to track)
+[root@ststor01 beta]# git log
+commit a8eb8a443e2028512527b5818309322b6bba8e0a
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:49:57 2020 +0000
+
+    Revert "revert beta"
+
+    This reverts commit c2df2a37f80de84a270a03ab037856d725c1648b.
+
+commit c2df2a37f80de84a270a03ab037856d725c1648b
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    add data.txt file
+
+commit dd1e7c6f45fc962fb8d85afc7ddaecf7ba1d7dc1
+Author: Admin <admin@kodekloud.com>
+Date:   Thu Oct 15 04:48:32 2020 +0000
+
+    initial commit
+[root@ststor01 beta]#

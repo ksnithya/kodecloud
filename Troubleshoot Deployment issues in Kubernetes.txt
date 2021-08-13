@@ -1,0 +1,312 @@
+Last week the Nautilus DevOps team deployed an Redis app on Kubernetes cluster, which had been working fine so far. This morning one of the team members was working to make some changes in this existing setup, but he made some mistakes and the app went down. We need to fix this as soon as possible. Please take a look.
+
+
+The deployment name is redis-deployment which should have nodeSelector as master only. Deployment is not in running state right now, so please look into the issue and fix the same. Please do not remove or alter any other existing correct settings/configs.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+thor@jump_host /$ kubectl get deployNAME               READY   UP-TO-DATE   AVAILABLE   AGE
+redis-deployment   0/1     1            0           21sthor@jump_host /$ kubectl describe deploy
+Name:                   redis-deployment
+Namespace:              default
+CreationTimestamp:      Sun, 25 Oct 2020 09:12:11 +0000
+Labels:                 app=redis
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=redis
+Replicas:               1 desired | 1 updated | 1 total | 0 available | 1 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=redis
+  Containers:
+   redis-container:    Image:      redis:alpines
+    Port:       6379/TCP
+    Host Port:  0/TCP
+    Command:
+      sh
+      -c
+      while true; do apt update; apt install -y vim php ; sleep 3; done
+    Requests:
+      cpu:        300m
+    Environment:  <none>
+    Mounts:
+      /redis-master from config (rw)
+      /redis-master-data from data (rw)
+  Volumes:
+   data:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+   config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      redis-config
+    Optional:  false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      False   MinimumReplicasUnavailable
+  Progressing    True    ReplicaSetUpdated
+OldReplicaSets:  redis-deployment-84765d856d (1/1 replicas created)
+NewReplicaSet:   <none>
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  32s   deployment-controller  Scaled up replica set redis-deployment-84765d856d to 1
+thor@jump_host /$ kubectl log deploy
+Error: unknown command "log" for "kubectl"
+
+Did you mean this?
+        top
+        logs
+
+Run 'kubectl --help' for usage.
+thor@jump_host /$ kubectl logs deploy
+Error from server (NotFound): pods "deploy" not found
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+redis-deployment-84765d856d-r6hhv   0/1     Pending   0          5m7s
+thor@jump_host /$ kubectl logs redis-deployment-84765d856d-r6hhv
+thor@jump_host /$ kubectl get logs redis-deployment-84765d856d-r6hhv
+error: the server doesn't have a resource type "logs"
+thor@jump_host /$ kubectl describe deploy
+Name:                   redis-deployment
+Namespace:              default
+CreationTimestamp:      Sun, 25 Oct 2020 09:12:11 +0000
+Labels:                 app=redis
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=redis
+Replicas:               1 desired | 1 updated | 1 total | 0 available | 1 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=redis
+  Containers:
+   redis-container:
+    Image:      redis:alpines
+    Port:       6379/TCP
+    Host Port:  0/TCP
+    Command:
+      sh
+      -c
+      while true; do apt update; apt install -y vim php ; sleep 3; done
+    Requests:
+      cpu:        300m
+    Environment:  <none>
+    Mounts:
+      /redis-master from config (rw)
+      /redis-master-data from data (rw)
+  Volumes:
+   data:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+   config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      redis-config
+    Optional:  false
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      False   MinimumReplicasUnavailable
+  Progressing    True    ReplicaSetUpdated
+OldReplicaSets:  redis-deployment-84765d856d (1/1 replicas created)
+NewReplicaSet:   <none>
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  6m28s  deployment-controller  Scaled up replica set redis-deployment-84765d856d to 1
+thor@jump_host /$ kubectl edit deploy
+deployment.apps/redis-deployment edited
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+redis-deployment   0/1     1            0           8m58s
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+redis-deployment   0/1     1            0           9m3s
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS         RESTARTS   AGE
+redis-deployment-56d6b75d7d-lrtgd   0/1     ErrImagePull   0          30s
+redis-deployment-84765d856d-r6hhv   0/1     Pending        0          9m11s
+thor@jump_host /$ kubectl describe pod redis-deployment-56d6b75d7d-lrtgd
+Name:         redis-deployment-56d6b75d7d-lrtgd
+Namespace:    default
+Priority:     0
+Node:         master/172.17.0.8
+Start Time:   Sun, 25 Oct 2020 09:20:53 +0000
+Labels:       app=redis
+              pod-template-hash=56d6b75d7d
+Annotations:  <none>
+Status:       Pending
+IP:           10.32.0.4
+IPs:
+  IP:           10.32.0.4
+Controlled By:  ReplicaSet/redis-deployment-56d6b75d7d
+Containers:
+  redis-container:
+    Container ID:
+    Image:         redis:alpines
+    Image ID:
+    Port:          6379/TCP
+    Host Port:     0/TCP
+    Command:
+      sh
+      -c
+      while true; do apt update; apt install -y vim php ; sleep 3; done
+    State:          Waiting
+      Reason:       ErrImagePull
+    Ready:          False
+    Restart Count:  0
+    Requests:
+      cpu:        300m
+    Environment:  <none>
+    Mounts:
+      /redis-master from config (rw)
+      /redis-master-data from data (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-55mtk (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  data:
+    Type:       EmptyDir (a temporary directory that shares a pod's lifetime)
+    Medium:
+    SizeLimit:  <unset>
+  config:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      redis-config
+    Optional:  false
+  default-token-55mtk:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-55mtk
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  kubernetes.io/hostname=master
+Tolerations:     node-role.kubernetes.io/master:NoSchedule
+                 node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  58s                default-scheduler  Successfully assigned default/redis-deployment-56d6b75d7d-lrtgd to master
+  Normal   Pulling    16s (x3 over 57s)  kubelet, master    Pulling image "redis:alpines"
+  Warning  Failed     15s (x3 over 56s)  kubelet, master    Failed to pull image "redis:alpines": rpc error: code = Unknown desc = Error response from daemon: manifest for redis:alpines not found: manifest unknown: manifest unknown
+  Warning  Failed     15s (x3 over 56s)  kubelet, master    Error: ErrImagePull
+  Normal   BackOff    1s (x3 over 55s)   kubelet, master    Back-off pulling image "redis:alpines"
+  Warning  Failed     1s (x3 over 55s)   kubelet, master    Error: ImagePullBackOff
+thor@jump_host /$ kubectl edit deploy
+deployment.apps/redis-deployment edited
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS              RESTARTS   AGE
+redis-deployment-56ccf4d7bc-9d4sk   0/1     ContainerCreating   0          5s
+redis-deployment-56d6b75d7d-lrtgd   0/1     ImagePullBackOff    0          2m26s
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+redis-deployment   1/1     1            1           11m
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+redis-deployment-56ccf4d7bc-9d4sk   1/1     Running   0          27s
+thor@jump_host /$ kubectl get deploy -o yaml
+apiVersion: v1
+items:
+- apiVersion: apps/v1
+  kind: Deployment
+  metadata:
+    annotations:
+      deployment.kubernetes.io/revision: "3"
+      kubectl.kubernetes.io/last-applied-configuration: |
+        {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"creationTimestamp":null,"labels":{"app":"redis"},"name":"redis-deployment","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"redis"}},"strategy":{},"template":{"metadata":{"creationTimestamp":null,"labels":{"app":"redis"}},"spec":{"containers":[{"command":["sh","-c","while true; do apt update; apt install -y vim php ; sleep 3; done"],"image":"redis:alpines","name":"redis-container","ports":[{"containerPort":6379}],"resources":{"requests":{"cpu":"0.3"}},"volumeMounts":[{"mountPath":"/redis-master-data","name":"data"},{"mountPath":"/redis-master","name":"config"}]}],"nodeSelector":{"kubernetes.io/hostname":"maste"},"tolerations":[{"effect":"NoSchedule","key":"node-role.kubernetes.io/maste","operator":"Exists"}],"volumes":[{"emptyDir":{},"name":"data"},{"configMap":{"name":"redis-config"},"name":"config"}]}}}}
+    creationTimestamp: "2020-10-25T09:12:11Z"
+    generation: 3
+    labels:
+      app: redis
+    name: redis-deployment
+    namespace: default
+    resourceVersion: "121368"
+    selfLink: /apis/apps/v1/namespaces/default/deployments/redis-deployment
+    uid: 95bb6aef-837f-4545-8ef1-2565b1c5e859
+  spec:
+    progressDeadlineSeconds: 600
+    replicas: 1
+    revisionHistoryLimit: 10
+    selector:
+      matchLabels:
+        app: redis
+    strategy:
+      rollingUpdate:
+        maxSurge: 25%
+        maxUnavailable: 25%
+      type: RollingUpdate
+    template:
+      metadata:
+        creationTimestamp: null
+        labels:
+          app: redis
+      spec:
+        containers:
+        - command:
+          - sh
+          - -c
+          - while true; do apt update; apt install -y vim php ; sleep 3; done
+          image: redis:alpine
+          imagePullPolicy: IfNotPresent
+          name: redis-container
+          ports:
+          - containerPort: 6379
+            protocol: TCP
+          resources:
+            requests:
+              cpu: 300m
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+          - mountPath: /redis-master-data
+            name: data
+          - mountPath: /redis-master
+            name: config
+        dnsPolicy: ClusterFirst
+        nodeSelector:
+          kubernetes.io/hostname: master
+        restartPolicy: Always
+        schedulerName: default-scheduler
+        securityContext: {}
+        terminationGracePeriodSeconds: 30
+        tolerations:
+        - effect: NoSchedule
+          key: node-role.kubernetes.io/master
+          operator: Exists
+        volumes:
+        - emptyDir: {}
+          name: data
+        - configMap:
+            defaultMode: 420
+            name: redis-config
+          name: config
+  status:
+    availableReplicas: 1
+    conditions:
+    - lastTransitionTime: "2020-10-25T09:23:21Z"
+      lastUpdateTime: "2020-10-25T09:23:21Z"
+      message: Deployment has minimum availability.
+      reason: MinimumReplicasAvailable
+      status: "True"
+      type: Available
+    - lastTransitionTime: "2020-10-25T09:12:11Z"
+      lastUpdateTime: "2020-10-25T09:23:21Z"
+      message: ReplicaSet "redis-deployment-56ccf4d7bc" has successfully progressed.
+      reason: NewReplicaSetAvailable
+      status: "True"
+      type: Progressing
+    observedGeneration: 3
+    readyReplicas: 1
+    replicas: 1
+    updatedReplicas: 1
+kind: List
+metadata:
+  resourceVersion: ""
+  selfLink: ""
+thor@jump_host /$

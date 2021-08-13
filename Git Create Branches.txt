@@ -1,0 +1,77 @@
+Nautilus developers are actively working on one of the project repositories, /usr/src/kodekloudrepos/beta. They recently decided to implement some new features in the application, and they want to maintain those new changes in a separate branch. Below are the requirements that have been shared with the DevOps team:
+
+
+On Storage server in Stratos DC create a new branch xfusioncorp_beta from master branch in /usr/src/kodekloudrepos/beta git repo.
+
+Please do not try to make any changes in code.
+
+thor@jump_host /$ ssh natasha@ststor01
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:HuZQTT8MI7a+D/kGL/OkcxaqLiATcT3f71dbl+1sw+Y.
+ECDSA key fingerprint is MD5:ed:95:0d:42:77:5c:68:46:d8:8e:cf:61:62:4b:5a:88.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/beta
+[root@ststor01 beta]# git checkout master
+Switched to branch 'master'
+[root@ststor01 beta]# git checkout -b xfusioncorp_beta master
+Switched to a new branch 'xfusioncorp_beta'
+[root@ststor01 beta]# git status
+# On branch xfusioncorp_beta
+nothing to commit, working directory clean
+[root@ststor01 beta]# git branch
+  kodekloud_beta
+  master
+* xfusioncorp_beta
+[root@ststor01 beta]# git show-branch master
+[master] initial commit
+[root@ststor01 beta]# ls -l
+total 4
+-rw-r--r-- 1 root root 34 Sep 16 17:23 info.txt
+[root@ststor01 beta]# ls -l al
+ls: cannot access al: No such file or directory
+[root@ststor01 beta]# ls -al
+total 16
+drwxr-xr-x 3 root root 4096 Sep 16 17:24 .
+drwxr-xr-x 3 root root 4096 Sep 16 17:23 ..
+drwxr-xr-x 8 root root 4096 Sep 16 17:26 .git
+-rw-r--r-- 1 root root   34 Sep 16 17:23 info.txt
+[root@ststor01 beta]# cd .fit
+-bash: cd: .fit: No such file or directory
+[root@ststor01 beta]# cd .git
+[root@ststor01 .git]# ls -l
+total 44
+drwxr-xr-x 2 root root 4096 Sep 16 17:23 branches
+-rw-r--r-- 1 root root   14 Sep 16 17:23 COMMIT_EDITMSG
+-rw-r--r-- 1 root root  238 Sep 16 17:23 config
+-rw-r--r-- 1 root root   73 Sep 16 17:23 description
+-rw-r--r-- 1 root root   33 Sep 16 17:25 HEAD
+drwxr-xr-x 2 root root 4096 Sep 16 17:23 hooks
+-rw-r--r-- 1 root root  104 Sep 16 17:25 index
+drwxr-xr-x 2 root root 4096 Sep 16 17:23 info
+drwxr-xr-x 3 root root 4096 Sep 16 17:23 logs
+drwxr-xr-x 9 root root 4096 Sep 16 17:23 objects
+drwxr-xr-x 5 root root 4096 Sep 16 17:23 refs
+[root@ststor01 .git]# cd  branches/
+[root@ststor01 branches]# ls -l
+total 0
+[root@ststor01 branches]# cd ..
+[root@ststor01 .git]# cd ..
+[root@ststor01 beta]# git push origin xfusioncorp_beta
+Total 0 (delta 0), reused 0 (delta 0)
+To /opt/beta.git
+ * [new branch]      xfusioncorp_beta -> xfusioncorp_beta
+[root@ststor01 beta]#
+
+
+git checkout -b xfusioncorp_beta master

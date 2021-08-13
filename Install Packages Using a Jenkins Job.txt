@@ -1,0 +1,1125 @@
+Some new requirements have come up to install and configure some packages on the Nautilus infrastructure under Stratos Datacenter. The Nautilus DevOps team installed and configured a new Jenkins server so they wanted to create a Jenkins job to automate a task. Find below more details and complete the task accordingly:
+
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8081 and click on Display Port. You should be able to access the Jenkins login page. Login using username theadmin and Adm!n321 password.
+
+Create a Jenkins job named httpd-php and configure it to accomplish below given tasks.
+
+a. Install httpd (whatever version is available in the yum repo by default) and php-7.1 and along with their dependencies on All App servers under Stratos Datacenter.
+
+b. HTTPD should serve on port 8084 on All App servers.
+
+c. There is already an index.php file under Apache default document root and LB server is already configured. Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 80 and click on Display Port. You should be able to access the php info page in the browser.
+
+Hint: As of right now no slave node has been added under Jenkins so you can simply accomplish the task using SSH within your job config.
+
+Note:
+
+You might need to install some plugins and restart Jenkins service. So, we recommend clicking on Restart Jenkins when installation is complete and no jobs are running on plugin installation/update page i.e update centre. Also some times Jenkins UI gets stuck when Jenkins service restarts in the back end so in such case please make sure to refresh the UI page.
+
+Make sure Jenkins job passes even on repetitive runs as validation may try to build the job multiple times.
+
+ 
+
+First install ssh plugin
+
+Manage Jenkin -> Manage plugin -> Available -> Select ssh -> Install
+
+Then add all app serevr credential to jenkin
+
+Manage Jenkins -> Configier System -> SSH remote hosts - -> Add three serevrs credential
+
+Then create job
+
+New Item -> Job name - > Freestyle project -> biuld shell 
+
+
+echo "Ir0nM@n" | sudo -S yum install httpd -y
+echo "Ir0nM@n" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "Ir0nM@n" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "Ir0nM@n" | sudo -S yum-config-manager --enable remi-php71
+echo "Ir0nM@n" | sudo -S yum install php -y
+echo "Ir0nM@n" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "Ir0nM@n" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "Ir0nM@n" | sudo -S systemctl start httpd
+echo "Ir0nM@n" | sudo -S systemctl status httpd
+echo "Ir0nM@n" | sudo -S php -v
+
+echo "Am3ric@" | sudo -S yum install httpd -y
+echo "Am3ric@" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "Am3ric@" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "Am3ric@" | sudo -S yum-config-manager --enable remi-php71
+echo "Am3ric@" | sudo -S yum install php -y
+echo "Am3ric@" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "Am3ric@" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "Am3ric@" | sudo -S systemctl start httpd
+echo "Am3ric@" | sudo -S systemctl status httpd
+echo "Am3ric@" | sudo -S php -v
+
+
+echo "BigGr33n" | sudo -S yum install httpd -y
+echo "BigGr33n" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "BigGr33n" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "BigGr33n" | sudo -S yum-config-manager --enable remi-php71
+echo "BigGr33n" | sudo -S yum install php -y
+echo "BigGr33n" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "BigGr33n" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "BigGr33n" | sudo -S systemctl start httpd
+echo "BigGr33n" | sudo -S systemctl status httpd
+echo "BigGr33n" | sudo -S php -v
+
+
+
+
+Started by user Admin User
+Running as SYSTEM
+Building in workspace /var/jenkins_home/workspace/httpd-php
+[SSH] script:
+
+echo "Ir0nM@n" | sudo -S yum install httpd -y
+echo "Ir0nM@n" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "Ir0nM@n" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "Ir0nM@n" | sudo -S yum-config-manager --enable remi-php71
+echo "Ir0nM@n" | sudo -S yum install php -y
+echo "Ir0nM@n" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "Ir0nM@n" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "Ir0nM@n" | sudo -S systemctl start httpd
+echo "Ir0nM@n" | sudo -S systemctl status httpd
+echo "Ir0nM@n" | sudo -S php -v
+
+[SSH] executing...
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for tony: Loaded plugins: fastestmirror, ovl
+Determining fastest mirrors
+ * base: de.mirrors.clouvider.net
+ * extras: centosmirror.netcup.net
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package httpd.x86_64 0:2.4.6-97.el7.centos will be installed
+--> Processing Dependency: httpd-tools = 2.4.6-97.el7.centos for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: system-logos >= 7.92.1-1 for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: /etc/mime.types for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libaprutil-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libapr-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Running transaction check
+---> Package apr.x86_64 0:1.4.8-7.el7 will be installed
+---> Package apr-util.x86_64 0:1.5.2-6.el7 will be installed
+---> Package centos-logos.noarch 0:70.0.6-3.el7.centos will be installed
+---> Package httpd-tools.x86_64 0:2.4.6-97.el7.centos will be installed
+---> Package mailcap.noarch 0:2.1.41-2.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package            Arch         Version                    Repository     Size
+================================================================================
+Installing:
+ httpd              x86_64       2.4.6-97.el7.centos        updates       2.7 M
+Installing for dependencies:
+ apr                x86_64       1.4.8-7.el7                base          104 k
+ apr-util           x86_64       1.5.2-6.el7                base           92 k
+ centos-logos       noarch       70.0.6-3.el7.centos        base           21 M
+ httpd-tools        x86_64       2.4.6-97.el7.centos        updates        93 k
+ mailcap            noarch       2.1.41-2.el7               base           31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+5 Dependent packages)
+
+Total download size: 24 M
+Installed size: 32 M
+Downloading packages:
+--------------------------------------------------------------------------------
+Total                                               49 MB/s |  24 MB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : apr-1.4.8-7.el7.x86_64                                       1/6 
+  Installing : apr-util-1.5.2-6.el7.x86_64                                  2/6 
+  Installing : httpd-tools-2.4.6-97.el7.centos.x86_64                       3/6 
+  Installing : centos-logos-70.0.6-3.el7.centos.noarch                      4/6 
+  Installing : mailcap-2.1.41-2.el7.noarch                                  5/6 
+  Installing : httpd-2.4.6-97.el7.centos.x86_64                             6/6 
+  Verifying  : mailcap-2.1.41-2.el7.noarch                                  1/6 
+  Verifying  : apr-1.4.8-7.el7.x86_64                                       2/6 
+  Verifying  : apr-util-1.5.2-6.el7.x86_64                                  3/6 
+  Verifying  : httpd-2.4.6-97.el7.centos.x86_64                             4/6 
+  Verifying  : httpd-tools-2.4.6-97.el7.centos.x86_64                       5/6 
+  Verifying  : centos-logos-70.0.6-3.el7.centos.noarch                      6/6 
+
+Installed:
+  httpd.x86_64 0:2.4.6-97.el7.centos                                            
+
+Dependency Installed:
+  apr.x86_64 0:1.4.8-7.el7                                                      
+  apr-util.x86_64 0:1.5.2-6.el7                                                 
+  centos-logos.noarch 0:70.0.6-3.el7.centos                                     
+  httpd-tools.x86_64 0:2.4.6-97.el7.centos                                      
+  mailcap.noarch 0:2.1.41-2.el7                                                 
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * extras: centosmirror.netcup.net
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package epel-release.noarch 0:7-11 will be installed
+---> Package yum-utils.noarch 0:1.1.31-50.el7 will be updated
+---> Package yum-utils.noarch 0:1.1.31-54.el7_8 will be an update
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package             Arch          Version                  Repository     Size
+================================================================================
+Installing:
+ epel-release        noarch        7-11                     extras         15 k
+Updating:
+ yum-utils           noarch        1.1.31-54.el7_8          base          122 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+Upgrade  1 Package
+
+Total download size: 137 k
+Downloading packages:
+Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+--------------------------------------------------------------------------------
+Total                                              1.1 MB/s | 137 kB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Updating   : yum-utils-1.1.31-54.el7_8.noarch                             1/3 
+  Installing : epel-release-7-11.noarch                                     2/3 
+  Cleanup    : yum-utils-1.1.31-50.el7.noarch                               3/3 
+  Verifying  : epel-release-7-11.noarch                                     1/3 
+  Verifying  : yum-utils-1.1.31-54.el7_8.noarch                             2/3 
+  Verifying  : yum-utils-1.1.31-50.el7.noarch                               3/3 
+
+Installed:
+  epel-release.noarch 0:7-11                                                    
+
+Updated:
+  yum-utils.noarch 0:1.1.31-54.el7_8                                            
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Examining /var/tmp/yum-root-Z5A8jJ/remi-release-7.rpm: remi-release-7.9-1.el7.remi.noarch
+Marking /var/tmp/yum-root-Z5A8jJ/remi-release-7.rpm to be installed
+Resolving Dependencies
+--> Running transaction check
+---> Package remi-release.noarch 0:7.9-1.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package           Arch        Version               Repository            Size
+================================================================================
+Installing:
+ remi-release      noarch      7.9-1.el7.remi        /remi-release-7       31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 31 k
+Installed size: 31 k
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : remi-release-7.9-1.el7.remi.noarch                           1/1 
+  Verifying  : remi-release-7.9-1.el7.remi.noarch                           1/1 
+
+Installed:
+  remi-release.noarch 0:7.9-1.el7.remi                                          
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+=============================== repo: remi-php71 ===============================
+[remi-php71]
+async = True
+bandwidth = 0
+base_persistdir = /var/lib/yum/repos/x86_64/7
+baseurl = 
+cache = 0
+cachedir = /var/cache/yum/x86_64/7/remi-php71
+check_config_file_age = True
+compare_providers_priority = 80
+cost = 1000
+deltarpm_metadata_percentage = 100
+deltarpm_percentage = 
+enabled = 1
+enablegroups = True
+exclude = 
+failovermethod = priority
+ftp_disable_epsv = False
+gpgcadir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgcadir
+gpgcakey = 
+gpgcheck = True
+gpgdir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgdir
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+hdrdir = /var/cache/yum/x86_64/7/remi-php71/headers
+http_caching = all
+includepkgs = 
+ip_resolve = 
+keepalive = True
+keepcache = False
+mddownloadpolicy = sqlite
+mdpolicy = group:small
+mediaid = 
+metadata_expire = 21600
+metadata_expire_filter = read-only:present
+metalink = 
+minrate = 0
+mirrorlist = http://cdn.remirepo.net/enterprise/7/php71/mirror
+mirrorlist_expire = 86400
+name = Remi's PHP 7.1 RPM repository for Enterprise Linux 7 - x86_64
+old_base_cache_dir = 
+password = 
+persistdir = /var/lib/yum/repos/x86_64/7/remi-php71
+pkgdir = /var/cache/yum/x86_64/7/remi-php71/packages
+proxy = False
+proxy_dict = 
+proxy_password = 
+proxy_username = 
+repo_gpgcheck = False
+retries = 10
+skip_if_unavailable = False
+ssl_check_cert_permissions = True
+sslcacert = 
+sslclientcert = 
+sslclientkey = 
+sslverify = True
+throttle = 0
+timeout = 30.0
+ui_id = remi-php71
+ui_repoid_vars = releasever,
+   basearch
+username = 
+
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * epel: mirror.de.leaseweb.net
+ * extras: centosmirror.netcup.net
+ * remi-php71: mirror.23media.com
+ * remi-safe: mirror.23media.com
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package php.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-cli(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+warning: /var/cache/yum/x86_64/7/remi-php71/packages/php-cli-7.1.33-11.el7.remi.x86_64.rpm: Header V4 DSA/SHA1 Signature, key ID 00f97f56: NOKEY
+Importing GPG key 0x00F97F56:
+ Userid     : "Remi Collet <RPMS@FamilleCollet.com>"
+ Fingerprint: 1ee0 4cce 88a4 ae4a a29a 5df5 004e 6f47 00f9 7f56
+ Package    : remi-release-7.9-1.el7.remi.noarch (installed)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+--> Processing Dependency: php-common(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-cli.x86_64 0:7.1.33-11.el7.remi will be installed
+---> Package php-common.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-json(x86-64) = 7.1.33-11.el7.remi for package: php-common-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-json.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package          Arch         Version                   Repository        Size
+================================================================================
+Installing:
+ php              x86_64       7.1.33-11.el7.remi        remi-php71       3.0 M
+Installing for dependencies:
+ php-cli          x86_64       7.1.33-11.el7.remi        remi-php71       4.6 M
+ php-common       x86_64       7.1.33-11.el7.remi        remi-php71       1.0 M
+ php-json         x86_64       7.1.33-11.el7.remi        remi-php71        64 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+3 Dependent packages)
+
+Total download size: 8.6 M
+Installed size: 32 M
+Downloading packages:
+Public key for php-cli-7.1.33-11.el7.remi.x86_64.rpm is not installed
+--------------------------------------------------------------------------------
+Total                                               13 MB/s | 8.6 MB  00:00     
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : php-json-7.1.33-11.el7.remi.x86_64                           1/4 
+  Installing : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Installing : php-cli-7.1.33-11.el7.remi.x86_64                            3/4 
+  Installing : php-7.1.33-11.el7.remi.x86_64                                4/4 
+=====================================================================
+
+  WARNING : PHP 7.1 have reached its "End of Life" in
+  December 2019. Even, if this package includes some of
+  the important security fix, backported from 7.2, the
+  UPGRADE to a maintained version is very strongly RECOMMENDED.
+
+=====================================================================
+  Verifying  : php-7.1.33-11.el7.remi.x86_64                                1/4 
+  Verifying  : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Verifying  : php-json-7.1.33-11.el7.remi.x86_64                           3/4 
+  Verifying  : php-cli-7.1.33-11.el7.remi.x86_64                            4/4 
+
+Installed:
+  php.x86_64 0:7.1.33-11.el7.remi                                               
+
+Dependency Installed:
+  php-cli.x86_64 0:7.1.33-11.el7.remi   php-common.x86_64 0:7.1.33-11.el7.remi 
+  php-json.x86_64 0:7.1.33-11.el7.remi 
+
+Complete!
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to 
+#Listen 12.34.56.78:80
+Listen 8084
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: active (running) since Sat 2021-01-09 14:25:04 UTC; 47ms ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 515 (httpd)
+   Status: "Processing requests..."
+   CGroup: /docker/ff116682e3623a7f1855242a2df4850c5723ae3eba80529843fb0bcd939d7f96/system.slice/httpd.service
+           ├─515 /usr/sbin/httpd -DFOREGROUND
+           ├─516 /usr/sbin/httpd -DFOREGROUND
+           ├─517 /usr/sbin/httpd -DFOREGROUND
+           ├─518 /usr/sbin/httpd -DFOREGROUND
+           ├─521 /usr/sbin/httpd -DFOREGROUND
+           └─522 /usr/sbin/httpd -DFOREGROUND
+
+Jan 09 14:25:04 stapp01.stratos.xfusioncorp.com systemd[1]: Starting The Apache HTTP Server...
+Jan 09 14:25:04 stapp01.stratos.xfusioncorp.com httpd[515]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using stapp01.stratos.xfusioncorp.com. Set the 'ServerName' directive globally to suppress this message
+Jan 09 14:25:04 stapp01.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+PHP 7.1.33 (cli) (built: Jan  4 2021 14:48:30) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.1.0, Copyright (c) 1998-2018 Zend Technologies
+
+[SSH] completed
+[SSH] exit-status: 0
+
+[SSH] script:
+
+echo "Am3ric@" | sudo -S yum install httpd -y
+echo "Am3ric@" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "Am3ric@" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "Am3ric@" | sudo -S yum-config-manager --enable remi-php71
+echo "Am3ric@" | sudo -S yum install php -y
+echo "Am3ric@" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "Am3ric@" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "Am3ric@" | sudo -S systemctl start httpd
+echo "Am3ric@" | sudo -S systemctl status httpd
+echo "Am3ric@" | sudo -S php -v
+
+[SSH] executing...
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for steve: Loaded plugins: fastestmirror, ovl
+Determining fastest mirrors
+ * base: de.mirrors.clouvider.net
+ * extras: centosmirror.netcup.net
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package httpd.x86_64 0:2.4.6-97.el7.centos will be installed
+--> Processing Dependency: httpd-tools = 2.4.6-97.el7.centos for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: system-logos >= 7.92.1-1 for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: /etc/mime.types for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libaprutil-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libapr-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Running transaction check
+---> Package apr.x86_64 0:1.4.8-7.el7 will be installed
+---> Package apr-util.x86_64 0:1.5.2-6.el7 will be installed
+---> Package centos-logos.noarch 0:70.0.6-3.el7.centos will be installed
+---> Package httpd-tools.x86_64 0:2.4.6-97.el7.centos will be installed
+---> Package mailcap.noarch 0:2.1.41-2.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package            Arch         Version                    Repository     Size
+================================================================================
+Installing:
+ httpd              x86_64       2.4.6-97.el7.centos        updates       2.7 M
+Installing for dependencies:
+ apr                x86_64       1.4.8-7.el7                base          104 k
+ apr-util           x86_64       1.5.2-6.el7                base           92 k
+ centos-logos       noarch       70.0.6-3.el7.centos        base           21 M
+ httpd-tools        x86_64       2.4.6-97.el7.centos        updates        93 k
+ mailcap            noarch       2.1.41-2.el7               base           31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+5 Dependent packages)
+
+Total download size: 24 M
+Installed size: 32 M
+Downloading packages:
+--------------------------------------------------------------------------------
+Total                                               52 MB/s |  24 MB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : apr-1.4.8-7.el7.x86_64                                       1/6 
+  Installing : apr-util-1.5.2-6.el7.x86_64                                  2/6 
+  Installing : httpd-tools-2.4.6-97.el7.centos.x86_64                       3/6 
+  Installing : centos-logos-70.0.6-3.el7.centos.noarch                      4/6 
+  Installing : mailcap-2.1.41-2.el7.noarch                                  5/6 
+  Installing : httpd-2.4.6-97.el7.centos.x86_64                             6/6 
+  Verifying  : mailcap-2.1.41-2.el7.noarch                                  1/6 
+  Verifying  : apr-1.4.8-7.el7.x86_64                                       2/6 
+  Verifying  : apr-util-1.5.2-6.el7.x86_64                                  3/6 
+  Verifying  : httpd-2.4.6-97.el7.centos.x86_64                             4/6 
+  Verifying  : httpd-tools-2.4.6-97.el7.centos.x86_64                       5/6 
+  Verifying  : centos-logos-70.0.6-3.el7.centos.noarch                      6/6 
+
+Installed:
+  httpd.x86_64 0:2.4.6-97.el7.centos                                            
+
+Dependency Installed:
+  apr.x86_64 0:1.4.8-7.el7                                                      
+  apr-util.x86_64 0:1.5.2-6.el7                                                 
+  centos-logos.noarch 0:70.0.6-3.el7.centos                                     
+  httpd-tools.x86_64 0:2.4.6-97.el7.centos                                      
+  mailcap.noarch 0:2.1.41-2.el7                                                 
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * extras: centosmirror.netcup.net
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package epel-release.noarch 0:7-11 will be installed
+---> Package yum-utils.noarch 0:1.1.31-50.el7 will be updated
+---> Package yum-utils.noarch 0:1.1.31-54.el7_8 will be an update
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package             Arch          Version                  Repository     Size
+================================================================================
+Installing:
+ epel-release        noarch        7-11                     extras         15 k
+Updating:
+ yum-utils           noarch        1.1.31-54.el7_8          base          122 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+Upgrade  1 Package
+
+Total download size: 137 k
+Downloading packages:
+Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+--------------------------------------------------------------------------------
+Total                                              1.2 MB/s | 137 kB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Updating   : yum-utils-1.1.31-54.el7_8.noarch                             1/3 
+  Installing : epel-release-7-11.noarch                                     2/3 
+  Cleanup    : yum-utils-1.1.31-50.el7.noarch                               3/3 
+  Verifying  : epel-release-7-11.noarch                                     1/3 
+  Verifying  : yum-utils-1.1.31-54.el7_8.noarch                             2/3 
+  Verifying  : yum-utils-1.1.31-50.el7.noarch                               3/3 
+
+Installed:
+  epel-release.noarch 0:7-11                                                    
+
+Updated:
+  yum-utils.noarch 0:1.1.31-54.el7_8                                            
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Examining /var/tmp/yum-root-uNdd8g/remi-release-7.rpm: remi-release-7.9-1.el7.remi.noarch
+Marking /var/tmp/yum-root-uNdd8g/remi-release-7.rpm to be installed
+Resolving Dependencies
+--> Running transaction check
+---> Package remi-release.noarch 0:7.9-1.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package           Arch        Version               Repository            Size
+================================================================================
+Installing:
+ remi-release      noarch      7.9-1.el7.remi        /remi-release-7       31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 31 k
+Installed size: 31 k
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : remi-release-7.9-1.el7.remi.noarch                           1/1 
+  Verifying  : remi-release-7.9-1.el7.remi.noarch                           1/1 
+
+Installed:
+  remi-release.noarch 0:7.9-1.el7.remi                                          
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+=============================== repo: remi-php71 ===============================
+[remi-php71]
+async = True
+bandwidth = 0
+base_persistdir = /var/lib/yum/repos/x86_64/7
+baseurl = 
+cache = 0
+cachedir = /var/cache/yum/x86_64/7/remi-php71
+check_config_file_age = True
+compare_providers_priority = 80
+cost = 1000
+deltarpm_metadata_percentage = 100
+deltarpm_percentage = 
+enabled = 1
+enablegroups = True
+exclude = 
+failovermethod = priority
+ftp_disable_epsv = False
+gpgcadir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgcadir
+gpgcakey = 
+gpgcheck = True
+gpgdir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgdir
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+hdrdir = /var/cache/yum/x86_64/7/remi-php71/headers
+http_caching = all
+includepkgs = 
+ip_resolve = 
+keepalive = True
+keepcache = False
+mddownloadpolicy = sqlite
+mdpolicy = group:small
+mediaid = 
+metadata_expire = 21600
+metadata_expire_filter = read-only:present
+metalink = 
+minrate = 0
+mirrorlist = http://cdn.remirepo.net/enterprise/7/php71/mirror
+mirrorlist_expire = 86400
+name = Remi's PHP 7.1 RPM repository for Enterprise Linux 7 - x86_64
+old_base_cache_dir = 
+password = 
+persistdir = /var/lib/yum/repos/x86_64/7/remi-php71
+pkgdir = /var/cache/yum/x86_64/7/remi-php71/packages
+proxy = False
+proxy_dict = 
+proxy_password = 
+proxy_username = 
+repo_gpgcheck = False
+retries = 10
+skip_if_unavailable = False
+ssl_check_cert_permissions = True
+sslcacert = 
+sslclientcert = 
+sslclientkey = 
+sslverify = True
+throttle = 0
+timeout = 30.0
+ui_id = remi-php71
+ui_repoid_vars = releasever,
+   basearch
+username = 
+
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * epel: mirror.imt-systems.com
+ * extras: centosmirror.netcup.net
+ * remi-php71: mirror.dogado.de
+ * remi-safe: mirror.dogado.de
+ * updates: mirror.plustech.de
+warning: /var/cache/yum/x86_64/7/remi-php71/packages/php-7.1.33-11.el7.remi.x86_64.rpm: Header V4 DSA/SHA1 Signature, key ID 00f97f56: NOKEY
+Importing GPG key 0x00F97F56:
+ Userid     : "Remi Collet <RPMS@FamilleCollet.com>"
+ Fingerprint: 1ee0 4cce 88a4 ae4a a29a 5df5 004e 6f47 00f9 7f56
+ Package    : remi-release-7.9-1.el7.remi.noarch (installed)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+Resolving Dependencies
+--> Running transaction check
+---> Package php.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-cli(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+--> Processing Dependency: php-common(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-cli.x86_64 0:7.1.33-11.el7.remi will be installed
+---> Package php-common.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-json(x86-64) = 7.1.33-11.el7.remi for package: php-common-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-json.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package          Arch         Version                   Repository        Size
+================================================================================
+Installing:
+ php              x86_64       7.1.33-11.el7.remi        remi-php71       3.0 M
+Installing for dependencies:
+ php-cli          x86_64       7.1.33-11.el7.remi        remi-php71       4.6 M
+ php-common       x86_64       7.1.33-11.el7.remi        remi-php71       1.0 M
+ php-json         x86_64       7.1.33-11.el7.remi        remi-php71        64 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+3 Dependent packages)
+
+Total download size: 8.6 M
+Installed size: 32 M
+Downloading packages:
+Public key for php-7.1.33-11.el7.remi.x86_64.rpm is not installed
+--------------------------------------------------------------------------------
+Total                                               17 MB/s | 8.6 MB  00:00     
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : php-json-7.1.33-11.el7.remi.x86_64                           1/4 
+  Installing : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Installing : php-cli-7.1.33-11.el7.remi.x86_64                            3/4 
+  Installing : php-7.1.33-11.el7.remi.x86_64                                4/4 
+=====================================================================
+
+  WARNING : PHP 7.1 have reached its "End of Life" in
+  December 2019. Even, if this package includes some of
+  the important security fix, backported from 7.2, the
+  UPGRADE to a maintained version is very strongly RECOMMENDED.
+
+=====================================================================
+  Verifying  : php-7.1.33-11.el7.remi.x86_64                                1/4 
+  Verifying  : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Verifying  : php-json-7.1.33-11.el7.remi.x86_64                           3/4 
+  Verifying  : php-cli-7.1.33-11.el7.remi.x86_64                            4/4 
+
+Installed:
+  php.x86_64 0:7.1.33-11.el7.remi                                               
+
+Dependency Installed:
+  php-cli.x86_64 0:7.1.33-11.el7.remi   php-common.x86_64 0:7.1.33-11.el7.remi 
+  php-json.x86_64 0:7.1.33-11.el7.remi 
+
+Complete!
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to 
+#Listen 12.34.56.78:80
+Listen 8084
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: active (running) since Sat 2021-01-09 14:25:28 UTC; 50ms ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 584 (httpd)
+   Status: "Processing requests..."
+   CGroup: /docker/b339ee9503df534995ca466ed03101f890e8786ef98dd862a6bf3b34b8145deb/system.slice/httpd.service
+           ├─584 /usr/sbin/httpd -DFOREGROUND
+           ├─585 /usr/sbin/httpd -DFOREGROUND
+           ├─586 /usr/sbin/httpd -DFOREGROUND
+           ├─587 /usr/sbin/httpd -DFOREGROUND
+           ├─589 /usr/sbin/httpd -DFOREGROUND
+           └─591 /usr/sbin/httpd -DFOREGROUND
+
+Jan 09 14:25:28 stapp02.stratos.xfusioncorp.com systemd[1]: Starting The Apache HTTP Server...
+Jan 09 14:25:28 stapp02.stratos.xfusioncorp.com httpd[584]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using stapp02.stratos.xfusioncorp.com. Set the 'ServerName' directive globally to suppress this message
+Jan 09 14:25:28 stapp02.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+PHP 7.1.33 (cli) (built: Jan  4 2021 14:48:30) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.1.0, Copyright (c) 1998-2018 Zend Technologies
+
+[SSH] completed
+[SSH] exit-status: 0
+
+[SSH] script:
+
+echo "BigGr33n" | sudo -S yum install httpd -y
+echo "BigGr33n" | sudo -S  yum -y install epel-release.noarch yum-utils
+echo "BigGr33n" | sudo -S yum -y install http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+echo "BigGr33n" | sudo -S yum-config-manager --enable remi-php71
+echo "BigGr33n" | sudo -S yum install php -y
+echo "BigGr33n" | sudo -S sed -i 's/Listen 80[[:space:]]*$/Listen 8084/' /etc/httpd/conf/httpd.conf
+echo "BigGr33n" | sudo -S cat /etc/httpd/conf/httpd.conf|grep -i listen
+echo "BigGr33n" | sudo -S systemctl start httpd
+echo "BigGr33n" | sudo -S systemctl status httpd
+echo "BigGr33n" | sudo -S php -v
+
+
+[SSH] executing...
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for banner: Loaded plugins: fastestmirror, ovl
+Determining fastest mirrors
+ * base: de.mirrors.clouvider.net
+ * extras: mirror.plustech.de
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package httpd.x86_64 0:2.4.6-97.el7.centos will be installed
+--> Processing Dependency: httpd-tools = 2.4.6-97.el7.centos for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: system-logos >= 7.92.1-1 for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: /etc/mime.types for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libaprutil-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Processing Dependency: libapr-1.so.0()(64bit) for package: httpd-2.4.6-97.el7.centos.x86_64
+--> Running transaction check
+---> Package apr.x86_64 0:1.4.8-7.el7 will be installed
+---> Package apr-util.x86_64 0:1.5.2-6.el7 will be installed
+---> Package centos-logos.noarch 0:70.0.6-3.el7.centos will be installed
+---> Package httpd-tools.x86_64 0:2.4.6-97.el7.centos will be installed
+---> Package mailcap.noarch 0:2.1.41-2.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package            Arch         Version                    Repository     Size
+================================================================================
+Installing:
+ httpd              x86_64       2.4.6-97.el7.centos        updates       2.7 M
+Installing for dependencies:
+ apr                x86_64       1.4.8-7.el7                base          104 k
+ apr-util           x86_64       1.5.2-6.el7                base           92 k
+ centos-logos       noarch       70.0.6-3.el7.centos        base           21 M
+ httpd-tools        x86_64       2.4.6-97.el7.centos        updates        93 k
+ mailcap            noarch       2.1.41-2.el7               base           31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+5 Dependent packages)
+
+Total download size: 24 M
+Installed size: 32 M
+Downloading packages:
+--------------------------------------------------------------------------------
+Total                                               54 MB/s |  24 MB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : apr-1.4.8-7.el7.x86_64                                       1/6 
+  Installing : apr-util-1.5.2-6.el7.x86_64                                  2/6 
+  Installing : httpd-tools-2.4.6-97.el7.centos.x86_64                       3/6 
+  Installing : centos-logos-70.0.6-3.el7.centos.noarch                      4/6 
+  Installing : mailcap-2.1.41-2.el7.noarch                                  5/6 
+  Installing : httpd-2.4.6-97.el7.centos.x86_64                             6/6 
+  Verifying  : mailcap-2.1.41-2.el7.noarch                                  1/6 
+  Verifying  : apr-1.4.8-7.el7.x86_64                                       2/6 
+  Verifying  : apr-util-1.5.2-6.el7.x86_64                                  3/6 
+  Verifying  : httpd-2.4.6-97.el7.centos.x86_64                             4/6 
+  Verifying  : httpd-tools-2.4.6-97.el7.centos.x86_64                       5/6 
+  Verifying  : centos-logos-70.0.6-3.el7.centos.noarch                      6/6 
+
+Installed:
+  httpd.x86_64 0:2.4.6-97.el7.centos                                            
+
+Dependency Installed:
+  apr.x86_64 0:1.4.8-7.el7                                                      
+  apr-util.x86_64 0:1.5.2-6.el7                                                 
+  centos-logos.noarch 0:70.0.6-3.el7.centos                                     
+  httpd-tools.x86_64 0:2.4.6-97.el7.centos                                      
+  mailcap.noarch 0:2.1.41-2.el7                                                 
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * extras: mirror.plustech.de
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package epel-release.noarch 0:7-11 will be installed
+---> Package yum-utils.noarch 0:1.1.31-50.el7 will be updated
+---> Package yum-utils.noarch 0:1.1.31-54.el7_8 will be an update
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package             Arch          Version                  Repository     Size
+================================================================================
+Installing:
+ epel-release        noarch        7-11                     extras         15 k
+Updating:
+ yum-utils           noarch        1.1.31-54.el7_8          base          122 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+Upgrade  1 Package
+
+Total download size: 137 k
+Downloading packages:
+Delta RPMs disabled because /usr/bin/applydeltarpm not installed.
+--------------------------------------------------------------------------------
+Total                                              1.0 MB/s | 137 kB  00:00     
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Updating   : yum-utils-1.1.31-54.el7_8.noarch                             1/3 
+  Installing : epel-release-7-11.noarch                                     2/3 
+  Cleanup    : yum-utils-1.1.31-50.el7.noarch                               3/3 
+  Verifying  : epel-release-7-11.noarch                                     1/3 
+  Verifying  : yum-utils-1.1.31-54.el7_8.noarch                             2/3 
+  Verifying  : yum-utils-1.1.31-50.el7.noarch                               3/3 
+
+Installed:
+  epel-release.noarch 0:7-11                                                    
+
+Updated:
+  yum-utils.noarch 0:1.1.31-54.el7_8                                            
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+Examining /var/tmp/yum-root-EgtVZh/remi-release-7.rpm: remi-release-7.9-1.el7.remi.noarch
+Marking /var/tmp/yum-root-EgtVZh/remi-release-7.rpm to be installed
+Resolving Dependencies
+--> Running transaction check
+---> Package remi-release.noarch 0:7.9-1.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package           Arch        Version               Repository            Size
+================================================================================
+Installing:
+ remi-release      noarch      7.9-1.el7.remi        /remi-release-7       31 k
+
+Transaction Summary
+================================================================================
+Install  1 Package
+
+Total size: 31 k
+Installed size: 31 k
+Downloading packages:
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : remi-release-7.9-1.el7.remi.noarch                           1/1 
+  Verifying  : remi-release-7.9-1.el7.remi.noarch                           1/1 
+
+Installed:
+  remi-release.noarch 0:7.9-1.el7.remi                                          
+
+Complete!
+Loaded plugins: fastestmirror, ovl
+=============================== repo: remi-php71 ===============================
+[remi-php71]
+async = True
+bandwidth = 0
+base_persistdir = /var/lib/yum/repos/x86_64/7
+baseurl = 
+cache = 0
+cachedir = /var/cache/yum/x86_64/7/remi-php71
+check_config_file_age = True
+compare_providers_priority = 80
+cost = 1000
+deltarpm_metadata_percentage = 100
+deltarpm_percentage = 
+enabled = 1
+enablegroups = True
+exclude = 
+failovermethod = priority
+ftp_disable_epsv = False
+gpgcadir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgcadir
+gpgcakey = 
+gpgcheck = True
+gpgdir = /var/lib/yum/repos/x86_64/7/remi-php71/gpgdir
+gpgkey = file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+hdrdir = /var/cache/yum/x86_64/7/remi-php71/headers
+http_caching = all
+includepkgs = 
+ip_resolve = 
+keepalive = True
+keepcache = False
+mddownloadpolicy = sqlite
+mdpolicy = group:small
+mediaid = 
+metadata_expire = 21600
+metadata_expire_filter = read-only:present
+metalink = 
+minrate = 0
+mirrorlist = http://cdn.remirepo.net/enterprise/7/php71/mirror
+mirrorlist_expire = 86400
+name = Remi's PHP 7.1 RPM repository for Enterprise Linux 7 - x86_64
+old_base_cache_dir = 
+password = 
+persistdir = /var/lib/yum/repos/x86_64/7/remi-php71
+pkgdir = /var/cache/yum/x86_64/7/remi-php71/packages
+proxy = False
+proxy_dict = 
+proxy_password = 
+proxy_username = 
+repo_gpgcheck = False
+retries = 10
+skip_if_unavailable = False
+ssl_check_cert_permissions = True
+sslcacert = 
+sslclientcert = 
+sslclientkey = 
+sslverify = True
+throttle = 0
+timeout = 30.0
+ui_id = remi-php71
+ui_repoid_vars = releasever,
+   basearch
+username = 
+
+Loaded plugins: fastestmirror, ovl
+Loading mirror speeds from cached hostfile
+ * base: de.mirrors.clouvider.net
+ * epel: mirror.de.leaseweb.net
+ * extras: mirror.plustech.de
+ * remi-php71: mirror.dogado.de
+ * remi-safe: mirror.dogado.de
+ * updates: mirror.plustech.de
+Resolving Dependencies
+--> Running transaction check
+---> Package php.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-cli(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+warning: /var/cache/yum/x86_64/7/remi-php71/packages/php-7.1.33-11.el7.remi.x86_64.rpm: Header V4 DSA/SHA1 Signature, key ID 00f97f56: NOKEY
+Importing GPG key 0x00F97F56:
+ Userid     : "Remi Collet <RPMS@FamilleCollet.com>"
+ Fingerprint: 1ee0 4cce 88a4 ae4a a29a 5df5 004e 6f47 00f9 7f56
+ Package    : remi-release-7.9-1.el7.remi.noarch (installed)
+ From       : /etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+--> Processing Dependency: php-common(x86-64) = 7.1.33-11.el7.remi for package: php-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-cli.x86_64 0:7.1.33-11.el7.remi will be installed
+---> Package php-common.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Processing Dependency: php-json(x86-64) = 7.1.33-11.el7.remi for package: php-common-7.1.33-11.el7.remi.x86_64
+--> Running transaction check
+---> Package php-json.x86_64 0:7.1.33-11.el7.remi will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+================================================================================
+ Package          Arch         Version                   Repository        Size
+================================================================================
+Installing:
+ php              x86_64       7.1.33-11.el7.remi        remi-php71       3.0 M
+Installing for dependencies:
+ php-cli          x86_64       7.1.33-11.el7.remi        remi-php71       4.6 M
+ php-common       x86_64       7.1.33-11.el7.remi        remi-php71       1.0 M
+ php-json         x86_64       7.1.33-11.el7.remi        remi-php71        64 k
+
+Transaction Summary
+================================================================================
+Install  1 Package (+3 Dependent packages)
+
+Total download size: 8.6 M
+Installed size: 32 M
+Downloading packages:
+Public key for php-7.1.33-11.el7.remi.x86_64.rpm is not installed
+--------------------------------------------------------------------------------
+Total                                               13 MB/s | 8.6 MB  00:00     
+Retrieving key from file:///etc/pki/rpm-gpg/RPM-GPG-KEY-remi
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : php-json-7.1.33-11.el7.remi.x86_64                           1/4 
+  Installing : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Installing : php-cli-7.1.33-11.el7.remi.x86_64                            3/4 
+  Installing : php-7.1.33-11.el7.remi.x86_64                                4/4 
+=====================================================================
+
+  WARNING : PHP 7.1 have reached its "End of Life" in
+  December 2019. Even, if this package includes some of
+  the important security fix, backported from 7.2, the
+  UPGRADE to a maintained version is very strongly RECOMMENDED.
+
+=====================================================================
+  Verifying  : php-7.1.33-11.el7.remi.x86_64                                1/4 
+  Verifying  : php-common-7.1.33-11.el7.remi.x86_64                         2/4 
+  Verifying  : php-json-7.1.33-11.el7.remi.x86_64                           3/4 
+  Verifying  : php-cli-7.1.33-11.el7.remi.x86_64                            4/4 
+
+Installed:
+  php.x86_64 0:7.1.33-11.el7.remi                                               
+
+Dependency Installed:
+  php-cli.x86_64 0:7.1.33-11.el7.remi   php-common.x86_64 0:7.1.33-11.el7.remi 
+  php-json.x86_64 0:7.1.33-11.el7.remi 
+
+Complete!
+# Listen: Allows you to bind Apache to specific IP addresses and/or
+# Change this to Listen on specific IP addresses as shown below to 
+#Listen 12.34.56.78:80
+Listen 8084
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; disabled; vendor preset: disabled)
+   Active: active (running) since Sat 2021-01-09 14:25:49 UTC; 46ms ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 671 (httpd)
+   Status: "Processing requests..."
+   CGroup: /docker/1ea3814f4b673e73c21a0dd149de1c923c25b6760e35141ff708c579e1e1a253/system.slice/httpd.service
+           ├─671 /usr/sbin/httpd -DFOREGROUND
+           ├─672 /usr/sbin/httpd -DFOREGROUND
+           ├─673 /usr/sbin/httpd -DFOREGROUND
+           ├─676 /usr/sbin/httpd -DFOREGROUND
+           ├─677 /usr/sbin/httpd -DFOREGROUND
+           └─678 /usr/sbin/httpd -DFOREGROUND
+
+Jan 09 14:25:49 stapp03.stratos.xfusioncorp.com systemd[1]: Starting The Apache HTTP Server...
+Jan 09 14:25:49 stapp03.stratos.xfusioncorp.com httpd[671]: AH00558: httpd: Could not reliably determine the server's fully qualified domain name, using stapp03.stratos.xfusioncorp.com. Set the 'ServerName' directive globally to suppress this message
+Jan 09 14:25:49 stapp03.stratos.xfusioncorp.com systemd[1]: Started The Apache HTTP Server.
+PHP 7.1.33 (cli) (built: Jan  4 2021 14:48:30) ( NTS )
+Copyright (c) 1997-2018 The PHP Group
+Zend Engine v3.1.0, Copyright (c) 1998-2018 Zend Technologies
+
+[SSH] completed
+[SSH] exit-status: 0
+
+Finished: SUCCESS

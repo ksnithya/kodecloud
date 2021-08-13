@@ -1,0 +1,126 @@
+The Nautilus DevOps team is working on to create few jobs in Kubernetes cluster. They might come up with some real scripts/commands to use, 
+but for now they are preparing the templates and testing the jobs with dummy commands. Please create a job template as per details given below:
+
+
+Create a job countdown-xfusion.
+
+The spec template should be named as countdown-xfusion (under metadata), and the container should be named as container-countdown-xfusion
+
+Use image debian with latest tag only and remember to mention tag i.e debian:latest, and restart policy should be Never.
+
+Use command for i in 10 9 8 7 6 5 4 3 2 1 ; do echo $i ; done
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: countdown-xfusion
+spec:
+  template:
+    metadata:
+      name: countdown-xfusion
+    spec:
+      containers:
+      - name: container-countdown-xfusion
+        image: debian:latest
+        command:
+         - "bin/bash"
+         - "-c"
+         - "for i in 10 9 8 7 6 5 4 3 2 1 ; do echo $i ; done"
+      restartPolicy: Never
+
+thor@jump_host /$ vi template.yml
+thor@jump_host /$ sudo vi template.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f template.yml
+job.batch/countdown-xfusion created
+thor@jump_host /$ kubectl get jobs
+NAME                COMPLETIONS   DURATION   AGE
+countdown-xfusion   0/1           6s         6s
+thor@jump_host /$ kubectl get jobs
+NAME                COMPLETIONS   DURATION   AGEcountdown-xfusion   0/1           12s        12s
+thor@jump_host /$ kubectl describe jobs
+Name:           countdown-xfusion
+Namespace:      default
+Selector:       controller-uid=51847486-6e4d-4128-8e1c-fc2b8bf06446
+Labels:         controller-uid=51847486-6e4d-4128-8e1c-fc2b8bf06446
+                job-name=countdown-xfusion
+Annotations:    <none>
+Parallelism:    1
+Completions:    1
+Start Time:     Sat, 03 Oct 2020 18:18:58 +0000
+Completed At:   Sat, 03 Oct 2020 18:19:17 +0000
+Duration:       19s
+Pods Statuses:  0 Running / 1 Succeeded / 0 Failed
+Pod Template:
+  Labels:  controller-uid=51847486-6e4d-4128-8e1c-fc2b8bf06446
+           job-name=countdown-xfusion
+  Containers:
+   container-countdown-xfusion:
+    Image:      debian:latest
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      bin/bash
+      -c
+      for i in 10 9 8 7 6 5 4 3 2 1 ; do echo $i ; done
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Events:
+  Type    Reason            Age   From            Message
+  ----    ------            ----  ----            -------
+  Normal  SuccessfulCreate  25s   job-controller  Created pod: countdown-xfusion-wv25j
+thor@jump_host /$ kubectl get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+countdown-xfusion-wv25j   0/1     Completed   0          49s
+thor@jump_host /$ kubectl get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+countdown-xfusion-wv25j   0/1     Completed   0          56s
+thor@jump_host /$ kubectl log countdown-xfusion-wv25j
+Error: unknown command "log" for "kubectl"
+
+Did you mean this?
+        top
+        logs
+
+Run 'kubectl --help' for usage.
+thor@jump_host /$ kubectl logs countdown-xfusion-wv25j
+10
+9
+8
+7
+6
+5
+4
+3
+2
+1
+thor@jump_host /$ cat template.yml
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: countdown-xfusion
+spec:
+  template:
+    metadata:
+      name: countdown-xfusion
+    spec:
+      containers:
+      - name: container-countdown-xfusion
+        image: debian:latest
+        command:
+         - "bin/bash"
+         - "-c"
+         - "for i in 10 9 8 7 6 5 4 3 2 1 ; do echo $i ; done"
+      restartPolicy: Never
+thor@jump_host /$

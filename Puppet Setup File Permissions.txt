@@ -1,0 +1,55 @@
+The Nautilus DevOps team has put data on all app servers in Stratos DC. jump host is configured as Puppet master server, and all app servers are already been configured as Puppet agent nodes. The team needs to update content of some of the exiting files as well as update its permissions, etc. Please find below more details about the task:
+
+
+Create a Puppet programming file beta.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server. Using puppet file resource, perform the below mentioned tasks.
+
+File ecommerce.txt already exists under /opt/sysops directory on App Server 3.
+
+Add content Welcome to xFusionCorp Industries! in file ecommerce.txt on App Server 3.
+
+Set permissions 0755 for file ecommerce.txt on App Server 3.
+
+Note: Please perform this task using beta.pp only, do not create any separate inventory file.
+
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat media.pp
+class filetest {
+file { "/opt/dba/media.txt":
+  ensure  => present,
+  content => 'Welcome to xFusionCorp Industries!',
+  mode    => '0755',
+  }
+}
+
+
+node "stapp03.stratos.xfusioncorp.com" {
+        include filetest}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests#
+}
+
+
+[root@stapp03 dba]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+Info: Applying configuration version '1609348132'
+Notice: /Stage[main]/Filetest/File[/opt/dba/media.txt]/content:
+--- /opt/dba/media.txt  2020-12-30 17:06:01.056393000 +0000
++++ /tmp/puppet-file20201230-199-1i7u7f5        2020-12-30 17:08:53.612393000 +0000
+@@ -0,0 +1 @@
++Welcome to xFusionCorp Industries!
+\ No newline at end of file
+
+Info: Computing checksum on file /opt/dba/media.txt
+Info: /Stage[main]/Filetest/File[/opt/dba/media.txt]: Filebucketed /opt/dba/media.txt to puppet with sum d41d8cd98f00b204e9800998ecf8427e
+Notice: /Stage[main]/Filetest/File[/opt/dba/media.txt]/content: content changed '{md5}d41d8cd98f00b204e9800998ecf8427e' to '{md5}b899e8a90bbb38276f6a00012e1956fe'
+Notice: /Stage[main]/Filetest/File[/opt/dba/media.txt]/mode: mode changed '0644' to '0755'
+Notice: Applied catalog in 0.14 seconds
+[root@stapp03 dba]# cat media.txt
+[root@stapp03 dba]# cat media.txt
+Welcome to xFusionCorp Industries![root@stapp03 dba]#
+[root@stapp03 dba]#
+[root@stapp03 dba]# pwd
+/opt/dba

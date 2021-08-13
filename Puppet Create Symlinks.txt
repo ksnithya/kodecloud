@@ -1,0 +1,113 @@
+There are directory structures in the Stratos Datacenter that need to be changed, including directories that need to be linked to the default Apache document root. 
+We need to accomplish this task using only Puppet as per the instructions given below:
+
+
+Create a puppet programming file official.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master node i.e on Jump Server. 
+Within that define a class symlink and perform below mentioned tasks:
+
+Create a symbolic link through puppet programming code. The source path should be /opt/devops and destination path should be /var/www/html on all Puppet agents i.e on all App Servers.
+
+Create a blank file story.txt under /opt/devops directory on all puppet agent nodes i.e on all App Servers.
+
+Note: Please perform this task using official.pp only, do not create any separate inventory file.
+
+Note: Please perform this task using cluster.pp only, do not create any separate inventory file.
+
+sh-4.2# mkdir -p symlink/{files,templates,manifests}
+sh-4.2# ls -l
+total 8
+drwxr-xr-x 5 root root 4096 Aug 12 05:58 filetest
+drwxr-xr-x 5 root root 4096 Aug 12 06:13 symlink
+sh-4.2# cp filetest/manifests/init.pp symlink/manifests/.
+sh-4.2# cd symlink/manifests/
+sh-4.2# ls -l
+total 4
+-rw-r--r-- 1 root root 184 Aug 12 06:14 init.pp
+sh-4.2# cat init.pp
+class symlink{
+    file { '/opt/sysops':
+        ensure => 'link',
+        target => '/var/www/html',
+    }
+    file { '/opt/sysops/media.txt':
+        ensure  => present,
+    }
+}
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/symlink/manifests
+sh-4.2# cat init.pp
+class symlink{
+    file { '/opt/finance':
+        ensure => 'link',
+        target => '/var/www/html',
+    }
+    file { '/opt/finance/blog.txt':
+        ensure  => present,
+    }
+}
+
+
+
+sh-4.2# cat cluster.pp
+node 'stapp01.stratos.xfusioncorp.com', 'stapp02.stratos.xfusioncorp.com', 'stapp03.stratos.xfusioncorp.com'{
+  class symlink{
+    file { '/opt/sysops':
+        ensure => 'link',
+        target => '/var/www/html',
+    }
+    file { '/opt/sysops/media.txt':
+        ensure  => present,
+    }
+  }
+
+  include symlink
+}
+
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/manifests
+sh-4.2#
+
+sh-4.2# [root@jump_host /]# pwd
+/
+[root@jump_host /]# cd /etc/puppetlabs/code/environments/production
+[root@jump_host production]# cd manifests/
+[root@jump_host manifests]# ls -l
+total 4
+-rw-r--r-- 1 root root 137 Aug 12 10:29 official.pp
+[root@jump_host manifests]# cat official.pp
+node 'stapp01.stratos.xfusioncorp.com', 'stapp02.stratos.xfusioncorp.com', 'stapp03.stratos.xfusioncorp.com'{
+
+        include symlink
+}
+[root@jump_host manifests]# cd /etc/puppetlabs/code/environments/production/modules
+[root@jump_host modules]# cd symlink/manifests/
+[root@jump_host manifests]# ls -l
+total 4
+-rw-r--r-- 1 root root 180 Aug 12 10:28 init.pp
+[root@jump_host manifests]# cat init.pp
+class symlink{
+    file { '/opt/devops':
+        ensure => 'link',
+        target => '/var/www/html',
+    }
+    file { '/opt/devops/story.txt':
+        ensure  => present,
+    }
+}
+[root@jump_host manifests]# Connection to host01 closed by remote host.
+Connection to host01 closed.
+
+
+node 'stapp01.stratos.xfusioncorp.com', 'stapp02.stratos.xfusioncorp.com', 'stapp03.stratos.xfusioncorp.com'{
+class symlink{
+  file { '/opt/sysops':
+      ensure => 'link',
+      target => '/var/www/html',
+  }
+  file { '/opt/sysops/media.txt':
+      ensure  => present,
+  }
+}
+node 'stapp01.stratos.xfusioncorp.com', 'stapp02.stratos.xfusioncorp.com', 'stapp03.stratos.xfusioncorp.com'{
+  include symlink
+}

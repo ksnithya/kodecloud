@@ -1,0 +1,82 @@
+The Nautilus DevOps team has some data on jump host in Stratos DC that they want to copy on all app servers in the same data center. However, they want to create an archive of 
+data and copy it to the app servers. Additionally, there are some specific requirements 
+for each server. Perform the task using Ansible playbook as per requirements mentioned below:
+
+
+Create a playbook.yml under /home/thor/ansible on jump host, an inventory file is already placed under /home/thor/ansible/ on Jump Server itself.
+
+Create an archive beta.tar.gz (make sure archive format is tar.gz) of /usr/src/devops/ directory ( present on each app server ) and copy it to /opt/devops/ directory on all app servers. 
+The user and group owner of archive beta.tar.gz should be tony for App Server 1, steve for App Server 2 and banner for App Server 3.
+Note: Validation will try to run playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way, without passing any extra arguments.
+
+---
+- name: archive and copy
+  hosts: all
+  tasks:
+  -  name: create archive
+     archive:
+       path: /usr/src/devops
+       dest: /usr/src/beta.tar.gz
+  -  name: copy file
+     copy:
+       src:  /usr/src/beta.tar.gz
+       dest: /opt/devops/beta.tar.gz
+       owner: tony
+       group: tony
+     when: inventory_hostname == 'stapp01'
+  -  name: copy file
+     copy:
+       src:  /usr/src/beta.tar.gz
+       dest: /opt/devops/beta.tar.gz
+       owner: steve
+       group: steve
+     when: inventory_hostname == 'stapp02'
+  -  name: copy file
+     copy:
+       src:  /usr/src/beta.tar.gz
+       dest: /opt/devops/beta.tar.gz
+       owner: banner
+       group: banner
+     when: inventory_hostname == 'stapp03' 
+
+---
+- name: archive and copy
+  hosts: all
+  tasks:
+  -  name: create archive
+     archive:
+       path: /usr/src/data
+       dest: /opt/data/demo.tar.gz
+       owner: tony
+       group: tony
+     when: inventory_hostname == 'stapp01'
+  -  name: create archive
+     archive:
+       path: /usr/src/data
+       dest: /opt/data/demo.tar.gz
+       owner: steve
+       group: steve
+     when: inventory_hostname == 'stapp02'
+  -  name: create archive
+     archive:
+       path: /usr/src/data
+       dest: /opt/data/demo.tar.gz
+       owner: banner
+       group: banner
+     when: inventory_hostname == 'stapp03' 
+
+
+ansible all -i inventory -m command -a "ls -l /opt/data/demo.tar.gz"
+
+stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=banner
+
+hor@jump_host ~/ansible$ cat ansible.cfg
+[defaults]
+host_key_checking = False
+[privilege_escalation]
+become = true
+become_method = sudo
+become_user = root
+become_ask_pass = false

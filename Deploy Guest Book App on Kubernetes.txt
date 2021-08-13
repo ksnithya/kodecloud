@@ -1,0 +1,422 @@
+The Nautilus Application development team has finished development of one of the application and its ready for deployment. Its a guestbook application that will be
+ used to manage entries for guests/visitors. As per discussion with DevOps team they have finalized the infrastructure that will be deployed on Kubernetes cluster. 
+Below you can find more details about the same.
+
+
+BACK-END TIER
+
+Create a deployment named redis-master for Redis master.
+
+a.) Replicas count should be 1.
+
+b.) Container name should be master-redis-nautilus and it should use image redis.
+
+c.) Request resources as CPU should be 100m and Memory should be 100Mi.
+
+d.) Container port should be redis default port i.e 6379.
+
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master-redis-nautilus
+        image: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+
+Create a service named redis-master for Redis master. Port and targetPort should be Redis default port i.e 6379.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    role: master
+    tier: backend
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+  selector:
+    app: redis
+    role: master
+    tier: backend
+
+Create an another deployment named redis-slave for Redis slave.
+
+a.) Replicas count should be 2.
+
+b.) Container name should be slave-redis-nautilus and it should use gcr.io/google_samples/gb-redisslave:v3 image.
+
+c.) Requests resources as CPU should be 100m and Memory should be 100Mi.
+
+d.) Define an environment variable named GET_HOSTS_FROM and its value should be dns.
+
+e.) Container port should be Redis default port i.e 6379.
+
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: redis-slave
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+        tier: backend
+    spec:
+      containers:
+      - name: slave-redis-nautilus
+        image: gcr.io/google_samples/gb-redisslave:v3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 6379
+
+Create an another service named redis-slave. It should use Redis default port i.e 6379.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave
+  labels:
+    app: redis
+    role: slave
+    tier: backend
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis
+    role: slave
+    tier: backend
+
+FRONT END TIER
+
+Create a deployment named frontend.
+
+Create a deployment named frontend.
+
+a.) Replicas count should be 3.
+
+b.) Container name should be php-redis-nautilus and it should use gcr.io/google-samples/gb-frontend:v4 image.
+
+c.) Request resources as CPU should be 100m and Memory should be 100Mi.
+
+d.) Define an environment variable named as GET_HOSTS_FROM and its value should be dns.
+
+e.) Container port should be 80.
+
+apiVersion: apps/v1 
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: frontend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis-nautilus
+        image: gcr.io/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 80
+
+Create a service named frontend. Its type should be NodePort, port should be 80 and its nodePort should be 30009.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # comment or delete the following line if you want to use a LoadBalancer
+  type: NodePort 
+  ports:
+  - port: 80
+    nodePort: 30009
+  selector:
+    app: guestbook
+    tier: frontend
+
+Finally you can check guestbook app by clicking on + button on top left corner and select Select port to view on Host 1 then enter your nodePort.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+ 
+thor@jump_host /$ sudo vi deploy.yml
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f deploy.yml
+deployment.apps/redis-master created
+thor@jump_host /$ sudo vi red-svc.yml
+thor@jump_host /$ kubectl create -f red-svc.yml
+service/redis-master created
+thor@jump_host /$ sudo vi red-slave.yml
+thor@jump_host /$ kubectl create -f red-slave.yml
+deployment.apps/redis-slave createdthor@jump_host /$ sudo vi red-slave-svc.yml
+thor@jump_host /$ kubectl create -f red-slave-svc.yml
+service/redis-slave created
+thor@jump_host /$ sudo vi front.yml
+thor@jump_host /$ kubectl create -f front.yml
+deployment.apps/frontend created
+thor@jump_host /$ sudo vi front-svc.yml
+thor@jump_host /$ kubectl create -f front-svc.yml
+service/frontend created
+thor@jump_host /$ kubectl get pods
+NAME                            READY   STATUS    RESTARTS   AGE
+frontend-58b969f4cc-6b5tf       1/1     Running   0          99s
+frontend-58b969f4cc-v6d6l       1/1     Running   0          99s
+frontend-58b969f4cc-v72r5       1/1     Running   0          99s
+redis-master-6547748558-5w89w   1/1     Running   0          7m26s
+redis-slave-6bb74b6797-n5pg7    1/1     Running   0          4m33s
+redis-slave-6bb74b6797-xdf7n    1/1     Running   0          4m33s
+thor@jump_host /$ kubectl get deploy
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+frontend       3/3     3            3           108s
+redis-master   1/1     1            1           7m35s
+redis-slave    2/2     2            2           4m42s
+thor@jump_host /$ kubectl get svc
+NAME           TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+frontend       NodePort    10.103.180.78   <none>        80:30009/TCP   23s
+kubernetes     ClusterIP   10.96.0.1       <none>        443/TCP        10m
+redis-master   ClusterIP   10.100.153.92   <none>        6379/TCP       6m30s
+redis-slave    ClusterIP   10.105.54.58    <none>        6379/TCP       3m23s
+thor@jump_host /$ ls -l
+total 92
+-rw-r--r--  21 root root 12090 Aug  1  2019 anaconda-post.log
+lrwxrwxrwx   1 root root     7 Aug  1  2019 bin -> usr/bin
+-rw-r--r--   1 root root   519 Oct 11 10:51 deploy.yml
+drwxr-xr-x   5 root root   340 Oct 11 10:48 dev
+drwxr-xr-x   1 root root  4096 Oct 11 10:48 etc
+-rw-r--r--   1 root root   295 Oct 11 10:58 front-svc.yml
+-rw-r--r--   1 root root   579 Oct 11 10:57 front.yml
+drwxr-xr-x   1 root root  4096 Jun  8 06:10 home
+lrwxrwxrwx   1 root root     7 Aug  1  2019 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 Aug  1  2019 lib64 -> usr/lib64
+drwxr-xr-x   2 root root  4096 Apr 11  2018 media
+drwxr-xr-x   2 root root  4096 Apr 11  2018 mnt
+drwxr-xr-x   2 root root  4096 Apr 11  2018 opt
+dr-xr-xr-x 153 root root     0 Oct 11 10:48 proc
+-rw-r--r--   1 root root   209 Oct 11 10:55 red-slave-svc.yml
+-rw-r--r--   1 root root   612 Oct 11 10:54 red-slave.yml
+-rw-r--r--   1 root root   249 Oct 11 10:52 red-svc.yml
+dr-xr-x---   3 root root  4096 Jun  8 06:10 root
+drwxr-xr-x   1 root root  4096 Oct 11 10:50 run
+lrwxrwxrwx   1 root root     8 Aug  1  2019 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 Apr 11  2018 srv
+dr-xr-xr-x  13 root root     0 Oct 11 10:48 sys
+drwxrwxrwt   1 root root  4096 Oct 11 10:49 tmp
+drwxr-xr-x   1 root root  4096 Aug  1  2019 usr
+drwxr-xr-x   1 root root  4096 Aug  1  2019 var
+thor@jump_host /$ ls -l|grep -i .yml
+-rw-r--r--   1 root root   519 Oct 11 10:51 deploy.yml
+-rw-r--r--   1 root root   295 Oct 11 10:58 front-svc.yml
+-rw-r--r--   1 root root   579 Oct 11 10:57 front.yml
+-rw-r--r--   1 root root   209 Oct 11 10:55 red-slave-svc.yml
+-rw-r--r--   1 root root   612 Oct 11 10:54 red-slave.yml
+-rw-r--r--   1 root root   249 Oct 11 10:52 red-svc.yml
+thor@jump_host /$ cat *.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: master
+      tier: backend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: master
+        tier: backend
+    spec:
+      containers:
+      - name: master-redis-nautilus
+        image: redis
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        ports:
+        - containerPort: 6379
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+    tier: frontend
+spec:
+  # comment or delete the following line if you want to use a LoadBalancer
+  type: NodePort
+  ports:
+  - port: 80
+    nodePort: 30009
+  selector:
+    app: guestbook
+    tier: frontend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: guestbook
+spec:
+  selector:
+    matchLabels:
+      app: guestbook
+      tier: frontend
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: guestbook
+        tier: frontend
+    spec:
+      containers:
+      - name: php-redis-nautilus
+        image: gcr.io/google-samples/gb-frontend:v4
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 80
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-slave
+  labels:
+    app: redis
+    role: slave
+    tier: backend
+spec:
+  ports:
+  - port: 6379
+  selector:
+    app: redis
+    role: slave
+    tier: backend
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis-slave
+  labels:
+    app: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+      role: slave
+      tier: backend
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: redis
+        role: slave
+        tier: backend
+    spec:
+      containers:
+      - name: slave-redis-nautilus
+        image: gcr.io/google_samples/gb-redisslave:v3
+        resources:
+          requests:
+            cpu: 100m
+            memory: 100Mi
+        env:
+        - name: GET_HOSTS_FROM
+          value: dns
+        ports:
+        - containerPort: 6379
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-master
+  labels:
+    app: redis
+    role: master
+    tier: backend
+spec:
+  ports:
+  - name: redis
+    port: 6379
+    targetPort: 6379
+  selector:
+    app: redis
+    role: master
+    tier: backend
+thor@jump_host /$

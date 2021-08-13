@@ -1,0 +1,68 @@
+sudo firewall-cmd --permanent --zone=public --add-port=6300/tcp
+sudo firewall-cmd --reload
+sudo systemctl restart firewalld
+sudo firewall-cmd --zone=public --list-all
+
+cat /etc/httpd/conf/httpd.conf | grep Listen
+
+ss -ntlpu
+yum install firewalld -y
+systemctl start firewalld
+systemctl enable firewalld
+systemctl status firewalld
+firewall-cmd --state
+firewall-cmd --state && firewall-cmd --reload
+
+sudo firewall-cmd --permanent --zone=public --add-port=8080/tcp
+firewall-cmd --reload
+systemctl restart firewalld
+firewall-cmd --zone=public --list-all
+systemctl status nginx && systemctl status httpd
+
+firewall-cmd --zone=public --add-port=8098/tcp --permanent #Nginx
+firewall-cmd --permanent --zone=public --add-service=https
+firewall-cmd --permanent --zone=public --add-service=http
+firewall-cmd --permanent --zone=public --add-rich-rule=‘rule family=“ipv4” source address=“172.16.238.14” port port=3000 protocol=tcp accept’ #Forward traffic from LB to Apache
+
+To secure our Nautilus infrastructure in Stratos Datacenter we have decided to install and configure firewalld on all app servers. We have Apache and Nginx services running on these apps. Nginx is running as a reverse proxy server for Apache. We might have more robust firewall settings in future but for now we have decided to go with below given requirements:
+
+Nginx: 8095   
+Httpd: 8082
+
+
+a. Allow all incoming connections on Nginx port.
+firewall-cmd --zone=public --add-port=8086/tcp --permanent
+
+firewall-cmd --permanent --zone=public --add-service=https
+firewall-cmd --permanent --zone=public --add-service=http
+
+b. Allow incoming connections from LB host only on Apache port and block for rest.
+firewall-cmd --permanent --zone=public --add-rich-rule='rule family=ipv4 source address=172.16.238.14 port port=8082 protocol=tcp accept'
+
+firewall-cmd --permanent --add-rich-rule='rule family=ipv4 source address=192.168.1.2/32 port port=21 protocol=tcp  accept'
+
+c. All rules must be permanent.
+
+
+d. Zone should be public.
+firewall-cmd --get-default-zone
+firewall-cmd --reload
+systemctl restart firewalld
+firewall-cmd --zone=public --list-all
+
+e. If Apache or Nginx services aren't running already please make sure to start them
+systemctl status nginx
+systemctl status httpd
+systemctl restart nginx
+systemctl restart httpd
+
+1155486031983
+
+cp    LISTEN     0      128                                    *:8082                                               *:* users:(("httpd",pid=227,fd=3),("httpd",pid=226,fd=3),("httpd",pid=225,fd=3),("httpd",pid=224,fd=3),("httpd",pid=223,fd=3),("httpd",pid=221,fd=3))
+tcp    LISTEN     0      128                                    *:22                                                 *:* users:(("sshd",pid=136,fd=3))
+tcp    LISTEN     0      128                           127.0.0.11:32793                                              *:*
+tcp    LISTEN     0      128                                    *:8095                                               *:* users:(("nginx",pid=241,fd=6),("nginx",pid=240,fd=6),("nginx",pid=239,fd=6))
+
+cp    LISTEN     0      128                                    *:8095                                               *:* users:(("nginx",pid=247,fd=6),("nginx",pid=246,fd=6),("nginx",pid=245,fd=6))
+tcp    LISTEN     0      128                                    *:111                                                *:* users:(("rpcbind",pid=146,fd=4),("systemd",pid=1,fd=33))
+tcp    LISTEN     0      128                                    *:8082                                               *:* users:(("httpd",pid=233,fd=3),("httpd",pid=232,fd=3),("httpd",pid=231,fd=3),("httpd",pid=230,fd=3),("httpd",pid=229,fd=3),("httpd",pid=227,fd=3))

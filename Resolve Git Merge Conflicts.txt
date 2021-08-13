@@ -1,0 +1,90 @@
+Sarah and Max were working on writting some stories which they have pushed to the repository. Max has recently added some new changes and is trying to push them to the repository but he is facing some issues. Below you can find more details:
+
+
+SSH into storage server using user max and password Max_pass123. Under /home/max you will find the story-blog repository. Try to push the changes to the origin repo and fix the issues. 
+The story-index.txt must have titles for all 4 stories. Additionally, there is a typo in The Lion and the Mooose line where Mooose should be Mouse.
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8000 and click on Display Port. You should be able to access the Gitea page. 
+You can login to Gitea server from UI using username sarah and password Sarah_pass123 or username max and password Max_pass123.
+
+Note: For these kind of scenarios requiring changes to be done in a web UI, please take screenshots so that you can share it with us for review in case your task is marked incomplete. 
+You may also consider using a screen recording software such as loom.com to record and share your work.
+
+
+ 
+
+max $ cd story-blog/
+max (master)$ ls -l
+total 16
+-rw-r--r--    1 max      max            807 Feb 12 10:57 fox-and-grapes.txt
+-rw-r--r--    1 max      max            792 Feb 12 10:57 frogs-and-ox.txt
+-rw-r--r--    1 max      max           1086 Feb 12 10:57 lion-and-mouse.txt
+-rw-r--r--    1 max      max            102 Feb 12 10:57 story-index.txt
+max (master)$ git push origin master
+Username for 'http://git.stratos.xfusioncorp.com': max
+Password for 'http://max@git.stratos.xfusioncorp.com': 
+To http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+ ! [rejected]        master -> master (fetch first)
+error: failed to push some refs to 'http://git.stratos.xfusioncorp.com/sarah/story-blog.git'
+hint: Updates were rejected because the remote contains work that you do
+hint: not have locally. This is usually caused by another repository pushing
+hint: to the same ref. You may want to first integrate the remote changes
+hint: (e.g., 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+max (master)$ git pull origin master
+remote: Enumerating objects: 4, done.
+remote: Counting objects: 100% (4/4), done.
+remote: Compressing objects: 100% (3/3), done.
+remote: Total 3 (delta 0), reused 0 (delta 0), pack-reused 0
+Unpacking objects: 100% (3/3), done.
+From http://git.stratos.xfusioncorp.com/sarah/story-blog
+ * branch            master     -> FETCH_HEAD
+   d1b1410..63bfb39  master     -> origin/master
+Auto-merging story-index.txt
+CONFLICT (add/add): Merge conflict in story-index.txt
+Automatic merge failed; fix conflicts and then commit the result.
+max (master)$ git push origin master
+Username for 'http://git.stratos.xfusioncorp.com': max
+Password for 'http://max@git.stratos.xfusioncorp.com': 
+To http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+ ! [rejected]        master -> master (non-fast-forward)
+error: failed to push some refs to 'http://git.stratos.xfusioncorp.com/sarah/story-blog.git'
+hint: Updates were rejected because the tip of your current branch is behind
+hint: its remote counterpart. Integrate the remote changes (e.g.
+hint: 'git pull ...') before pushing again.
+hint: See the 'Note about fast-forwards' in 'git push --help' for details.
+
+
+max (master)$ vi story-index.txt 
+max (master)$ git add .
+max (master)$ git commit -m "modified"
+[master f104ac3] modified
+ Committer: Linux User <max@ststor01.stratos.xfusioncorp.com>
+Your name and email address were configured automatically based
+on your username and hostname. Please check that they are accurate.
+You can suppress this message by setting them explicitly. Run the
+following command and follow the instructions in your editor to edit
+your configuration file:
+
+    git config --global --edit
+
+After doing this, you may fix the identity used for this commit with:
+
+    git commit --amend --reset-author
+
+
+
+max (master)$ git push origin master
+Username for 'http://git.stratos.xfusioncorp.com': max
+Password for 'http://max@git.stratos.xfusioncorp.com': 
+Counting objects: 7, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (7/7), done.
+Writing objects: 100% (7/7), 1.16 KiB | 0 bytes/s, done.
+Total 7 (delta 1), reused 0 (delta 0)
+remote: . Processing 1 references
+remote: Processed 1 references in total
+To http://git.stratos.xfusioncorp.com/sarah/story-blog.git
+   63bfb39..f104ac3  master -> master
+max (master)$ 

@@ -1,0 +1,81 @@
+We recently migrated one of our WordPress website from old server to a new infrastructure in Stratos Datacenter. We have already setup LAMP except database.
+ We have also restored website code however we need to restore database to make it work on new infra. Please perform the below given steps on DB host:
+
+ssh peter@stdb01
+Sp!dy
+a. Install/Configure MariaDB server.
+yum groupinstall mariadb mariadb-client -y
+systemctl start mariadb
+systemctl enable mariadb
+systemctl status mariadb
+
+yum -y install openssh-clients
+
+
+Improve MariaDB installation security
+
+MariaDB provides a program to improve security from the baseline install state. Run mysql_secure_installation without arguments:
+
+# mysql_secure_installation
+
+This program enables improvement of MariaDB security in the following ways:
+
+1) Sets a password for root accounts.
+
+2) Remove root accounts that are accessible from outside the local host.
+
+3) Remove anonymous-user accounts.
+
+4) Removes the test database.
+
+The script is fully interactive, and prompt foe each step in the process.
+
+Step 3 — Testing the Installation
+We can verify our installation and get information about it by connecting with the mysqladmin tool, a client that lets you run administrative commands. Use the following command to connect to MariaDB as root (-u root), prompt for a password (-p), and return the version.
+
+mysqladmin -u root -p version
+
+/usr/bin/mysql -u root -p
+
+b. Create a database with name kodekloud_db10.
+CREATE DATABASE kodekloud_db10;
+
+
+c. There is a DB dump on jump_host under location /home/thor/db.sql. Restore this database in newly create database.
+
+mysql -u root -p kodekloud_db10 < /home/peter/db.sql
+
+d. Create a user kodekloud_top and set any password you like.
+
+CREATE USER 'kodekloud_top' IDENTIFIED BY 'test@123';
+
+e. Grant full permissions to user kodekloud_top on database kodekloud_db10.
+GRANT ALL PRIVILEGES ON 'kodekloud_db6'.* TO 'kodekloud_top'@localhost;
+GRANT USAGE ON ‘kod.*  TO 'kodekloud_joyr'@'%' IDENTIFIED BY 'mypassword';
+
+GRANT USAGE ON  'kodekloud_db6'.* TO 'kodekloud_top'@'%' IDENTIFIED BY 'test@123';
+GRANT ALL privileges ON ‘kodekloud_db10’.* TO 'kodekloud_top'@'%';
+
+GRANT ALL privileges ON `kodekloud_db10`.* TO 'kodekloud_top'@'%';
+
+GRANT ALL PRIVILEGES ON ‘kodekloud_db6’.* TO ‘kodekloud_top’@localhost;
+FLUSH PRIVILEGES;
+
+SHOW GRANTS FOR 'kodekloud_top'@'%';
+
+    
+SHOW GRANTS FOR kodekloud_top’@localhost;
+
+f. Update database related details in /data/wp-config.php file on storage server which is our NFS server having a share /data that is mounted on each app server on location /var/www/html. 
+(for more details about how to update WordPress config file please visit https://wordpress.org/support/article/editing-wp-config-php/)
+ssh natasha@ststor01
+Bl@kW
+
+define( 'DB_NAME', 'kodekloud_db4' );
+define( 'DB_USER', 'kodekloud_joy' );
+define( 'DB_PASSWORD', 'test@123' );
+define( 'DB_HOST', 'stdb01' );
+
+g. You can access the website on LBR link, to do so click on the + button on top of your terminal and select option Select port to view on Host 1 and after adding port 80 click on Display Port.
+
+1155486031983

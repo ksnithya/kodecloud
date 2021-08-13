@@ -1,0 +1,502 @@
+Redis is an open source in-memory data structure store, used as a database, cache and message broker. The Nautilus development team is planning to integrate Redis in one of their applications. So they want to setup a Redis cluster on Kubernetes. As per details mentioned below deploy a Redis cluster on Kubernetes.
+
+
+1.) Create Persistent Volumes as below mentioned:
+
+a) Create a first PersistentVolume which should be named as redis-pv-01. Configure spec as accessModes which should be ReadWriteOnce, storage capacity should be 1Gi, 
+Type should be hostPath, its hostPath should be /redis01 and directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis01"
+
+b. Create a second PersistentVolume which should be named as redis-pv-02. Configure spec as accessModes which should be ReadWriteOnce, storage capacity should be 1Gi, 
+Type should be hostPath, its hostPath should be /redis02 and directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-02
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis02"
+
+c. Create a third PersistentVolume which should be named as redis-pv-03. Configure spec as accessModes whcih should be ReadWriteOnce, storage capacity should be 1Gi, 
+Type: hostPath, hostPath: /redis03, directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-03
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis03"
+
+d. Creata a forth PersistentVolume which should be named as redis-pv-04. Configure spec as accessModes should be ReadWriteOnce, storage capcity should be 1Gi, 
+Type should be hostPath, its hostPath should be /redis04 and directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-04
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis04"
+
+e. Create a fifth PersistentVolume which should be named as redis-pv-05. Configure spec as accessModes which should be ReadWriteOnce, storage capacity should be 1Gi, 
+Type should be hostPath, its hostPath should be /redis05 and directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-05
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis05"
+
+f. Create a sixth PersistentVolume which should be named as redis-pv-06. Configure spec as accessModes which should be ReadWriteOnce, storage capacity should be 1Gi, 
+Type should be hostPath, hostPath should be /redis06 and directory should be already created on the worker node.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-06
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis06"
+
+
+2.) We already created ConfigMap named as redis-cluster-configmap. You can try to inspect it.
+
+3.) Create a service which should be named as redis-cluster-service. Configure spec as first port name should be client, its port should be 6379 and its targetPort should be 6379. 
+Second port name should be gossip, its port should be 16379 and its targetPort should be 16379, its type should be ClusterIP. And selector's app should be redis-cluster.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-service
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 6379
+    name: client
+    targetPort: 6379
+  - port: 16379
+    name: gossip
+    targetPort: 16379
+  type: ClusterIP
+  selector:
+    app: redis-cluster
+
+4.) Create a StatefulSet which should be ne named as redis-cluster. Confiugre spec as replicas should be 6, selector's matchLabels app should be redis-cluster. 
+Template's labels app should be redis-cluster under the metadata. The container name should be redis-container, use image redis:5.0.1-alpine ( use exact name of image as mentioned ),
+ use command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"], env name should be POD_IP, valueFrom should be fieldRef, fieldPath should be status.podIP (apiVersion: v1). 
+First port name should be client, its contaierPort should be 6379, second port name should be gossip, its containerPort should be 16379. 
+First volumeMount name should be conf, its mountPath should be /conf and readOnly should be false ( ConfigMap Mount ), 
+second volumeMount name should be data, its mountPath should be /data, readOnly should be false ( volumeClaim ). 
+Volume name should be conf, its configMap name should be redis-cluster-configmap and its defaultMode should be 0755. 
+volumeClaimTemplates name should be data under metadata, accessModes should be ReadWriteOnce and storage request should be 1Gi.
+
+thor@jump_host /$ cat dep.yml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster
+  serviceName: "redis-cluster-service"
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis-container
+        image: redis:5.0.1-alpine
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        volumeMounts:
+        - name: conf
+          mountPath: /conf
+          readOnly: false
+        - name: data
+          mountPath: /data
+          readOnly: false
+        command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-cluster-configmap
+          defaultMode: 0755
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+
+thor@jump_host /$
+5.) Configure the Cluster. Once the StatefulSet has been deployed with 6 Running pods, run the below commands and type yes when prompted. 
+Command: kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 {end}').
+
+Note: The kubectl on jump_host has been configured to work with the kubernetes cluster.
+
+
+hor@jump_host /$ sudo vi pv1.yml
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ sudo vi pv2.yml
+thor@jump_host /$ sudo vi pv3.yml
+thor@jump_host /$ sudo vi pv4.yml
+thor@jump_host /$ sudo vi pv5.yml
+thor@jump_host /$ sudo vi pv6.yml
+thor@jump_host /$ kubectl create -f pv1.yml
+persistentvolume/redis-pv-01 created
+thor@jump_host /$ kubectl create -f pv2.ymlpersistentvolume/redis-pv-02 created
+thor@jump_host /$ kubectl create -f pv3.yml
+persistentvolume/redis-pv-03 created
+thor@jump_host /$ kubectl create -f pv4.yml
+persistentvolume/redis-pv-04 created
+thor@jump_host /$ kubectl create -f pv5.yml
+persistentvolume/redis-pv-05 created
+thor@jump_host /$ kubectl create -f pv6.yml
+persistentvolume/redis-pv-06 created
+thor@jump_host /$ sudo vi svc.yml
+thor@jump_host /$ kubectl create -f svc.yml
+service/redis-cluster-service created
+thor@jump_host /$ kubectl get svc
+NAME                    TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)              AGE
+kubernetes              ClusterIP   10.96.0.1        <none>        443/TCP              4m41s
+redis-cluster-service   ClusterIP   10.102.218.128   <none>        6379/TCP,16379/TCP   6s
+thor@jump_host /$ sudo vi dep.yml
+thor@jump_host /$ kubectl create -f dep.yml
+statefulset.apps/redis-cluster created
+thor@jump_host /$ kubectl get sf
+error: the server doesn't have a resource type "sf"
+thor@jump_host /$ kubectl get stateful
+error: the server doesn't have a resource type "stateful"
+thor@jump_host /$ kubectl get statefulset
+NAME            READY   AGE
+redis-cluster   6/6     33s
+thor@jump_host /$ kubectl get pods
+NAME              READY   STATUS    RESTARTS   AGE
+redis-cluster-0   1/1     Running   0          48s
+redis-cluster-1   1/1     Running   0          40s
+redis-cluster-2   1/1     Running   0          37s
+redis-cluster-3   1/1     Running   0          35s
+redis-cluster-4   1/1     Running   0          32s
+redis-cluster-5   1/1     Running   0          28s
+thor@jump_host /$ kubectl exec -it redis-cluster-0 -- redis-cli --cluster create --cluster-replicas 1 $(kubectl get pods -l app=redis-cluster -o jsonpath='{range.items[*]}{.status.podIP}:6379 {end}')
+>>> Performing hash slots allocation on 6 nodes...
+Master[0] -> Slots 0 - 5460
+Master[1] -> Slots 5461 - 10922
+Master[2] -> Slots 10923 - 16383
+Adding replica 10.44.0.4:6379 to 10.44.0.1:6379
+Adding replica 10.44.0.5:6379 to 10.44.0.2:6379
+Adding replica 10.44.0.6:6379 to 10.44.0.3:6379
+M: 3fee9a988e60c65939b7ef5870fb956f0c0cc924 10.44.0.1:6379
+   slots:[0-5460] (5461 slots) master
+M: 4929cf85c3b70b6a43395f2c610213947328bc7d 10.44.0.2:6379
+   slots:[5461-10922] (5462 slots) master
+M: ba769b76126d3c54d9212723be2ff32ebd08cddc 10.44.0.3:6379
+   slots:[10923-16383] (5461 slots) master
+S: b0face75943fc74d3160ac8854258f0f7db7bd83 10.44.0.4:6379
+   replicates 3fee9a988e60c65939b7ef5870fb956f0c0cc924
+S: 9aaeafbac41e8b55e56e6c43460c974e78475746 10.44.0.5:6379
+   replicates 4929cf85c3b70b6a43395f2c610213947328bc7d
+S: bfe9a5e0b90c971e4e458490efa4f80cd53ea7d6 10.44.0.6:6379
+   replicates ba769b76126d3c54d9212723be2ff32ebd08cddc
+Can I set the above configuration? (type 'yes' to accept): yes
+>>> Nodes configuration updated
+>>> Assign a different config epoch to each node
+>>> Sending CLUSTER MEET messages to join the cluster
+Waiting for the cluster to join
+...
+>>> Performing Cluster Check (using node 10.44.0.1:6379)
+M: 3fee9a988e60c65939b7ef5870fb956f0c0cc924 10.44.0.1:6379
+   slots:[0-5460] (5461 slots) master
+   1 additional replica(s)
+S: bfe9a5e0b90c971e4e458490efa4f80cd53ea7d6 10.44.0.6:6379
+   slots: (0 slots) slave
+   replicates ba769b76126d3c54d9212723be2ff32ebd08cddc
+S: b0face75943fc74d3160ac8854258f0f7db7bd83 10.44.0.4:6379
+   slots: (0 slots) slave
+   replicates 3fee9a988e60c65939b7ef5870fb956f0c0cc924
+S: 9aaeafbac41e8b55e56e6c43460c974e78475746 10.44.0.5:6379
+   slots: (0 slots) slave
+   replicates 4929cf85c3b70b6a43395f2c610213947328bc7d
+M: 4929cf85c3b70b6a43395f2c610213947328bc7d 10.44.0.2:6379
+   slots:[5461-10922] (5462 slots) master
+   1 additional replica(s)
+M: ba769b76126d3c54d9212723be2ff32ebd08cddc 10.44.0.3:6379
+   slots:[10923-16383] (5461 slots) master
+   1 additional replica(s)
+[OK] All nodes agree about slots configuration.
+>>> Check for open slots...
+>>> Check slots coverage...
+[OK] All 16384 slots covered.
+thor@jump_host /$ kubectl describe statefulset
+Name:               redis-cluster
+Namespace:          default
+CreationTimestamp:  Wed, 11 Nov 2020 17:56:22 +0000
+Selector:           app=redis-cluster
+Labels:             <none>
+Annotations:        <none>
+Replicas:           6 desired | 6 total
+Update Strategy:    RollingUpdate
+  Partition:        0
+Pods Status:        6 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=redis-cluster
+  Containers:
+   redis-container:
+    Image:       redis:5.0.1-alpine
+    Ports:       6379/TCP, 16379/TCP
+    Host Ports:  0/TCP, 0/TCP
+    Command:
+      /conf/update-node.sh
+      redis-server
+      /conf/redis.conf
+    Environment:
+      POD_IP:   (v1:status.podIP)
+    Mounts:
+      /conf from conf (rw)
+      /data from data (rw)
+  Volumes:
+   conf:
+    Type:      ConfigMap (a volume populated by a ConfigMap)
+    Name:      redis-cluster-configmap
+    Optional:  false
+Volume Claims:
+  Name:          data
+  StorageClass:
+  Labels:        <none>
+  Annotations:   <none>
+  Capacity:      1Gi
+  Access Modes:  [ReadWriteOnce]
+Events:
+  Type    Reason            Age                From                    Message
+  ----    ------            ----               ----                    -------
+  Normal  SuccessfulCreate  75s                statefulset-controller  create Claim data-redis-cluster-0 Podredis-cluster-0 in StatefulSet redis-cluster success
+  Normal  SuccessfulCreate  75s                statefulset-controller  create Pod redis-cluster-0 in StatefulSet redis-cluster successful
+  Normal  SuccessfulCreate  67s                statefulset-controller  create Claim data-redis-cluster-1 Podredis-cluster-1 in StatefulSet redis-cluster success
+  Normal  SuccessfulCreate  67s                statefulset-controller  create Pod redis-cluster-1 in StatefulSet redis-cluster successful
+  Normal  SuccessfulCreate  64s                statefulset-controller  create Claim data-redis-cluster-2 Podredis-cluster-2 in StatefulSet redis-cluster success
+  Normal  SuccessfulCreate  64s                statefulset-controller  create Pod redis-cluster-2 in StatefulSet redis-cluster successful
+  Normal  SuccessfulCreate  62s                statefulset-controller  create Claim data-redis-cluster-3 Podredis-cluster-3 in StatefulSet redis-cluster success
+  Normal  SuccessfulCreate  62s                statefulset-controller  create Pod redis-cluster-3 in StatefulSet redis-cluster successful
+  Normal  SuccessfulCreate  59s                statefulset-controller  create Claim data-redis-cluster-4 Podredis-cluster-4 in StatefulSet redis-cluster success
+  Normal  SuccessfulCreate  55s (x3 over 59s)  statefulset-controller  (combined from similar events): create Pod redis-cluster-5 in StatefulSet redis-cluster successful
+thor@jump_host /$ ls -l
+total 100
+-rw-r--r--  21 root root 12090 Aug  1  2019 anaconda-post.log
+lrwxrwxrwx   1 root root     7 Aug  1  2019 bin -> usr/bin
+-rw-r--r--   1 root root  1152 Nov 11 17:56 dep.yml
+drwxr-xr-x   5 root root   340 Nov 11 17:50 dev
+drwxr-xr-x   1 root root  4096 Nov 11 17:50 etc
+drwxr-xr-x   1 root root  4096 Oct 31 06:32 home
+lrwxrwxrwx   1 root root     7 Aug  1  2019 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 Aug  1  2019 lib64 -> usr/lib64
+drwxr-xr-x   2 root root  4096 Apr 11  2018 media
+drwxr-xr-x   2 root root  4096 Apr 11  2018 mnt
+drwxr-xr-x   2 root root  4096 Apr 11  2018 opt
+dr-xr-xr-x 152 root root     0 Nov 11 17:50 proc
+-rw-r--r--   1 root root   172 Nov 11 17:52 pv1.yml
+-rw-r--r--   1 root root   171 Nov 11 17:52 pv2.yml
+-rw-r--r--   1 root root   171 Nov 11 17:52 pv3.yml
+-rw-r--r--   1 root root   171 Nov 11 17:52 pv4.yml
+-rw-r--r--   1 root root   171 Nov 11 17:53 pv5.yml
+-rw-r--r--   1 root root   171 Nov 11 17:53 pv6.yml
+dr-xr-x---   3 root root  4096 Oct 31 06:33 root
+drwxr-xr-x   1 root root  4096 Nov 11 17:51 run
+lrwxrwxrwx   1 root root     8 Aug  1  2019 sbin -> usr/sbin
+drwxr-xr-x   2 root root  4096 Apr 11  2018 srv
+-rw-r--r--   1 root root   270 Nov 11 17:55 svc.yml
+dr-xr-xr-x  13 root root     0 Nov 11 17:50 sys
+drwxrwxrwt   1 root root  4096 Nov 11 17:51 tmp
+drwxr-xr-x   1 root root  4096 Aug  1  2019 usr
+drwxr-xr-x   1 root root  4096 Aug  1  2019 var
+thor@jump_host /$ cat *.yml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis-cluster
+spec:
+  selector:
+    matchLabels:
+      app: redis-cluster
+  serviceName: "redis-cluster-service"
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis-cluster
+    spec:
+      terminationGracePeriodSeconds: 10
+      containers:
+      - name: redis-container
+        image: redis:5.0.1-alpine
+        ports:
+        - containerPort: 6379
+          name: client
+        - containerPort: 16379
+          name: gossip
+        volumeMounts:
+        - name: conf
+          mountPath: /conf
+          readOnly: false
+        - name: data
+          mountPath: /data
+          readOnly: false
+        command: ["/conf/update-node.sh", "redis-server", "/conf/redis.conf"]
+        env:
+        - name: POD_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+      volumes:
+      - name: conf
+        configMap:
+          name: redis-cluster-configmap
+          defaultMode: 0755
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 1Gi
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-01
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis01"
+
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-02
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis02"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-03
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis03"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-04
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis04"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-05
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis05"
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: redis-pv-06
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  hostPath:
+    path: "/redis06"
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-cluster-service
+  labels:
+    app: nginx
+spec:
+  ports:
+  - port: 6379
+    name: client
+    targetPort: 6379
+  - port: 16379
+    name: gossip
+    targetPort: 16379
+  type: ClusterIP
+  selector:
+    app: redis-cluster

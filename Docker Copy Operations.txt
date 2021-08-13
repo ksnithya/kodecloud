@@ -1,0 +1,44 @@
+The Nautilus DevOps team has some conditional data present on App Server 1 in Stratos Datacenter. There is a container ubuntu_latest running on the same server. We received a request to copy some of the data from the docker host to the container. Below are more details about the task:
+
+
+On App Server 1 in Stratos Datacenter copy an encrypted file /tmp/nautilus.txt.gpg from docker host to ubuntu_latest container (running on same server) in /usr/src/ location. Please do not try to modify this file in any way.
+
+thor@jump_host /$ ssh tony@stapp01The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:8r+HAgClUwo+YEmxOwTSBON3Y6leJd+I7goOtEeyzDU.ECDSA key fingerprint is MD5:6d:bc:bd:ff:39:bf:02:90:68:1c:46:e2:08:3a:62:a9.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+tony@stapp01's password:
+[tony@stapp01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for tony:
+[root@stapp01 ~]# ls -l /tmp/nautilus.txt.gpg
+-rw-r--r-- 1 root root 74 Oct 23 19:03 /tmp/nautilus.txt.gpg
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              d70eaf7277ea        2 hours ago         72.9MB
+[root@stapp01 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+ce730407957c        ubuntu              "/bin/bash"         5 minutes ago       Up 5 minutes           ubuntu_latest
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+ce730407957c        ubuntu              "/bin/bash"         5 minutes ago       Up 5 minutes           ubuntu_latest
+[root@stapp01 ~]# docker cp /tmp/nautilus.txt.gpg ubuntu_latest:/usr/src/^C
+[root@stapp01 ~]# docker exec -it ubuntu_latest bash
+root@ce730407957c:/# cd /usr/src
+root@ce730407957c:/usr/src# ls -l
+total 0
+root@ce730407957c:/usr/src# exit
+exit
+[root@stapp01 ~]# docker cp /tmp/nautilus.txt.gpg ubuntu_latest:/usr/src/
+[root@stapp01 ~]# docker exec -it ubuntu_latest bash
+root@ce730407957c:/# cd /usr/src
+root@ce730407957c:/usr/src# ls -l
+total 4
+-rw-r--r-- 1 root root 74 Oct 23 19:03 nautilus.txt.gpg
+root@ce730407957c:/usr/src#

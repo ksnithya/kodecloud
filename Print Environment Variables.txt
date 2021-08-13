@@ -1,0 +1,150 @@
+The Nautilus DevOps team is working on setting up some pre-requisites for an application that will send some greetings to different users. 
+There is a sample deployment need to be tested for same. Below is a scenario which needs to be configured on Kubernetes cluster. Please find below more details about he same.
+
+
+Create a pod named print-envars-greeting.
+
+Configure spec as the container name should be print-env-container and use bash image.
+
+Create three env vars
+
+a. GREETING and its value should be Welcome to
+
+b. COMPANY and its value should be DevOps
+
+c. GROUP and its value should be Industries
+
+Use command echo and configure args as ["$(GREETING) $(COMPANY) $(GROUP)"].
+
+You can check the output by using <kubctl logs -f [ pod-name ]> command.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: print-envars-greeting
+spec:
+  containers:
+    - name: print-env-container
+      image: bash
+      env:
+      - name: GREETING
+        value: "Welcome to"
+      - name: COMPANY
+        value: "DevOps"  
+      - name: GROUP
+        value: "Industries"   
+      command: [ "echo"]
+      args: ["$(GREETING) $(COMPANY) $(GROUP)"]
+
+thor@jump_host /$ sudo vi pod.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f pod.yml
+pod/print-envars-greeting created
+thor@jump_host /$ kubectl get pods
+NAME                    READY   STATUS      RESTARTS   AGE
+print-envars-greeting   0/1     Completed   0          6s
+thor@jump_host /$ kubectl get pods
+NAME                    READY   STATUS      RESTARTS   AGE
+print-envars-greeting   0/1     Completed   1          8sthor@jump_host /$ kubectl log -f print
+Error: unknown command "log" for "kubectl"
+
+Did you mean this?
+        top
+        logs
+
+Run 'kubectl --help' for usage.
+thor@jump_host /$ kubectl logs -f print
+Error from server (NotFound): pods "print" not found
+thor@jump_host /$ kubectl logs -f print-envars-greeting
+Welcome to DevOps Industries
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: print-envars-greeting
+spec:
+  containers:
+    - name: print-env-container
+      image: bash
+      env:
+      - name: GREETING
+        value: "Welcome to"
+      - name: COMPANY
+        value: "DevOps"
+      - name: GROUP
+        value: "Industries"
+      command: [ "echo"]
+      args: ["$(GREETING) $(COMPANY) $(GROUP)"]
+thor@jump_host /$ kubectl describe pod
+Name:         print-envars-greeting
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.17
+Start Time:   Sat, 17 Oct 2020 14:10:34 +0000
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:  10.44.0.1
+Containers:
+  print-env-container:
+    Container ID:  docker://30a4578685038115a1bee286f72510e17754c9813e93e3d8d3b524fe635e4bab
+    Image:         bash
+    Image ID:      docker-pullable://bash@sha256:211b20ab17ed6a6a5db87a7c53a439af026e08c4d79803d4b8530038cb8746fd
+    Port:          <none>
+    Host Port:     <none>
+    Command:
+      echo
+    Args:
+      $(GREETING) $(COMPANY) $(GROUP)
+    State:          Waiting
+      Reason:       CrashLoopBackOff
+    Last State:     Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Sat, 17 Oct 2020 14:11:27 +0000
+      Finished:     Sat, 17 Oct 2020 14:11:27 +0000
+    Ready:          False
+    Restart Count:  3
+    Environment:
+      GREETING:  Welcome to
+      COMPANY:   DevOps
+      GROUP:     Industries
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-l6cqj (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  default-token-l6cqj:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-l6cqj
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type     Reason     Age                From               Message
+  ----     ------     ----               ----               -------
+  Normal   Scheduled  72s                default-scheduler  Successfully assigned default/print-envars-greeting to node01
+  Normal   Pulling    21s (x4 over 71s)  kubelet, node01    Pulling image "bash"
+  Normal   Pulled     19s (x4 over 68s)  kubelet, node01    Successfully pulled image "bash"
+  Normal   Created    19s (x4 over 68s)  kubelet, node01    Created container print-env-container
+  Normal   Started    19s (x4 over 68s)  kubelet, node01    Started container print-env-container
+  Warning  BackOff    5s (x6 over 64s)   kubelet, node01    Back-off restarting failed container
+thor@jump_host /$

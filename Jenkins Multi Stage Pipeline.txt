@@ -1,0 +1,219 @@
+The development team of xFusionCorp Industries is working on to develop a new static website and they are planning to deploy the same on Nautilus App Servers using Jenkins pipeline. They have shared their requirements with the DevOps team and accordingly we need to create a Jenkins pipeline job. Please find below more details about the task:
+
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8081 and click on Display Port. 
+You should be able to access the Jenkins login page. Login using username theadmin and Adm!n321 password.
+
+In the same way you can access Gitea UI on port 8000; username and password for Git is sarah and Sarah_pass123 respectively. There under user sarah you will find a repository named web that is already cloned on Storage server under /home/sarah/web. sarah is a developer who is working on this repository.
+
+We have already cloned repository on Storage Server under /home/sarah/web. Update the content of the file index.html under the same repository to Welcome to xFusionCorp Industries and push the changes to the origin into master branch.
+
+Apache is already installed on all app Servers its running on port 8080.
+
+Create a Jenkins pipeline job named deploy-job (it must not be a Multibranch pipeline job) and 
+pipeline should have two stages Deploy and Test ( which is case sensitive ). Configure these stages as per details mentioned below.
+
+a. The Deploy stage should deploy the code from web repository under /data on Storage Server, as this location is already mounted to the document root /var/www/html of all app servers.
+
+b. The Test stage should test your latest changes if deployed correctly. Its up to you how you design this stage to test your changes, 
+you can simply add a curl command as well to run a curl against the LBR URL to see if your latest pushed changes are visible on the website. 
+Make sure this stage fails in case the changes mentioned in this question aren't deployed correctly or if Deploy stage fails.
+
+LB server is already configured. Click on the + button in the top left corner and select option Select port to view on Host 1, 
+enter port 80 and click on Display Port. You should be able to see the latest changes you made. Please make sure the required content is 
+loading on the main URL https://<LBR-URL> i.e there should not be a sub-directory like https://<LBR-URL>/web etc.
+
+Note:
+
+You might need to install some plugins and restart Jenkins service. So, we recommend clicking on Restart Jenkins when installation is complete and no jobs are running on plugin installation/update page i.e update centre. Also, Jenkins UI sometimes gets stuck when Jenkins service restarts in the back end. In this case, please make sure to refresh the UI page.
+
+For these kind of scenarios requiring changes to be done in a web UI, please take screenshots so that you can share it with us for review in case your task is marked incomplete. You may also consider using a screen recording software such as loom.com to record and share your work.
+
+
+[sarah@ststor01 web]$ cat jenkinsfile 
+pipeline {
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh 'echo Bl@kW | cp /home/sarah/web/* /data/'
+            }
+        }
+    }
+    post {
+        success {
+            sh 'echo Deployment Success'
+        }
+        failure {
+            sh 'echo Deployment Failed'
+        }
+    }
+}
+
+
+def res = "false"
+pipeline {
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh 'echo Bl@kW | cp /home/sarah/web/* /data/'
+            }
+	    post {
+            	success {
+			res = "true"
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+		  script {
+			if (res == "true") {
+                        	sh 'echo Deployment Success'
+                        } else {
+ 				sh 'exit 1'
+                        }
+   		  }
+	     }
+	}
+    }
+}
+
+
+def res = 'false'
+pipeline {
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh 'echo Bl@kW | cp /home/sarah/web/* /data/'
+            }
+	        post {
+                success {
+			            sh res = 'true'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+		        script {
+			        if (res == "true") {
+                        	sh 'echo Deployment Success'
+                    } else {
+ 				        sh 'exit 1'
+                    }
+   		        }
+	        }
+        }
+    }
+}
+
+def tes = 'false'
+pipeline {
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                sh 'echo Bl@kW | sudo cp /home/sarah/web/* /data/'
+                sh 'echo ${tes}'
+            }
+            post {
+                success {
+                    tes = "true"
+                    sh 'echo ${tes}'
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    if(tes == 'true') {
+                        sh 'http://stlb01:80'
+                        sh 'echo Deployment Success'
+                    } else {
+                        sh 'echo Deployment failed'
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+
+
+---------------
+
+pipeline {
+    environment {
+        tes = 'false'
+    }
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'echo Bl@kW | sudo cp /home/sarah/web/* /data/'
+                    sh 'echo ${tes}'
+                }
+            }
+            post {
+                success {
+                    script {
+                        tes = 'true'
+                        sh 'echo ${tes}'
+                    }
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    if(tes == 'true') {
+                        sh 'echo Deployment Success'
+                        sh 'echo ${tes}'
+                    } else {
+                        sh 'echo Deployment failed'
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}
+-----------------------------------
+working
+def tes = 'false'
+pipeline {
+    agent { label 'ststor01' }
+    stages {
+        stage('Deploy') {
+            steps {
+                script {
+                    sh 'echo Bl@kW | sudo cp /home/sarah/web/* /data/'
+                    sh "echo ${tes}"
+                }
+            }
+            post {
+                success {
+                    script {
+                        tes = 'true'
+                        sh "echo ${tes}"
+                    }
+                }
+            }
+        }
+        stage('Test') {
+            steps {
+                script {
+                    if(tes == 'true') {
+                        sh 'echo Deployment Success'
+                        sh "echo ${tes}"
+                    } else {
+                        sh 'echo Deployment failed'
+                        sh 'exit 1'
+                    }
+                }
+            }
+        }
+    }
+}

@@ -1,0 +1,110 @@
+root@jump_host /# cd /etc/puppetlabs/code/environments/production/manifests                                            
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ls                                              
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi games.pp                                     
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat games.pp                                    
+node "stapp01.stratos.xfusioncorp.com" {                                                                               
+        include local_yum_repo                                                                                         
+}                                                                                                                      
+node "stapp02.stratos.xfusioncorp.com" {                                                                               
+        include local_yum_repo                                                                                         
+}                                                                                                                      
+node "stapp03.stratos.xfusioncorp.com" {                                                                               
+        include local_yum_repo                                                                                         
+}                                                                                                                      
+                                                                                                                       
+class local_yum_repo {                                                                                                 
+yumrepo { 'local_yum':                                                                                                 
+enabled => 1,                                                                                                          
+baseurl => 'file:///packages/downloaded_rpms',                                                                         
+gpgcheck => 0,                                                                                                         
+}        
+
+package { 'vsftpd': ensure => installed, require => Yumrepo["local_yum"]}
+
+The Nautilus DevOps team was working on developing some custom RPMs to meet some application needs. Most of those RPMs will be installed on all application servers 
+in Stratos Datacenter. So to accomplish this task we need to configure a local yum repository on all app servers so that we can install those custom RPMs from that local yum repository.
+ But this task needs to be done using Puppet, below you can find more details.
+
+
+Create a puppet programming file demo.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e on Jump Server. 
+Define a class local_yum_repo and perform below mentioned tasks:
+
+There are some RPMs already present at location /packages/downloaded_rpms on all puppet agent nodes i.e on all App Servers.
+
+Create a local yum repository named epel_local (make sure to set Repository ID to epel_local). Configure it to use packages location 
+/packages/downloaded_rpms on all puppet agent nodes i.e on all App Servers.
+
+Install package vim-enhanced from this newly created repository through on all puppet agent nodes i.e on all App Servers.
+
+Make sure to create a single puppet programming file demo.pp to configure local yum repository and install the package.
+
+Note: Please perform this task using demo.pp only, do not create any separate inventory file.
+
+node "stapp01.stratos.xfusioncorp.com" {
+        include local_yum_repo
+}
+node "stapp02.stratos.xfusioncorp.com" {
+        include local_yum_repo
+}
+node "stapp03.stratos.xfusioncorp.com" {
+        include local_yum_repo
+}
+
+class local_yum_repo {
+  yumrepo { 'epel_local':
+    enabled => 1,
+    baseurl => 'file:///packages/downloaded_rpms',
+    gpgcheck => 0,
+    }
+}
+
+package { 'vim-enhanced': ensure => installed, require => Yumrepo["epel_local"]}
+
+[root@stapp01 ~]# rpm -qa|grep -i vim-en^
+[root@stapp01 ~]# rpm -qa|grep -i vim-en*
+[root@stapp01 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+Info: Applying configuration version '1608743979'
+Notice: /Stage[main]/Local_yum_repo/Yumrepo[epel_local]/ensure: created
+Info: Yumrepo[epel_local](provider=inifile): changing mode of /etc/yum.repos.d/epel_local.repo from 600 to 644
+Notice: /Stage[main]/Main/Package[vim-enhanced]/ensure: created
+Notice: Applied catalog in 6.44 seconds
+[root@stapp01 ~]# rpm -qa|grep -i vim-en*
+vim-enhanced-7.4.629-6.el7.x86_64
+[root@stapp01 ~]#
+
+[root@stapp02 ~]# rpm -qa|grep -i vim-en*
+[root@stapp02 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp02.stratos.xfusioncorp.com
+Info: Applying configuration version '1608744010'
+Notice: /Stage[main]/Local_yum_repo/Yumrepo[epel_local]/ensure: created
+Info: Yumrepo[epel_local](provider=inifile): changing mode of /etc/yum.repos.d/epel_local.repo from 600 to 644
+Notice: /Stage[main]/Main/Package[vim-enhanced]/ensure: created
+Notice: Applied catalog in 5.45 seconds
+[root@stapp02 ~]# rpm -qa|grep -i vim-en*
+vim-enhanced-7.4.629-6.el7.x86_64
+[root@stapp02 ~]#
+
+[root@stapp03 ~]# rpm -qa|grep -i vim-en*
+[root@stapp03 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+Info: Applying configuration version '1608744015'
+Notice: /Stage[main]/Local_yum_repo/Yumrepo[epel_local]/ensure: created
+Info: Yumrepo[epel_local](provider=inifile): changing mode of /etc/yum.repos.d/epel_local.repo from 600 to 644
+Notice: /Stage[main]/Main/Package[vim-enhanced]/ensure: created
+Notice: Applied catalog in 6.90 seconds
+[root@stapp03 ~]# rpm -qa|grep -i vim-en*
+vim-enhanced-7.4.629-6.el7.x86_64
+[root@stapp03 ~]#

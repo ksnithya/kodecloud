@@ -1,0 +1,226 @@
+The Nautilus application development team has been working on a project repository /opt/cluster.git. This repo is cloned at /usr/src/kodekloudrepos on storage server in Stratos DC. 
+They recently shared the following requirements with DevOps team:
+
+
+a. Create a new branch xfusion in /usr/src/kodekloudrepos/cluster repo from master and copy the /tmp/index.html file (on storage server itself). 
+Add/commit this file in the new branch and merge back that branch to the master branch. Finally, 
+push the changes to origin for both of the branches.
+
+thor@jump_host /$ ssh natasha@ststor01
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:weD2/h2WuGIjxWomocfWScHJ/Yn+bZYem7if9ln5qCk.
+ECDSA key fingerprint is MD5:a4:be:23:95:ad:3c:23:29:d7:97:6e:89:22:ab:19:1c.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/cluster
+[root@ststor01 cluster]# ls -l
+total 8
+-rw-r--r-- 1 root root 34 Oct  6 16:53 info.txt
+-rw-r--r-- 1 root root 26 Oct  6 16:53 welcome.txt
+[root@ststor01 cluster]# ls -al
+total 20
+drwxr-xr-x 3 root root 4096 Oct  6 16:53 .
+drwxr-xr-x 3 root root 4096 Oct  6 16:53 ..
+drwxr-xr-x 8 root root 4096 Oct  6 16:53 .git
+-rw-r--r-- 1 root root   34 Oct  6 16:53 info.txt
+-rw-r--r-- 1 root root   26 Oct  6 16:53 welcome.txt
+[root@ststor01 cluster]# cd .git
+[root@ststor01 .git]# ls -l
+total 44
+drwxr-xr-x 2 root root 4096 Oct  6 16:53 branches
+-rw-r--r-- 1 root root   15 Oct  6 16:53 COMMIT_EDITMSG
+-rw-r--r-- 1 root root  241 Oct  6 16:53 config
+-rw-r--r-- 1 root root   73 Oct  6 16:53 description
+-rw-r--r-- 1 root root   23 Oct  6 16:53 HEAD
+drwxr-xr-x 2 root root 4096 Oct  6 16:53 hooks
+-rw-r--r-- 1 root root  184 Oct  6 16:53 index
+drwxr-xr-x 2 root root 4096 Oct  6 16:53 info
+drwxr-xr-x 3 root root 4096 Oct  6 16:53 logs
+drwxr-xr-x 8 root root 4096 Oct  6 16:53 objects
+drwxr-xr-x 5 root root 4096 Oct  6 16:53 refs
+[root@ststor01 .git]# cd ..
+[root@ststor01 cluster]# git status
+# On branch master
+nothing to commit, working directory clean
+[root@ststor01 cluster]# git branch xfusion
+[root@ststor01 cluster]# git checkout xfusion
+Switched to branch 'xfusion'
+[root@ststor01 cluster]# cd /tmp/index.html .
+-bash: cd: /tmp/index.html: Not a directory
+[root@ststor01 cluster]# cp /tmp/index.html .
+[root@ststor01 cluster]# ls -l
+total 12
+-rw-r--r-- 1 root root 27 Oct  6 17:04 index.html
+-rw-r--r-- 1 root root 34 Oct  6 16:53 info.txt
+-rw-r--r-- 1 root root 26 Oct  6 16:53 welcome.txt
+[root@ststor01 cluster]# git commit -a -m 'created new file'
+# On branch xfusion
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       index.html
+nothing added to commit but untracked files present (use "git add" to track)
+[root@ststor01 cluster]# git add .
+[root@ststor01 cluster]# git status
+# On branch xfusion
+# Changes to be committed:
+#   (use "git reset HEAD <file>..." to unstage)
+#
+#       new file:   index.html
+#
+[root@ststor01 cluster]# git commit -a -m 'created new file'
+[xfusion 7203a64] created new file
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@ststor01 cluster]# git checkout master
+Switched to branch 'master'
+[root@ststor01 cluster]# git merge xfusion
+Updating 6a58f92..7203a64
+Fast-forward
+ index.html | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@ststor01 cluster]# git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+nothing to commit, working directory clean
+[root@ststor01 cluster]# git push origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 331 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/cluster.git
+   6a58f92..7203a64  master -> master
+[root@ststor01 cluster]# git push origin xfusion
+Total 0 (delta 0), reused 0 (delta 0)
+To /opt/cluster.git
+ * [new branch]      xfusion -> xfusion
+[root@ststor01 cluster]#
+
+
+
+
+hor@jump_host /$ ssh natasha@ststor01
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:8lmDEzCiKnH+Vhl/uvDIiANTULe79Ikg4UPeA3BWFcM.
+ECDSA key fingerprint is MD5:bd:66:6c:5b:61:ac:2c:9d:50:6d:a7:a6:8b:30:a5:eb.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/apps
+[root@ststor01 apps]# git status
+# On branch master
+nothing to commit, working directory clean
+[root@ststor01 apps]# git branch xfusion
+[root@ststor01 apps]# git checkout xfusion
+Switched to branch 'xfusion'
+[root@ststor01 apps]# cp /tmp/index.html .
+[root@ststor01 apps]# ls -l
+total 12
+-rw-r--r-- 1 root root 27 Oct  6 17:32 index.html
+-rw-r--r-- 1 root root 34 Oct  6 17:30 info.txt
+-rw-r--r-- 1 root root 26 Oct  6 17:30 welcome.txt
+[root@ststor01 apps]# git add .
+[root@ststor01 apps]# git commit -a -m "added index.html"
+[xfusion c32fd72] added index.html
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@ststor01 apps]# git merge xfusion
+Already up-to-date.
+[root@ststor01 apps]# git checkout master
+Switched to branch 'master'
+[root@ststor01 apps]# git merge xfusion
+Updating f9ced51..c32fd72
+Fast-forward
+ index.html | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@ststor01 apps]# git status
+# On branch master
+# Your branch is ahead of 'origin/master' by 1 commit.
+#   (use "git push" to publish your local commits)
+#
+nothing to commit, working directory clean
+[root@ststor01 apps]# git push origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 331 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/apps.git
+   f9ced51..c32fd72  master -> master
+[root@ststor01 apps]# git push origin xfusion
+Total 0 (delta 0), reused 0 (delta 0)
+To /opt/apps.git
+ * [new branch]      xfusion -> xfusion
+[root@ststor01 apps]# git status
+# On branch master
+nothing to commit, working directory clean
+[root@ststor01 apps]# git show
+commit c32fd7231fa9841cc6a355ce13378c1ef8c4f971
+Author: Admin <admin@kodekloud.com>
+Date:   Tue Oct 6 17:33:40 2020 +0000
+
+    added index.html
+
+diff --git a/index.html b/index.html
+new file mode 100644
+index 0000000..8530226
+--- /dev/null
++++ b/index.html
+@@ -0,0 +1 @@
++Welcome to Nautilus Group !
+\ No newline at end of file
+[root@ststor01 apps]#
+
+root@ststor01 apps]# git ls-tree -r master
+100644 blob 8530226b8f83b33f1c734d55d3609dd2d99bb233    index.html
+100644 blob 255b540a74ad9cf7fcdd885edb227a395e42a281    info.txt
+100644 blob 7827cbd6731e61d5542dea0d666ab5c3920d505e    welcome.txt
+[root@ststor01 apps]# git ls-tree -r xfusion
+100644 blob 8530226b8f83b33f1c734d55d3609dd2d99bb233    index.html
+100644 blob 255b540a74ad9cf7fcdd885edb227a395e42a281    info.txt
+100644 blob 7827cbd6731e61d5542dea0d666ab5c3920d505e    welcome.txt
+[root@ststor01 apps]#
+
+[root@ststor01 apps]# git ls-tree -r master
+100644 blob 8530226b8f83b33f1c734d55d3609dd2d99bb233    index.html
+100644 blob 255b540a74ad9cf7fcdd885edb227a395e42a281    info.txt
+100644 blob 7827cbd6731e61d5542dea0d666ab5c3920d505e    welcome.txt
+[root@ststor01 apps]# git ls-tree -r xfusion
+100644 blob 8530226b8f83b33f1c734d55d3609dd2d99bb233    index.html
+100644 blob 255b540a74ad9cf7fcdd885edb227a395e42a281    info.txt
+100644 blob 7827cbd6731e61d5542dea0d666ab5c3920d505e    welcome.txt
+[root@ststor01 apps]# git ls-files
+index.html
+info.txt
+welcome.txt
+[root@ststor01 apps]# git checkout xfusion
+Switched to branch 'xfusion'
+[root@ststor01 apps]# git ls-files
+index.html
+info.txt
+welcome.txt
+[root@ststor01 apps]#

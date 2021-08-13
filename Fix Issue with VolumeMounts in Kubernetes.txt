@@ -1,0 +1,220 @@
+We deployed a Nginx and PHPFPM based application on Kubernetes cluster last week and it had been working fine. This morning one of the team members made 
+a change somewhere which caused some issues, and the application stopped working. Please look into the issue and fix it:
+
+
+The pod name is nginx-phpfpm and configmap name is nginx-config, Nginx is running on port 8099. Figure out the issues and fix them.
+
+Once you think issue is fixed copy /tmp/index.php from jump host to nginx-container under nginx document root and try to curl the nginx URL from nginx-container itself, 
+you should be able to run the php page you copied. This step isn't mandatory but it will be helpful to test the setup.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+Edit the volume mount path to /var/www/html
+
+thor@jump_host /tmp$ cat kubectl-edit-
+cat: kubectl-edit-: No such file or directory
+thor@jump_host /tmp$ cat kubectl-edit-0eva4.yaml
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: v1
+kind: Pod
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Pod","metadata":{"annotations":{},"name":"nginx-phpfpm","namespace":"default"},"spec":{"containers":[{"image":"php:7.2-fpm","name":"php-fpm-container","volumeMounts":[{"mountPath":"/var/www/html","name":"shared-files"}]},{"image":"nginx:latest","name":"nginx-container","volumeMounts":[{"mountPath":"/usr/share/nginx/html","name":"shared-files"},{"mountPath":"/etc/nginx/nginx.conf","name":"nginx-config-volume","subPath":"nginx.conf"}]}],"volumes":[{"emptyDir":{},"name":"shared-files"},{"configMap":{"name":"nginx-config"},"name":"nginx-config-volume"}]}}
+  creationTimestamp: "2020-12-21T04:57:00Z"
+  name: nginx-phpfpm
+  namespace: default
+  resourceVersion: "651"
+  selfLink: /api/v1/namespaces/default/pods/nginx-phpfpm
+  uid: f93ed28d-c53e-4348-9949-254b29122e04
+spec:
+  containers:
+  - image: php:7.2-fpm
+    imagePullPolicy: IfNotPresent
+    name: php-fpm-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/www/html
+      name: shared-files
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-99wxf
+      readOnly: true
+  - image: nginx:latest
+    imagePullPolicy: Always
+    name: nginx-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/www/html
+      name: shared-files
+    - mountPath: /etc/nginx/nginx.conf
+      name: nginx-config-volume
+      subPath: nginx.conf
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-99wxf
+      readOnly: true
+  dnsPolicy: ClusterFirst
+  enableServiceLinks: true
+  nodeName: node01
+  preemptionPolicy: PreemptLowerPriority
+  priority: 0
+  restartPolicy: Always
+  schedulerName: default-scheduler
+  securityContext: {}
+  serviceAccount: default
+  serviceAccountName: default
+  terminationGracePeriodSeconds: 30
+  tolerations:
+  - effect: NoExecute
+    key: node.kubernetes.io/not-ready
+    operator: Exists
+    tolerationSeconds: 300
+  - effect: NoExecute
+    key: node.kubernetes.io/unreachable
+    operator: Exists
+    tolerationSeconds: 300
+  volumes:
+  - emptyDir: {}
+    name: shared-files
+  - configMap:
+      defaultMode: 420
+      name: nginx-config
+    name: nginx-config-volume
+  - name: default-token-99wxf
+    secret:
+      defaultMode: 420
+      secretName: default-token-99wxf
+status:
+  conditions:
+  - lastProbeTime: null
+    lastTransitionTime: "2020-12-21T04:57:00Z"
+    status: "True"
+    type: Initialized
+  - lastProbeTime: null
+    lastTransitionTime: "2020-12-21T04:57:19Z"
+    status: "True"
+    type: Ready
+  - lastProbeTime: null
+    lastTransitionTime: "2020-12-21T04:57:19Z"
+    status: "True"
+    type: ContainersReady
+  - lastProbeTime: null
+    lastTransitionTime: "2020-12-21T04:57:00Z"
+    status: "True"
+    type: PodScheduled
+  containerStatuses:
+  - containerID: docker://0f6ed9672e365fdaa230d9d93d78491dd60ccd97c74409737fffc49cd596fd54
+    image: nginx:latest
+    imageID: docker-pullable://nginx@sha256:4cf620a5c81390ee209398ecc18e5fb9dd0f5155cd82adcbae532fec94006fb9
+    lastState: {}
+    name: nginx-container
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2020-12-21T04:57:19Z"
+  - containerID: docker://69d3854213ff21d211d9d14da3dbce82f2c72e6d663821ac5879a1e2acb10316
+    image: php:7.2-fpm
+    imageID: docker-pullable://php@sha256:9c84ae47fddb97b94d1d2e289635b7306142a5336bc4ece0a393458c5e0d2cef
+    lastState: {}
+    name: php-fpm-container
+    ready: true
+    restartCount: 0
+    started: true
+    state:
+      running:
+        startedAt: "2020-12-21T04:57:15Z"
+  hostIP: 172.17.0.45
+  phase: Running
+  podIP: 10.244.1.2
+  podIPs:
+  - ip: 10.244.1.2
+  qosClass: BestEffort
+  startTime: "2020-12-21T04:57:00Z"
+thor@jump_host /tmp$
+
+
+
+  containers:
+  - image: php:7.2-fpm
+    imagePullPolicy: IfNotPresent
+    name: php-fpm-container
+    resources: {}
+    terminationMessagePath: /dev/termination-log
+    terminationMessagePolicy: File
+    volumeMounts:
+    - mountPath: /var/www/html
+      name: shared-files
+    - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+      name: default-token-rnhsr
+      readOnly: true
+  - image: nginx:latest
+    imagePullPolicy: Always
+    name: nginx-container
+
+
+apiVersion: v1
+data:
+  nginx.conf: |
+    events {
+    }
+    http {
+      server {
+        listen 8099 default_server;
+        listen [::]:8099 default_server;
+
+        # Set nginx to serve files from the shared volume!
+        root /var/www/html;
+        index  index.html index.htm index.php;
+        server_name _;
+        location / {
+          try_files $uri $uri/ =404;
+        }
+        location ~ \.php$ {
+          include fastcgi_params;
+          fastcgi_param REQUEST_METHOD $request_method;
+          fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+          fastcgi_pass 127.0.0.1:9000;
+        }
+      }
+    }
+kind: ConfigMap
+metadata:
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"nginx.conf":"events {\n}\nhttp {\n  server {\n    listen 8099 default_server;\n    listen [::]:8099 default_server;\n\n    # Set nginx to serve files from the shared volume!\n    root /var/www/html;\n    index  index.html index.htm index.php;\n    server_name _;\n    location / {\n      try_files $uri $uri/ =404;\n    }\n    location ~ \\.php$ {\n      include fastcgi_params;\n      fastcgi_param REQUEST_METHOD $request_method;\n      fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;\n      fastcgi_pass 127.0.0.1:9000;\n    }\n  }\n}\n"},"kind":"ConfigMap","metadata":{"annotations":{},"name":"nginx-config","namespace":"default"}}
+  creationTimestamp: "2021-03-15T08:52:58Z"
+  name: nginx-config
+  namespace: default
+  resourceVersion: "655"
+  selfLink: /api/v1/namespaces/default/configmaps/nginx-config
+  uid: 9d191ca0-cc1f-4438-afb9-f855a11a2fc5
+
+Copy File:
+thor@jump_host /tmp$ kubectl cp /tmp/index.php nginx-phpfpm:/var/www/html -c nginx-container
+
+hor@jump_host /$ history
+    1  kubectl get nodes
+    2  kubectl get pods
+    3  kubectl edit pods
+    4  kubectl replace -f /tmp/kubectl-edit-f20ns.yaml --force
+    5  kubectl edit pods
+    6  kubectl get pods
+    7  kubectl edit pods
+    8  kubectl get pods
+    9  kubectl ger pods -o yaml
+   10  kubectl get pods -o yaml
+   11  kubectl get pods
+   12  cp /tmp/index.php nginx-phpfpm:/var/www/html -c nginx-container
+   13  kubectl cp /tmp/index.php nginx-phpfpm:/var/www/html -c nginx-container
+   14  kubectl exec -it nginx-phpfpm -c nginx-container -- /bin/bash
+   15  history
+thor@jump_host /$ 

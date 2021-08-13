@@ -1,0 +1,730 @@
+The Nautilus DevOps team is working to deploy one of the applications on App Server 3 in Stratos DC. Due to a misconfiguration in the docker compose file, the deployment is failing. We would like you to take a look into it to identify and fix the issues. More details can be found below:
+
+
+a. docker-compose.yml file is present on App Server 3 under /opt/docker directory.
+
+b. Try to run the same and make sure it works fine.
+
+c. Please do not change the container names being used. Also, do not update or alter any other valid config settings in the compose file or any other relevant data that can cause app failure.
+
+Note: Please note that once you click on FINISH button all existing running/stopped containers will be destroyed, and your compose will be run.
+
+version: "3.8"
+services:
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/code
+      - logvolume01:/var/log
+    links:
+      - redis
+  redis:
+    image: redis
+volumes:
+  logvolume01: {}
+
+thor@jump_host /$ ssh banner@stapp03
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:wVvp+W4uqjcBbX5561kB1ZoSmOAPJdSO61+KF/3Z0WU.
+ECDSA key fingerprint is MD5:50:9f:bd:3a:f3:67:24:74:d6:15:12:d1:2d:2d:37:18.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password:
+[banner@stapp03 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for banner:
+[root@stapp03 ~]# cd /opt/docker
+[root@stapp03 docker]# vi docker-compose.yml
+[root@stapp03 docker]# ls -l
+total 16
+-rw-r--r-- 1 root root 339 Oct  9 16:34 app.py
+-rw-r--r-- 1 root root 258 Oct  9 16:39 docker-compose.yml
+-rw-r--r-- 1 root root  95 Oct  9 16:34 Dockerfile
+-rw-r--r-- 1 root root  11 Oct  9 16:34 requirements.txt
+[root@stapp03 docker]# cat Dockerfile
+FROM python:2.7
+ADD . /code
+WORKDIR /code
+RUN pip install -r requirements.txt
+CMD python app.py[root@stapp03 docker]# cat requirements.txt
+flask
+redis[root@stapp03 docker]# cat app.py
+# compose_flask/app.py
+from flask import Flask
+from redis import Redis
+
+app = Flask(__name__)
+redis = Redis(host='redis', port=6379)
+
+@app.route('/')
+def hello():
+    redis.incr('hits')
+    return 'This Compose/Flask demo has been viewed %s time(s).' % redis.get('hits')
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)[root@stapp03 docker]# docker-compose -f docker-compose.yml
+Define and run multi-container applications with Docker.
+
+Usage:
+  docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
+  docker-compose -h|--help
+
+Options:
+  -f, --file FILE             Specify an alternate compose file
+                              (default: docker-compose.yml)
+  -p, --project-name NAME     Specify an alternate project name
+                              (default: directory name)
+  --verbose                   Show more output
+  --log-level LEVEL           Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  --no-ansi                   Do not print ANSI control characters
+  -v, --version               Print version and exit
+  -H, --host HOST             Daemon socket to connect to
+
+  --tls                       Use TLS; implied by --tlsverify
+  --tlscacert CA_PATH         Trust certs signed only by this CA
+  --tlscert CLIENT_CERT_PATH  Path to TLS certificate file
+  --tlskey TLS_KEY_PATH       Path to TLS key file
+  --tlsverify                 Use TLS and verify the remote
+  --skip-hostname-check       Don't check the daemon's hostname against the
+                              name specified in the client certificate
+  --project-directory PATH    Specify an alternate working directory
+                              (default: the path of the Compose file)
+  --compatibility             If set, Compose will attempt to convert deploy
+                              keys in v3 files to their non-Swarm equivalent
+
+Commands:
+  build              Build or rebuild services
+  bundle             Generate a Docker bundle from the Compose file
+  config             Validate and view the Compose file
+  create             Create services
+  down               Stop and remove containers, networks, images, and volumes
+  events             Receive real time events from containers
+  exec               Execute a command in a running container
+  help               Get help on a command
+  images             List images
+  kill               Kill containers
+  logs               View output from containers
+  pause              Pause services
+  port               Print the public port for a port binding
+  ps                 List containers
+  pull               Pull service images
+  push               Push service images
+  restart            Restart services
+  rm                 Remove stopped containers
+  run                Run a one-off command
+  scale              Set number of containers for a service
+  start              Start services
+  stop               Stop services
+  top                Display the running processes
+  unpause            Unpause services
+  up                 Create and start containers
+  version            Show the Docker-Compose version information
+[root@stapp03 docker]# cat docker-compose.yml
+version: '1'
+services:
+    web:
+        build: .
+        container_name: python
+        ports:
+            - "5000:5000"
+        volume:
+            - .:/code
+        depends:
+            - redis
+    redis:
+        build: redis
+        container_name: redis
+[root@stapp03 docker]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp03 docker]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp03 docker]# docker-compose -f docker-compose.yml
+Define and run multi-container applications with Docker.
+
+Usage:
+  docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
+  docker-compose -h|--help
+
+Options:
+  -f, --file FILE             Specify an alternate compose file
+                              (default: docker-compose.yml)
+  -p, --project-name NAME     Specify an alternate project name
+                              (default: directory name)
+  --verbose                   Show more output
+  --log-level LEVEL           Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  --no-ansi                   Do not print ANSI control characters
+  -v, --version               Print version and exit
+  -H, --host HOST             Daemon socket to connect to
+
+  --tls                       Use TLS; implied by --tlsverify
+  --tlscacert CA_PATH         Trust certs signed only by this CA
+  --tlscert CLIENT_CERT_PATH  Path to TLS certificate file
+  --tlskey TLS_KEY_PATH       Path to TLS key file
+  --tlsverify                 Use TLS and verify the remote
+  --skip-hostname-check       Don't check the daemon's hostname against the
+                              name specified in the client certificate
+  --project-directory PATH    Specify an alternate working directory
+                              (default: the path of the Compose file)
+  --compatibility             If set, Compose will attempt to convert deploy
+                              keys in v3 files to their non-Swarm equivalent
+
+Commands:
+  build              Build or rebuild services
+  bundle             Generate a Docker bundle from the Compose file
+  config             Validate and view the Compose file
+  create             Create services
+  down               Stop and remove containers, networks, images, and volumes
+  events             Receive real time events from containers
+  exec               Execute a command in a running container
+  help               Get help on a command
+  images             List images
+  kill               Kill containers
+  logs               View output from containers
+  pause              Pause services
+  port               Print the public port for a port binding
+  ps                 List containers
+  pull               Pull service images
+  push               Push service images
+  restart            Restart services
+  rm                 Remove stopped containers
+  run                Run a one-off command
+  scale              Set number of containers for a service
+  start              Start services
+  stop               Stop services
+  top                Display the running processes
+  unpause            Unpause services
+  up                 Create and start containers
+  version            Show the Docker-Compose version information
+[root@stapp03 docker]# docker-compose -f docker-compose.yml build
+ERROR: Version in "./docker-compose.yml" is invalid. You might be seeing this error because you're using thewrong Compose file version. Either specify a supported version (e.g "2.2" or "3.3") and place your service definitions under the `services` key, or omit the `version` key and place your service definitions at the rootof the file to use version 1.
+For more on the Compose file format versions, see https://docs.docker.com/compose/compose-file/
+[root@stapp03 docker]# vi docker-compose.yml
+[root@stapp03 docker]# docker-compose -f docker-compose.yml build
+ERROR: The Compose file './docker-compose.yml' is invalid because:
+Unsupported config option for services.web: 'depends'
+[root@stapp03 docker]# vi docker-compose.yml
+[root@stapp03 docker]# docker-compose -f docker-compose.yml build
+ERROR: The Compose file './docker-compose.yml' is invalid because:
+Unsupported config option for services.web: 'volume' (did you mean 'volumes'?)
+[root@stapp03 docker]# vi docker-compose.yml
+[root@stapp03 docker]# docker-compose -f docker-compose.yml build
+ERROR: build path /opt/docker/redis either does not exist, is not accessible, or is not a valid URL.
+[root@stapp03 docker]# docker-compose -f docker-compose.yml
+Define and run multi-container applications with Docker.
+
+Usage:
+  docker-compose [-f <arg>...] [options] [COMMAND] [ARGS...]
+  docker-compose -h|--help
+
+Options:
+  -f, --file FILE             Specify an alternate compose file
+                              (default: docker-compose.yml)
+  -p, --project-name NAME     Specify an alternate project name
+                              (default: directory name)
+  --verbose                   Show more output
+  --log-level LEVEL           Set log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)
+  --no-ansi                   Do not print ANSI control characters
+  -v, --version               Print version and exit
+  -H, --host HOST             Daemon socket to connect to
+
+  --tls                       Use TLS; implied by --tlsverify
+  --tlscacert CA_PATH         Trust certs signed only by this CA
+  --tlscert CLIENT_CERT_PATH  Path to TLS certificate file
+  --tlskey TLS_KEY_PATH       Path to TLS key file
+  --tlsverify                 Use TLS and verify the remote
+  --skip-hostname-check       Don't check the daemon's hostname against the
+                              name specified in the client certificate
+  --project-directory PATH    Specify an alternate working directory
+                              (default: the path of the Compose file)
+  --compatibility             If set, Compose will attempt to convert deploy
+                              keys in v3 files to their non-Swarm equivalent
+
+Commands:
+  build              Build or rebuild services
+  bundle             Generate a Docker bundle from the Compose file
+  config             Validate and view the Compose file
+  create             Create services
+  down               Stop and remove containers, networks, images, and volumes
+  events             Receive real time events from containers
+  exec               Execute a command in a running container
+  help               Get help on a command
+  images             List images
+  kill               Kill containers
+  logs               View output from containers
+  pause              Pause services
+  port               Print the public port for a port binding
+  ps                 List containers
+  pull               Pull service images
+  push               Push service images
+  restart            Restart services
+  rm                 Remove stopped containers
+  run                Run a one-off command
+  scale              Set number of containers for a service
+  start              Start services
+  stop               Stop services
+  top                Display the running processes
+  unpause            Unpause services
+  up                 Create and start containers
+  version            Show the Docker-Compose version information
+[root@stapp03 docker]# docker-compose -f docker-compose.yml up
+ERROR: build path /opt/docker/redis either does not exist, is not accessible, or is not a valid URL.
+[root@stapp03 docker]# vi docker-compose.yml
+[root@stapp03 docker]# docker-compose -f docker-compose.yml build
+redis uses an image, skipping
+Building web
+Step 1/5 : FROM python:2.7
+2.7: Pulling from library/python
+7e2b2a5af8f6: Pull complete
+09b6f03ffac4: Pull complete
+dc3f0c679f0f: Pull complete
+fd4b47407fc3: Pull complete
+b32f6bf7d96d: Pull complete
+6f4489a7e4cf: Pull complete
+af4b99ad9ef0: Pull complete
+39db0bc48c26: Pull complete
+acb4a89489fc: Pull complete
+Digest: sha256:cfa62318c459b1fde9e0841c619906d15ada5910d625176e24bf692cf8a2601d
+Status: Downloaded newer image for python:2.7
+ ---> 68e7be49c28c
+Step 2/5 : ADD . /code
+ ---> cdbab70b017a
+Step 3/5 : WORKDIR /code
+ ---> Running in 21bde0c2d8cb
+Removing intermediate container 21bde0c2d8cb
+ ---> c0d95034d99f
+Step 4/5 : RUN pip install -r requirements.txt
+ ---> Running in a78fb97f9782
+DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. A future version of pip will drop support for Python 2.7. More details about Python 2 support in pip, can be found at https://pip.pypa.io/en/latest/development/release-process/#python-2-support
+Collecting flask
+  Downloading Flask-1.1.2-py2.py3-none-any.whl (94 kB)
+Collecting redis
+  Downloading redis-3.5.3-py2.py3-none-any.whl (72 kB)
+Collecting click>=5.1
+  Downloading click-7.1.2-py2.py3-none-any.whl (82 kB)
+Collecting itsdangerous>=0.24
+  Downloading itsdangerous-1.1.0-py2.py3-none-any.whl (16 kB)
+Collecting Werkzeug>=0.15
+  Downloading Werkzeug-1.0.1-py2.py3-none-any.whl (298 kB)
+Collecting Jinja2>=2.10.1
+  Downloading Jinja2-2.11.2-py2.py3-none-any.whl (125 kB)
+Collecting MarkupSafe>=0.23
+  Downloading MarkupSafe-1.1.1-cp27-cp27mu-manylinux1_x86_64.whl (24 kB)
+Installing collected packages: click, itsdangerous, Werkzeug, MarkupSafe, Jinja2, flask, redis
+Successfully installed Jinja2-2.11.2 MarkupSafe-1.1.1 Werkzeug-1.0.1 click-7.1.2 flask-1.1.2 itsdangerous-1.1.0 redis-3.5.3
+WARNING: You are using pip version 20.0.2; however, version 20.2.3 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+Removing intermediate container a78fb97f9782
+ ---> 86b4f087b91f
+Step 5/5 : CMD python app.py
+ ---> Running in cda8b744096d
+Removing intermediate container cda8b744096d
+ ---> 8179039c7fdb
+Successfully built 8179039c7fdb
+Successfully tagged docker_web:latest
+[root@stapp03 docker]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp03 docker]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp03 docker]# docker service ls
+Error response from daemon: This node is not a swarm manager. Use "docker swarm init" or "docker swarm join"to connect this node to swarm and try again.
+[root@stapp03 docker]# docker-compose -f docker-compose.yml up
+Creating network "docker_default" with the default driver
+Pulling redis (redis:)...
+latest: Pulling from library/redis
+d121f8d1c412: Pull complete
+2f9874741855: Pull complete
+d92da09ebfd4: Pull complete
+bdfa64b72752: Pull complete
+e748e6f663b9: Pull complete
+eb1c8b66e2a1: Pull complete
+Creating redis ... done
+Creating python ... done
+Attaching to redis, python
+redis    | 1:C 09 Oct 2020 17:02:01.524 # oO0OoO0OoO0Oo Redis is starting oO0OoO0OoO0Oo
+redis    | 1:C 09 Oct 2020 17:02:01.524 # Redis version=6.0.8, bits=64, commit=00000000, modified=0, pid=1, just started
+redis    | 1:C 09 Oct 2020 17:02:01.524 # Warning: no config file specified, using the default config. In order to specify a config file use redis-server /path/to/redis.conf
+redis    | 1:M 09 Oct 2020 17:02:01.526 * Running mode=standalone, port=6379.
+redis    | 1:M 09 Oct 2020 17:02:01.526 # WARNING: The TCP backlog setting of 511 cannot be enforced because/proc/sys/net/core/somaxconn is set to the lower value of 128.
+redis    | 1:M 09 Oct 2020 17:02:01.526 # Server initialized
+redis    | 1:M 09 Oct 2020 17:02:01.526 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add 'vm.overcommit_memory = 1' to /etc/sysctl.conf and then reboot or run the command 'sysctl vm.overcommit_memory=1' for this to take effect.
+redis    | 1:M 09 Oct 2020 17:02:01.526 * Ready to accept connections
+python   |  * Serving Flask app "app" (lazy loading)
+python   |  * Environment: production
+python   |    WARNING: This is a development server. Do not use it in a production deployment.
+python   |    Use a production WSGI server instead.
+python   |  * Debug mode: on
+python   |  * Running on http://0.0.0.0:5000/ (Press CTRL+C to quit)
+python   |  * Restarting with stat
+python   |  * Debugger is active!
+python   |  * Debugger PIN: 147-665-292
+
+thor@jump_host /$ ssh tony@stapp01
+The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:vtm7UCWvLZVoLuIza3iJHKuqPe+G1QZjPnU2qiNYQLg.
+ECDSA key fingerprint is MD5:e0:7b:f6:cf:22:00:bb:0f:fc:7a:64:c3:ed:b6:59:77.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+tony@stapp01's password:
+[tony@stapp01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for tony:
+[root@stapp01 ~]# cd /opt/docker/
+[root@stapp01 docker]# ls -l
+total 16
+-rw-r--r-- 1 root root 339 Oct 10 03:29 app.py
+-rw-r--r-- 1 root root 260 Oct 10 03:29 docker-compose.yml
+-rw-r--r-- 1 root root  95 Oct 10 03:29 Dockerfile
+-rw-r--r-- 1 root root  11 Oct 10 03:29 requirements.txt
+[root@stapp01 docker]# vi docker-compose.yml
+[root@stapp01 docker]# docker-compose -f docker-compose.yml build
+redis uses an image, skipping
+Building web
+Step 1/5 : FROM python:2.7
+2.7: Pulling from library/python
+7e2b2a5af8f6: Pull complete
+09b6f03ffac4: Pull complete
+dc3f0c679f0f: Pull complete
+fd4b47407fc3: Pull complete
+b32f6bf7d96d: Pull complete
+6f4489a7e4cf: Pull complete
+af4b99ad9ef0: Pull complete
+39db0bc48c26: Pull complete
+acb4a89489fc: Pull complete
+Digest: sha256:cfa62318c459b1fde9e0841c619906d15ada5910d625176e24bf692cf8a2601d
+Status: Downloaded newer image for python:2.7
+ ---> 68e7be49c28c
+Step 2/5 : ADD . /code
+ ---> 0e01e60a33ef
+Step 3/5 : WORKDIR /code
+ ---> Running in 23a5372a8c48
+Removing intermediate container 23a5372a8c48
+ ---> 96bb39589c42
+Step 4/5 : RUN pip install -r requirements.txt
+ ---> Running in 97689486abeb
+DEPRECATION: Python 2.7 reached the end of its life on January 1st, 2020. Please upgrade your Python as Python 2.7 is no longer maintained. A future version of pip will drop support for Python 2.7. More details about Python 2 support in pip, can be found at https://pip.pypa.io/en/latest/development/release-process/#python-2-support
+Collecting flask
+  Downloading Flask-1.1.2-py2.py3-none-any.whl (94 kB)
+Collecting redis
+  Downloading redis-3.5.3-py2.py3-none-any.whl (72 kB)
+Collecting click>=5.1
+  Downloading click-7.1.2-py2.py3-none-any.whl (82 kB)
+Collecting itsdangerous>=0.24
+  Downloading itsdangerous-1.1.0-py2.py3-none-any.whl (16 kB)
+Collecting Werkzeug>=0.15
+  Downloading Werkzeug-1.0.1-py2.py3-none-any.whl (298 kB)
+Collecting Jinja2>=2.10.1
+  Downloading Jinja2-2.11.2-py2.py3-none-any.whl (125 kB)
+Collecting MarkupSafe>=0.23
+  Downloading MarkupSafe-1.1.1-cp27-cp27mu-manylinux1_x86_64.whl (24 kB)
+Installing collected packages: click, itsdangerous, Werkzeug, MarkupSafe, Jinja2, flask, redis
+Successfully installed Jinja2-2.11.2 MarkupSafe-1.1.1 Werkzeug-1.0.1 click-7.1.2 flask-1.1.2 itsdangerous-1.1.0 redis-3.5.3
+WARNING: You are using pip version 20.0.2; however, version 20.2.3 is available.
+You should consider upgrading via the '/usr/local/bin/python -m pip install --upgrade pip' command.
+Removing intermediate container 97689486abeb
+ ---> 99b89dc6c994
+Step 5/5 : CMD python app.py
+ ---> Running in 6989240b4845
+Removing intermediate container 6989240b4845
+ ---> e02422434b71
+Successfully built e02422434b71
+Successfully tagged docker_web:latest
+[root@stapp01 docker]# docker ls
+docker: 'ls' is not a docker command.
+See 'docker --help'
+[root@stapp01 docker]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+docker_web          latest              e02422434b71        31 seconds ago      907MB
+python              2.7                 68e7be49c28c        5 months ago        902MB
+[root@stapp01 docker]# docker run -it python
+Unable to find image 'python:latest' locally
+latest: Pulling from library/python
+57df1a1f1ad8: Pull complete
+71e126169501: Pull complete
+1af28a55c3f3: Pull complete
+03f1c9932170: Pull complete
+65b3db15f518: Pull complete
+3e3b8947ed83: Download complete
+a69fea9ddc40: Download complete
+3ebf46c1b074: Download complete
+c2fa114f04ee: Download complete
+^C
+[root@stapp01 docker]# docker inspect e02
+[
+    {
+        "Id": "sha256:e02422434b71d2a80d20c51f29cd16498968fdbb1138cdc68b7a2442641ea0ea",
+        "RepoTags": [
+            "docker_web:latest"
+        ],
+        "RepoDigests": [],
+        "Parent": "sha256:99b89dc6c99473118c4fb5aa09b54fd2e00a6bd2cc05624b4ef6c36fefde8380",
+        "Comment": "",
+        "Created": "2020-10-10T03:36:15.294269062Z",
+        "Container": "6989240b484555c48024c651b8021a9edb3cdef143125300a7715c701930ab93",
+        "ContainerConfig": {
+            "Hostname": "6989240b4845",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "PYTHONIOENCODING=UTF-8",
+                "GPG_KEY=C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF",
+                "PYTHON_VERSION=2.7.18",
+                "PYTHON_PIP_VERSION=20.0.2",
+                "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/d59197a3c169cef378a22428a3fa99d33e080a5d/get-pip.py",
+                "PYTHON_GET_PIP_SHA256=421ac1d44c0cf9730a088e337867d974b91bdce4ea2636099275071878cc189e"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "CMD [\"/bin/sh\" \"-c\" \"python app.py\"]"
+            ],
+            "Image": "sha256:99b89dc6c99473118c4fb5aa09b54fd2e00a6bd2cc05624b4ef6c36fefde8380",
+            "Volumes": null,
+            "WorkingDir": "/code",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "DockerVersion": "19.03.8",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "PYTHONIOENCODING=UTF-8",
+                "GPG_KEY=C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF",
+                "PYTHON_VERSION=2.7.18",
+                "PYTHON_PIP_VERSION=20.0.2",
+                "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/d59197a3c169cef378a22428a3fa99d33e080a5d/get-pip.py",
+                "PYTHON_GET_PIP_SHA256=421ac1d44c0cf9730a088e337867d974b91bdce4ea2636099275071878cc189e"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "python app.py"
+            ],
+            "Image": "sha256:99b89dc6c99473118c4fb5aa09b54fd2e00a6bd2cc05624b4ef6c36fefde8380",
+            "Volumes": null,
+            "WorkingDir": "/code",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": null
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 906949733,
+        "VirtualSize": 906949733,
+        "GraphDriver": {
+            "Data": null,
+            "Name": "vfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:461719022993f353f943ca04e6dd69367c7c0d8b196c33bf4bd3845aa588854b",
+                "sha256:f1d420c2af1ab02afc499a40f0682b6d0642560b1129effa707401b1fe07c1bf",
+                "sha256:a3c1026c6bcc2c6a8c352a9187e64939ebf37d964f3567ba530b019dc518e27d",
+                "sha256:d35c5bda4793162915162e6cc93739566b72ff897f970ac675eaf75f55c29f5e",
+                "sha256:46829331b1e4829fdebf7177bb27eb3617e790290dc644e500d8b5a7ae7a5ef3",
+                "sha256:47458fb45d993403d81c720b7ccf5d781414293e48ceee5a7c4054ccc09d77ef",
+                "sha256:ceee8816bb968afd0af7299329cdd51cf70f4979f0911ee25fcea4da4b4a710b",
+                "sha256:da7b0a80a4f221c0b406690459254b25dea1323dede9cc70ddd48c591ffdbc82",
+                "sha256:e571d2d3c73cb5928867c3239c546918261b543a35db8fbfedf28cb75962644f",
+                "sha256:d6821dac00d2052be78ada47af65fe82db44dfb2419386d0a54a2d91ae733a11",
+                "sha256:a175638d287a78ad73a481ae3c76a0cb727b5134ff45e17762b977da6cd60d14"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "2020-10-10T03:36:17.062690062Z"
+        }
+    }
+]
+[root@stapp01 docker]# ls -l
+total 16
+-rw-r--r-- 1 root root 339 Oct 10 03:29 app.py
+-rw-r--r-- 1 root root 262 Oct 10 03:32 docker-compose.yml
+-rw-r--r-- 1 root root  95 Oct 10 03:29 Dockerfile
+-rw-r--r-- 1 root root  11 Oct 10 03:29 requirements.txt
+[root@stapp01 docker]# cat
+^C
+[root@stapp01 docker]# cat app.py
+# compose_flask/app.py
+from flask import Flask
+from redis import Redis
+
+app = Flask(__name__)
+redis = Redis(host='redis', port=6379)
+
+@app.route('/')
+def hello():
+    redis.incr('hits')
+    return 'This Compose/Flask demo has been viewed %s time(s).' % redis.get('hits')
+
+
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", debug=True)[root@stapp01 docker]# cat docker-compose.yml
+version: '3'
+services:
+    web:
+        build: .
+        container_name: python
+        ports:
+            - "5000:5000"
+        volumes:
+            - .:/code
+        depends_on:
+            - redis
+    redis:
+        image: redis
+        container_name: redis
+[root@stapp01 docker]# cat Dockerfile
+FROM python:2.7
+ADD . /code
+WORKDIR /code
+RUN pip install -r requirements.txt
+CMD python app.py[root@stapp01 docker]# cat requirements.txt
+flask
+redis[root@stapp01 docker]# docker inspect 68
+[
+    {
+        "Id": "sha256:68e7be49c28c89833fc91b44a8c1db6982b52695749d57c3d6fe995a9bb1df5f",
+        "RepoTags": [
+            "python:2.7"
+        ],
+        "RepoDigests": [
+            "python@sha256:cfa62318c459b1fde9e0841c619906d15ada5910d625176e24bf692cf8a2601d"
+        ],
+        "Parent": "",
+        "Comment": "",
+        "Created": "2020-04-20T19:28:33.441519819Z",
+        "Container": "2d38ea028f95c3dcc050a1b36929662613d029343be53d5b06f8462ed000ed0f",
+        "ContainerConfig": {
+            "Hostname": "2d38ea028f95",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "PYTHONIOENCODING=UTF-8",
+                "GPG_KEY=C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF",
+                "PYTHON_VERSION=2.7.18",
+                "PYTHON_PIP_VERSION=20.0.2",
+                "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/d59197a3c169cef378a22428a3fa99d33e080a5d/get-pip.py",
+                "PYTHON_GET_PIP_SHA256=421ac1d44c0cf9730a088e337867d974b91bdce4ea2636099275071878cc189e"
+            ],
+            "Cmd": [
+                "/bin/sh",
+                "-c",
+                "#(nop) ",
+                "CMD [\"python2\"]"
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:279e4ea215817350eac5175f113faa2b201b82535a80e5f49a91415756a9cf3d",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": {}
+        },
+        "DockerVersion": "18.09.7",
+        "Author": "",
+        "Config": {
+            "Hostname": "",
+            "Domainname": "",
+            "User": "",
+            "AttachStdin": false,
+            "AttachStdout": false,
+            "AttachStderr": false,
+            "Tty": false,
+            "OpenStdin": false,
+            "StdinOnce": false,
+            "Env": [
+                "PATH=/usr/local/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                "LANG=C.UTF-8",
+                "PYTHONIOENCODING=UTF-8",
+                "GPG_KEY=C01E1CAD5EA2C4F0B8E3571504C367C218ADD4FF",
+                "PYTHON_VERSION=2.7.18",
+                "PYTHON_PIP_VERSION=20.0.2",
+                "PYTHON_GET_PIP_URL=https://github.com/pypa/get-pip/raw/d59197a3c169cef378a22428a3fa99d33e080a5d/get-pip.py",
+                "PYTHON_GET_PIP_SHA256=421ac1d44c0cf9730a088e337867d974b91bdce4ea2636099275071878cc189e"
+            ],
+            "Cmd": [
+                "python2"
+            ],
+            "ArgsEscaped": true,
+            "Image": "sha256:279e4ea215817350eac5175f113faa2b201b82535a80e5f49a91415756a9cf3d",
+            "Volumes": null,
+            "WorkingDir": "",
+            "Entrypoint": null,
+            "OnBuild": null,
+            "Labels": null
+        },
+        "Architecture": "amd64",
+        "Os": "linux",
+        "Size": 901717329,
+        "VirtualSize": 901717329,
+        "GraphDriver": {
+            "Data": null,
+            "Name": "vfs"
+        },
+        "RootFS": {
+            "Type": "layers",
+            "Layers": [
+                "sha256:461719022993f353f943ca04e6dd69367c7c0d8b196c33bf4bd3845aa588854b",
+                "sha256:f1d420c2af1ab02afc499a40f0682b6d0642560b1129effa707401b1fe07c1bf",
+                "sha256:a3c1026c6bcc2c6a8c352a9187e64939ebf37d964f3567ba530b019dc518e27d",
+                "sha256:d35c5bda4793162915162e6cc93739566b72ff897f970ac675eaf75f55c29f5e",
+                "sha256:46829331b1e4829fdebf7177bb27eb3617e790290dc644e500d8b5a7ae7a5ef3",
+                "sha256:47458fb45d993403d81c720b7ccf5d781414293e48ceee5a7c4054ccc09d77ef",
+                "sha256:ceee8816bb968afd0af7299329cdd51cf70f4979f0911ee25fcea4da4b4a710b",
+                "sha256:da7b0a80a4f221c0b406690459254b25dea1323dede9cc70ddd48c591ffdbc82",
+                "sha256:e571d2d3c73cb5928867c3239c546918261b543a35db8fbfedf28cb75962644f"
+            ]
+        },
+        "Metadata": {
+            "LastTagTime": "0001-01-01T00:00:00Z"
+        }
+    }
+]
+[root@stapp01 docker]# Connection to host01 closed by remote host.
+Connection to host01 closed.
+
+The environment has expired.

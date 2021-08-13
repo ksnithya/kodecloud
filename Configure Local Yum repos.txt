@@ -1,0 +1,17 @@
+Create localyum on backup server
+
+[root@stbkp01 ~]# cd /etc/yum.
+yum.conf     yum.repos.d/
+[root@stbkp01 ~]# cd /etc/yum.repos.d/
+[root@stbkp01 yum.repos.d]# ls -l
+total 0
+[root@stbkp01 yum.repos.d]# vi localyum.repo
+[root@stbkp01 yum.repos.d]# yum clean all
+root@stbkp01 yum.repos.d]# yum install vim-enhanced
+
+root@stbkp01 yum.repos.d]# cat localyum.repo
+[localyum]
+name=LocalRepository
+baseurl=file:///packages/downloaded_rpms/
+enabled=1
+gpgcheck=0

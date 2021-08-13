@@ -1,0 +1,35 @@
+On Nautilus storage server in Stratos DC there is a storage location /data which is used by different developers to keep their 
+data (no confidential data). One of the developers anita has raised a ticket and asked for a copy of his/her data present in 
+/data/anita directory on storage server. /home is an FTP location on storage server where developers can download their data. Below are the instructions shared by the system admin team to accomplish the task:
+
+
+a. Make a anita.tar.gz compressed archive of /data/anita directory and move the archive to /home directory on Storage Server.
+
+root@ststor01 data]# tar -czvf anita.tar.gz /data/anita
+tar: Removing leading `/' from member names
+/data/anita/
+/data/anita/nautilus1.txt
+/data/anita/nautilus2.txt
+/data/anita/nautilus3.txt
+[root@ststor01 data]# ls -l
+total 8
+drwxrwxrwx 2 root root 4096 Jul  2 02:17 anita
+-rw-r--r-- 1 root root  200 Jul  2 02:23 anita.tar.gz
+[root@ststor01 data]# cd /home
+[root@ststor01 home]# ls -l
+total 8
+drwx------ 2 ansible ansible 4096 Oct 15  2019 ansible
+drwx------ 2 natasha natasha 4096 Jan 12 15:34 natasha
+[root@ststor01 home]# mv /data/anita.tar.gz /home
+[root@ststor01 home]# ls -l
+total 12
+-rw-r--r-- 1 root    root     200 Jul  2 02:23 anita.tar.gz
+drwx------ 2 ansible ansible 4096 Oct 15  2019 ansible
+drwx------ 2 natasha natasha 4096 Jan 12 15:34 natasha
+
+
+tar -czvf yousuf.tar.gz /data/yousuf
+-c - create Archive
+-z : zip, tells tar command that create tar file using gzip
+-v : Displays Verbose Information
+-f : creates archive with given filename

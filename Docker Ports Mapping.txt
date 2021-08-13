@@ -1,0 +1,81 @@
+The Nautilus DevOps team is planning to host an application on a nginx-based container. There are number of tickets already been created for similar tasks. One of the tickets has been assigned to set up a nginx container on Application Server 1 in Stratos Datacenter. Please perform the task as per details mentioned below:
+
+
+a. Pull nginx:stable docker image on Application Server 1.
+
+b. Create a container named blog using the image you pulled.
+
+c. Map host port 5000 to container port 80. Please keep the container in running state.
+
+thor@jump_host /$ ssh tony@stapp01
+The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:8YuCB9ER6ualXL3lmbHWlG1s3Q2NXJANkaa6zWHHkMo.
+ECDSA key fingerprint is MD5:7b:19:24:cc:76:1e:66:48:6b:0c:0d:d7:9b:4e:1c:db.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+tony@stapp01's password:
+[tony@stapp01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for tony:
+[root@stapp01 ~]# docker pull nginx:stable
+stable: Pulling from library/nginx
+bb79b6b2107f: Pull complete
+8f71a46554c5: Pull complete
+67b735c9b17f: Pull complete
+5891e3173165: Pull complete
+19686354cb84: Pull complete
+Digest: sha256:6e4fc428f9f25f1914e43dc2e75ff3be574141734509111282a3a050a420d94c
+Status: Downloaded newer image for nginx:stable
+docker.io/library/nginx:stable
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+nginx               stable              b5390718bd8e        13 days ago         133MB
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp01 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp01 ~]# docker run -it -d --name blog -p 5000:80 nginx
+Unable to find image 'nginx:latest' locally
+latest: Pulling from library/nginx
+bb79b6b2107f: Already exists
+111447d5894d: Pull complete
+a95689b8e6cb: Pull complete
+1a0022e444c2: Pull complete
+32b7488a3833: Pull complete
+Digest: sha256:ed7f815851b5299f616220a63edac69a4cc200e7f536a56e421988da82e44ed8
+Status: Downloaded newer image for nginx:latest
+ed5cf96e87c82edb53ef1470762d18f48365d05d8d5f0f7b2dc9b83e1e75a9f2
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+ed5cf96e87c8        nginx               "/docker-entrypoint.…"   25 seconds ago      Up 19 seconds       0.0.0.0:5000->80/tcp   blog
+[root@stapp01 ~]# docker rm ed5c
+Error response from daemon: You cannot remove a running container ed5cf96e87c82edb53ef1470762d18f48365d05d8d5f0f7b2dc9b83e1e75a9f2. Stop the container before attempting removal or force remove
+[root@stapp01 ~]# docker stop ed5c
+ed5c
+[root@stapp01 ~]# docker rm ed5c
+ed5c
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp01 ~]# docker rm ed5c
+Error: No such container: ed5c
+[root@stapp01 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp01 ~]# docker run -it -d --name blog -p 5000:80 nginx:stable
+41207b8a930f1c1d0a1d5c1f3d67e838d13c3c51eb9b1bf0414c0b38409f601d
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+nginx               stable              b5390718bd8e        13 days ago         133MB
+nginx               latest              f35646e83998        13 days ago         133MB
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+41207b8a930f        nginx:stable        "/docker-entrypoint.…"   17 seconds ago      Up 14 seconds       0.0.0.0:5000->80/tcp   blog
+[root@stapp01 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS                  NAMES
+41207b8a930f        nginx:stable        "/docker-entrypoint.…"   27 seconds ago      Up 24 seconds       0.0.0.0:5000->80/tcp   blog
+[root@stapp01 ~]#

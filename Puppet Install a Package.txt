@@ -1,0 +1,172 @@
+New packages need to be installed on all app servers in Stratos Datacenter. The Nautilus DevOps team has decided to install the same using Puppet. 
+Since jump host is already configured to run as Puppet master server and all app servers are already configured to work as puppet agent nodes, we need to create required manifests on the Puppet master server so that the same can be applied on all Puppet agent nodes. Please find more details about the task below.
+
+
+Create a Puppet programming file official.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node 
+i.e Jump Server and using puppet package resource perform the tasks below.
+
+Install package httpd through Puppet package resource on all Puppet agent nodes i.e all App Servers.
+Note: Please perform this task using official.pp only, do not create any separate inventory file.
+
+class mymodule {
+
+package { 'httpd':
+    ensure => 'installed',
+  }
+package { 'httpd':
+  ensure => present,
+}
+
+service { 'httpd':
+  ensure => running,
+  enable => true,
+}
+
+}
+
+node "stapp01.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp02.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp03.stratos.xfusioncorp.com" {
+        include mymodule
+}
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat official.pp
+class mymodule {
+
+package { 'httpd':
+    ensure => 'installed',
+  }
+service { 'httpd':
+  ensure => running,
+  enable => true,
+  }
+}
+node "stapp01.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp02.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp03.stratos.xfusioncorp.com" {
+        include mymodule
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests#
+
+
+[root@stapp01 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+Info: Applying configuration version '1601400157'
+Notice: /Stage[main]/Mymodule/Service[httpd]/ensure: ensure changed 'stopped' to 'running'
+Info: /Stage[main]/Mymodule/Service[httpd]: Unscheduling refresh on Service[httpd]
+Notice: Applied catalog in 0.50 seconds
+[root@stapp01 ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Tue 2020-09-29 17:22:38 UTC; 16s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 461 (httpd)
+   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+   CGroup: /docker/05ccba58bab7d9c57933db185d5c31c46ac7ca75df19f9febd1b7951b168cbf2/system.slice/httpd.service
+           ├─461 /usr/sbin/httpd -DFOREGROUND
+           ├─464 /usr/sbin/httpd -DFOREGROUND
+           ├─465 /usr/sbin/httpd -DFOREGROUND
+           ├─466 /usr/sbin/httpd -DFOREGROUND
+           ├─467 /usr/sbin/httpd -DFOREGROUND
+           └─468 /usr/sbin/httpd -DFOREGROUND
+
+Sep 29 17:22:38 stapp01 systemd[1]: httpd.service: got MAINPID=461
+Sep 29 17:22:38 stapp01 systemd[1]: httpd.service: got READY=1
+Sep 29 17:22:38 stapp01 systemd[1]: httpd.service changed start -> running
+Sep 29 17:22:38 stapp01 systemd[1]: Job httpd.service/start finished, result=done
+Sep 29 17:22:38 stapp01 systemd[1]: Started The Apache HTTP Server.
+Sep 29 17:22:38 stapp01 systemd[1]: httpd.service: got STATUS=Processing requests...
+Sep 29 17:22:47 stapp01 systemd[1]: Got notification message for unit httpd.service
+Sep 29 17:22:47 stapp01 systemd[1]: httpd.service: Got notification message from PID 461 (READY=1, STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec)
+Sep 29 17:22:47 stapp01 systemd[1]: httpd.service: got READY=1
+Sep 29 17:22:47 stapp01 systemd[1]: httpd.service: got STATUS=Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec
+Hint: Some lines were ellipsized, use -l to show in full.
+[root@stapp01 ~]#
+
+[root@stapp02 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp02.stratos.xfusioncorp.com
+Info: Applying configuration version '1601400186'
+Notice: /Stage[main]/Mymodule/Service[httpd]/ensure: ensure changed 'stopped' to 'running'
+Info: /Stage[main]/Mymodule/Service[httpd]: Unscheduling refresh on Service[httpd]
+Notice: Applied catalog in 0.57 seconds
+[root@stapp02 ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Tue 2020-09-29 17:23:08 UTC; 5s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 461 (httpd)
+   Status: "Processing requests..."
+   CGroup: /docker/b8effbe6bea58afeecb6addd2e44aa209d7e57b439dea37f8afca839f8b39ed4/system.slice/httpd.service
+           ├─461 /usr/sbin/httpd -DFOREGROUND
+           ├─464 /usr/sbin/httpd -DFOREGROUND
+           ├─465 /usr/sbin/httpd -DFOREGROUND
+           ├─466 /usr/sbin/httpd -DFOREGROUND
+           ├─467 /usr/sbin/httpd -DFOREGROUND
+           └─468 /usr/sbin/httpd -DFOREGROUND
+
+Sep 29 17:23:08 stapp02 systemd[1]: Starting The Apache HTTP Server...
+Sep 29 17:23:08 stapp02 systemd[461]: Executing: /usr/sbin/httpd -DFOREGROUND
+Sep 29 17:23:08 stapp02 systemd[1]: Got notification message for unit httpd.service
+Sep 29 17:23:08 stapp02 systemd[1]: httpd.service: Got notification message from PID 461 (READY=1, STATUS=Processing requests..., MAINPID=461)
+Sep 29 17:23:08 stapp02 systemd[1]: httpd.service: got MAINPID=461
+Sep 29 17:23:08 stapp02 systemd[1]: httpd.service: got READY=1
+Sep 29 17:23:08 stapp02 systemd[1]: httpd.service changed start -> running
+Sep 29 17:23:08 stapp02 systemd[1]: Job httpd.service/start finished, result=done
+Sep 29 17:23:08 stapp02 systemd[1]: Started The Apache HTTP Server.
+Sep 29 17:23:08 stapp02 systemd[1]: httpd.service: got STATUS=Processing requests...
+[root@stapp02 ~]#
+[root@stapp03 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+Info: Applying configuration version '1601400191'
+Notice: /Stage[main]/Mymodule/Service[httpd]/ensure: ensure changed 'stopped' to 'running'
+Info: /Stage[main]/Mymodule/Service[httpd]: Unscheduling refresh on Service[httpd]
+Notice: Applied catalog in 0.46 seconds
+[root@stapp03 ~]# systemctl status httpd
+● httpd.service - The Apache HTTP Server
+   Loaded: loaded (/usr/lib/systemd/system/httpd.service; enabled; vendor preset: disabled)
+   Active: active (running) since Tue 2020-09-29 17:23:12 UTC; 18s ago
+     Docs: man:httpd(8)
+           man:apachectl(8)
+ Main PID: 449 (httpd)
+   Status: "Total requests: 0; Current requests/sec: 0; Current traffic:   0 B/sec"
+   CGroup: /docker/02d15ff4eb04a9eff72053651ee2f8fc4afabea69678bfa05e238f5363e80ede/system.slice/httpd.service
+           ├─449 /usr/sbin/httpd -DFOREGROUND
+           ├─452 /usr/sbin/httpd -DFOREGROUND
+           ├─453 /usr/sbin/httpd -DFOREGROUND
+           ├─454 /usr/sbin/httpd -DFOREGROUND
+           ├─455 /usr/sbin/httpd -DFOREGROUND
+           └─456 /usr/sbin/httpd -DFOREGROUND
+
+Sep 29 17:23:12 stapp03 systemd[449]: Executing: /usr/sbin/httpd -DFOREGROUND
+Sep 29 17:23:12 stapp03 systemd[1]: Got notification message for unit httpd.service
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service: Got notification message from PID 449 (READY=1, STATUS=Processing requests..., MAINPID=449)
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service: got MAINPID=449
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service: got READY=1
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service changed start -> running
+Sep 29 17:23:12 stapp03 systemd[1]: Job httpd.service/start finished, result=done
+Sep 29 17:23:12 stapp03 systemd[1]: Started The Apache HTTP Server.
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service: got STATUS=Processing requests...
+Sep 29 17:23:12 stapp03 systemd[1]: httpd.service changed dead -> running
+[root@stapp03 ~]#

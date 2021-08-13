@@ -1,0 +1,51 @@
+As per details shared by Nautilus application development team. they are planning to deploy one newly developed application on Nautilus infra in Stratos DC. Application uses PostgreSQL database.
+ So as a pre-requisite we need to setup PostgreSQL database server as per requirements shared below:
+
+
+a. Install and configure PostgreSQL database on Nautilus database server.
+
+yum install postgresql-server postgresql-contrib
+
+postgresql-setup initdb
+
+systemctl start postgresql
+
+systemctl enable postgresql
+
+
+
+b. Create a database user kodekloud_joy and set its password to dCV3szSGNA.
+b. Create a database user kodekloud_pop and set its password to Rc5C9EyvbU.
+su - postgres
+ psql
+
+CREATE USER kodekloud_pop WITH PASSWORD 'Rc5C9EyvbU';
+
+c. Create a database kodekloud_db2 and grant full permissions to user kodekloud_joy on this database.
+c. Create a database kodekloud_db7 and grant full permissions to user kodekloud_pop on this database.
+
+createdb kodekloud_db7;
+
+GRANT ALL PRIVILEGES ON DATABASE "kodekloud_db7" to kodekloud_pop;
+
+
+d. Make appropriate settings to allow all local clients (local socket connections) to connect to the kodekloud_db2 database through kodekloud_joy user using md5 encrypted password for authentication.
+
+vim /etc/postgresql/10/main/pg_hba.conf
+# TYPE    DATABASE    USER        ADDRESS         METHOD  OPTIONS
+local                 kodekloud_db2        kodekloud_top                   md5
+
+e. At the end its good to test the db connection using these new credentials from root user or server's sudo user.
+
+su - postgresql
+psql -U kodekloud_gem kodekloud_db5
+
+postgres=# create database kodekloud_db5;
+CREATE DATABASE
+postgres=# grant all privileges on database kodekloud_db6 to kodekloud_gem;
+ERROR:  role "kodekloud_gem" does not exist
+postgres=# create user kodekloud_gem with password 'ksH85UJjhb';
+CREATE ROLE
+postgres=# grant all privileges on database kodekloud_db5 to kodekloud_gem;
+GRANT
+postgres=#

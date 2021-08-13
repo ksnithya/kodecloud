@@ -1,0 +1,112 @@
+We are working on an application that will be deployed on multiple containers within a pod on Kubernetes cluster. 
+There is a requirement to share a volume among the containers to save some temporary data. The Nautilus DevOps team is developing a similar template to replicate the scenario. Below you can find more details about it.
+
+
+Create a pod named volume-share-nautilus.
+
+For first container, use image debian with latest tag only and remember to mention tag i.e debian:latest, container should be named as volume-container-nautilus-1, 
+and run a command '/bin/bash', '-c' and 'sleep 10000'. Volume volume-share should be mounted at path /tmp/media.
+
+For second container, use image debian with latest tag only and remember to mention tag i.e debian:latest, container should be named as volume-container-nautilus-2, 
+and run a command '/bin/bash', 'c' and 'sleep 10000'. Volume volume-share should be mounted at path /tmp/games.
+
+Volumes to be named as volume-share and use emptyDir: { }.
+
+After creating pods, exec into the first container volume-container-nautilus-1, and create a file media.txt with content Welcome to xFusionCorp Industries! under the mount path of first container i.e /tmp/media.
+
+The file media.txt should be present under the mounted path /tmp/games of second container volume-container-nautilus-2 as they are using shared volumes.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+ 
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volume-share-nautilus
+spec:
+
+  volumes:
+  - name: volume-share
+    emptyDir: {}
+
+  containers:
+  - name: volume-container-nautilus-1
+    image: debian:latest
+    command:
+    - "bin/bash"
+    - "-c"
+    - "sleep 10000"
+    volumeMounts:
+    - name: volume-share
+      mountPath: /tmp/media
+
+  - name: volume-container-nautilus-2
+    image: debian:latest
+    command:
+    - "bin/bash"
+    - "-c"
+    - "sleep 10000"
+    volumeMounts:
+    - name: volume-share
+      mountPath: /tmp/games
+
+
+thor@jump_host /$ kubectl exec -it volume-share-nautilus -c volume-container-nautilus-1 -- /bin/bash
+root@volume-share-nautilus:/# cd /tmp/media
+root@volume-share-nautilus:/tmp/media# ls -l
+total 0
+root@volume-share-nautilus:/tmp/media# vi media.txt
+bash: vi: command not found
+root@volume-share-nautilus:/tmp/media# vim media.txtbash: vim: command not found
+root@volume-share-nautilus:/tmp/media# echo "Welcome to xFusionCorp Industries!" >> /tmp/media/media.txt
+root@volume-share-nautilus:/tmp/media# ls -l
+total 4
+-rw-r--r-- 1 root root 35 Aug 31 17:43 media.txt
+root@volume-share-nautilus:/tmp/media# cat media.txt
+Welcome to xFusionCorp Industries!
+root@volume-share-nautilus:/tmp/media# exit
+exit
+thor@jump_host /$ kubectl exec -it volume-share-nautilus -c volume-container-nautilus-2 -- cat /tmp/games/media.txt
+Welcome to xFusionCorp Industries!
+thor@jump_host /$ kubectl exec -it volume-share-nautilus -c volume-container-nautilus-1 -- cat /tmp/media/media.txt
+Welcome to xFusionCorp Industries!
+thor@jump_host /$ kubectl get pods
+NAME                    READY   STATUS    RESTARTS   AGE
+volume-share-nautilus   2/2     Running   0          6m34s
+thor@jump_host /$ pwd
+/
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: volume-share-nautilus
+spec:
+
+  volumes:
+  - name: volume-share
+    emptyDir: {}
+
+  containers:
+  - name: volume-container-nautilus-1
+    image: debian:latest
+    command:
+    - "bin/bash"
+    - "-c"
+    - "sleep 10000"
+    volumeMounts:
+    - name: volume-share
+      mountPath: /tmp/media
+
+  - name: volume-container-nautilus-2
+    image: debian:latest
+    command:
+    - "bin/bash"
+    - "-c"
+    - "sleep 10000"
+    volumeMounts:
+    - name: volume-share
+      mountPath: /tmp/games
+thor@jump_host /$ Connection to host01 closed by remote host.

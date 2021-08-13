@@ -1,0 +1,146 @@
+There is an application that needs to be deployed on Kubernetes cluster under Apache web server. 
+The Nautilus application development team has asked the DevOps team to deploy it. We need to develop a template as per requirements mentioned below:
+
+
+Create a namespace named as httpd-namespace-xfusion.
+
+Create a service named as httpd-service-xfusion under same namespace, targetPort should be 80 and nodePort should be 30004.
+
+Create a deployment named as httpd-deployment-xfusion under the same namespace as mentioned above. Use image httpd with latest tag only and remember to mention tag i.e httpd:latest, and container name should be httpd-container-xfusion. And make sure replicas counts are 4.
+
+Set labels app to httpd_app_xfusion.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+ 
+kubectl create namespace httpd-namespace-xfusion
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment-xfusion
+  namespace: httpd-namespace-xfusion
+  labels:
+    app: httpd_app_xfusion
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx-app
+      type: front-end
+  template:
+    metadata:
+      labels:
+        app: httpd_app_xfusion
+    spec:
+      containers:
+      - name: httpd-container-xfusion
+        image: httpd:latest
+
+
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd-service-xfusion
+  namespace: httpd-namespace-xfusion
+spec:
+  type: NodePort
+  selector:
+    app: httpd_app_xfusion
+  ports:
+  - nodePort: 30004
+    targetPort: 80
+
+
+thor@jump_host /$ kubectl create namespace httpd-namespace-xfusion
+namespace/httpd-namespace-xfusion created
+thor@jump_host /$ kubectl get namespace
+NAME                      STATUS   AGE
+default                   Active   7m2s
+httpd-namespace-xfusion   Active   9s
+kube-node-lease           Active   7m4s
+kube-public               Active   7m4s
+kube-system               Active   7m5s
+thor@jump_host /$ ls -l
+total 72
+-rw-r--r--  21 root root 12090 Aug  1  2019 anaconda-post.log
+lrwxrwxrwx   1 root root     7 Aug  1  2019 bin -> usr/bin
+drwxr-xr-x   5 root root   340 Feb 10 10:51 dev
+drwxr-xr-x   1 root root  4096 Feb 10 10:51 etc
+drwxr-xr-x   1 root root  4096 Oct 31 06:32 home
+lrwxrwxrwx   1 root root     7 Aug  1  2019 lib -> usr/lib
+lrwxrwxrwx   1 root root     9 Aug  1  2019 lib64 -> usr/lib64
+drwxr-xr-x   2 root root  4096 Apr 11  2018 media
+drwxr-xr-x   2 root root  4096 Apr 11  2018 mnt
+drwxr-xr-x   2 root root  4096 Apr 11  2018 opt
+dr-xr-xr-x 153 root root     0 Feb 10 10:51 proc
+dr-xr-x---   3 root root  4096 Oct 31 06:33 root
+drwxr-xr-x   1 root root  4096 Feb 10 10:54 run
+lrwxrwxrwx   1 root root     8 Aug  1  2019 sbin -> usr/sbin
+-rw-r--r--   1 root root   216 Feb 10 10:58 service.yml
+drwxr-xr-x   2 root root  4096 Apr 11  2018 srv
+dr-xr-xr-x  13 root root     0 Feb 10 10:51 sys
+drwxrwxrwt   1 root root  4096 Feb 10 10:52 tmp
+drwxr-xr-x   1 root root  4096 Aug  1  2019 usr
+drwxr-xr-x   1 root root  4096 Aug  1  2019 var
+thor@jump_host /$ kubectl create -f service.yml 
+error: error validating "service.yml": error validating data: ValidationError(Service.spec.ports[0]): missing required field "port" in io.k8s.api.core.v1.ServicePort; if you choose to ignore these errors, turn validation off with --validate=false
+thor@jump_host /$ sudo vi service.yml
+thor@jump_host /$ kubectl create -f service.yml 
+service/httpd-service-xfusion created
+thor@jump_host /$ kubectl get svc -n httpd-namespace-xfusion
+NAME                    TYPE       CLUSTER-IP       EXTERNAL-IP   PORT(S)        AGE
+httpd-service-xfusion   NodePort   10.110.220.255   <none>        80:30004/TCP   15s
+thor@jump_host /$ sudo vi deploy.yml
+thor@jump_host /$ kubectl create -f deploy.yml 
+deployment.apps/httpd-deployment-xfusion created
+thor@jump_host /$ kubectl get deploy -n httpd-namespace-xfusion
+NAME                       READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deployment-xfusion   4/4     4            4           14s
+thor@jump_host /$ kubectl get pod -f httpd-namespace-xfusion
+error: the path "httpd-namespace-xfusion" does not exist
+thor@jump_host /$ kubectl get pod -n httpd-namespace-xfusion
+NAME                                        READY   STATUS    RESTARTS   AGE
+httpd-deployment-xfusion-5f8d964557-5k84b   1/1     Running   0          43s
+httpd-deployment-xfusion-5f8d964557-jf6kd   1/1     Running   0          43s
+httpd-deployment-xfusion-5f8d964557-kzc8c   1/1     Running   0          43s
+httpd-deployment-xfusion-5f8d964557-v7v7z   1/1     Running   0          43s
+thor@jump_host /$ cat service.yml 
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd-service-xfusion
+  namespace: httpd-namespace-xfusion
+spec:
+  type: NodePort
+  selector:
+    app: httpd_app_xfusion
+  ports:
+  - nodePort: 30004
+    targetPort: 80
+    port: 80
+thor@jump_host /$ cat deploy.yml 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment-xfusion
+  namespace: httpd-namespace-xfusion
+  labels:
+    app: httpd_app_xfusion
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: httpd_app_xfusion
+  template:
+    metadata:
+      labels:
+        app: httpd_app_xfusion
+    spec:
+      containers:
+      - name: httpd-container-xfusion
+        image: httpd:latest
+thor@jump_host /$ 
+    

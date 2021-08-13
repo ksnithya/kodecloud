@@ -1,0 +1,70 @@
+The Nautilus development team started with new project development. They have created different Git repositories to manage respective project's source code. One of the repo /opt/beta.git was created recently. The team has given us a sample index.html file that is currently present on jump host under /tmp. The repository has been cloned at /usr/src/kodekloudrepos on storage server in Stratos DC.
+
+
+Copy sample index.html file from jump host to storage server under cloned repository at /usr/src/kodekloudrepos, add/commit the file and push to master branch.
+
+
+thor@jump_host /$ cd /tmp
+thor@jump_host /tmp$ ls -l
+total 8
+-rw-r--r--  1 thor thor   0 Dec 29 13:53 demofile2.json
+-rw-r--r--  1 root root  27 Dec 29 13:52 index.html
+-rwx------ 27 root root 836 Aug  1  2019 ks-script-rnBCJB
+-rw------- 27 root root   0 Aug  1  2019 yum.log
+thor@jump_host /tmp$ scp index.html natasha@ststor01
+thor@jump_host /tmp$ scp index.html natasha@ststor01:/tmp/
+The authenticity of host 'ststor01 (172.16.238.15)' can't be established.
+ECDSA key fingerprint is SHA256:1F02LhDzr++7kJwxN4xW4Lq0Ats4tvoFK54Th4L+ysc.
+ECDSA key fingerprint is MD5:d0:16:80:1e:c7:3d:f5:ab:bd:93:c6:5a:c0:dd:97:22.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'ststor01,172.16.238.15' (ECDSA) to the list of known hosts.
+natasha@ststor01's password:
+index.html                                                                 100%   27    41.1KB/s   00:00thor@jump_host /tmp$ ssh natasha@ststor01
+natasha@ststor01's password:[natasha@ststor01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for natasha:
+[root@ststor01 ~]# cd /usr/src/kodekloudrepos/
+[root@ststor01 kodekloudrepos]# ls -l
+total 4
+drwxr-xr-x 3 root root 4096 Dec 29 13:53 beta
+[root@ststor01 kodekloudrepos]# cd beta/
+[root@ststor01 beta]# ls -l
+total 8
+-rw-r--r-- 1 root root 34 Dec 29 13:53 info.txt
+-rw-r--r-- 1 root root 26 Dec 29 13:53 welcome.txt
+[root@ststor01 beta]# cp /tmp/index.html .
+[root@ststor01 beta]# ls -l
+total 12
+-rw-r--r-- 1 root root 27 Dec 29 13:56 index.html
+-rw-r--r-- 1 root root 34 Dec 29 13:53 info.txt
+-rw-r--r-- 1 root root 26 Dec 29 13:53 welcome.txt
+[root@ststor01 beta]# git add .
+[root@ststor01 beta]# git commit index.html -m "added index.html"
+[master 996d2b4] added index.html
+ 1 file changed, 1 insertion(+)
+ create mode 100644 index.html
+[root@ststor01 beta]# git push origin master
+Counting objects: 4, done.
+Delta compression using up to 2 threads.
+Compressing objects: 100% (2/2), done.
+Writing objects: 100% (3/3), 331 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/beta.git
+   8ac720d..996d2b4  master -> master
+[root@ststor01 beta]# ls -l
+total 12
+-rw-r--r-- 1 root root 27 Dec 29 13:56 index.html
+-rw-r--r-- 1 root root 34 Dec 29 13:53 info.txt
+-rw-r--r-- 1 root root 26 Dec 29 13:53 welcome.txt
+[root@ststor01 beta]# git ls-files
+index.html
+info.txt
+welcome.txt
+[root@ststor01 beta]#

@@ -1,0 +1,798 @@
+One of the Nautilus DevOps team members was working to configure services on a kkloud container that is running on App Server 3 in Stratos Datacenter. Due to some personal work he is on PTO for the rest of the week, but we need to finish his pending work ASAP. Please complete the remaining work as per details given below:
+
+
+a. Install apache2 in kkloud container using apt that is running on App Server 3 in Stratos Datacenter.
+
+b. Configure Apache to listen on port 5004 instead of default http port. Do not bind it to listen on specific IP or hostname only, i.e it should listen on localhost, 127.0.0.1, container ip, etc.
+
+c. Make sure Apache service is up and running inside the container. Keep the container in running state at the end.
+
+
+
+
+root@stapp03 ~]# docker exec -it kkloud bash
+root@b572af571f14:/# apt-get update
+Hit:1 http://archive.ubuntu.com/ubuntu focal InRelease
+Hit:2 http://security.ubuntu.com/ubuntu focal-security InRelease
+Hit:3 http://archive.ubuntu.com/ubuntu focal-updates InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu focal-backports InRelease
+Reading package lists... Done
+root@b572af571f14:/# apt-get install apache2
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following additional packages will be installed:
+  apache2-bin apache2-data apache2-utils file libapr1 libaprutil1 libaprutil1-dbd-sqlite3 libaprutil1-ldap
+  libexpat1 libgdbm-compat4 libgdbm6 libicu66 libjansson4 liblua5.2-0 libmagic-mgc libmagic1 libperl5.30
+  libxml2 mime-support netbase perl perl-modules-5.30 ssl-cert tzdata xz-utils
+Suggested packages:
+  apache2-doc apache2-suexec-pristine | apache2-suexec-custom www-browser ufw gdbm-l10n perl-doc
+  libterm-readline-gnu-perl | libterm-readline-perl-perl make libb-debug-perl liblocale-codes-perl
+  openssl-blacklist
+The following NEW packages will be installed:
+  apache2 apache2-bin apache2-data apache2-utils file libapr1 libaprutil1 libaprutil1-dbd-sqlite3
+  libaprutil1-ldap libexpat1 libgdbm-compat4 libgdbm6 libicu66 libjansson4 liblua5.2-0 libmagic-mgc
+  libmagic1 libperl5.30 libxml2 mime-support netbase perl perl-modules-5.30 ssl-cert tzdata xz-utils
+0 upgraded, 26 newly installed, 0 to remove and 2 not upgraded.
+Need to get 18.8 MB of archives.
+After this operation, 101 MB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+Get:1 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 perl-modules-5.30 all 5.30.0-9ubuntu0.2 [2738 kB]
+Get:2 http://archive.ubuntu.com/ubuntu focal/main amd64 libgdbm6 amd64 1.18.1-5 [27.4 kB]
+Get:3 http://archive.ubuntu.com/ubuntu focal/main amd64 libgdbm-compat4 amd64 1.18.1-5 [6244 B]
+Get:4 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libperl5.30 amd64 5.30.0-9ubuntu0.2 [3952 kB]
+Get:5 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 perl amd64 5.30.0-9ubuntu0.2 [224 kB]
+Get:6 http://archive.ubuntu.com/ubuntu focal/main amd64 libapr1 amd64 1.6.5-1ubuntu1 [91.4 kB]
+Get:7 http://archive.ubuntu.com/ubuntu focal/main amd64 libexpat1 amd64 2.2.9-1build1 [73.3 kB]
+Get:8 http://archive.ubuntu.com/ubuntu focal/main amd64 libaprutil1 amd64 1.6.1-4ubuntu2 [84.7 kB]
+Get:9 http://archive.ubuntu.com/ubuntu focal/main amd64 libaprutil1-dbd-sqlite3 amd64 1.6.1-4ubuntu2 [10.5 kB]
+Get:10 http://archive.ubuntu.com/ubuntu focal/main amd64 libaprutil1-ldap amd64 1.6.1-4ubuntu2 [8736 B]
+Get:11 http://archive.ubuntu.com/ubuntu focal/main amd64 libjansson4 amd64 2.12-1build1 [28.9 kB]
+Get:12 http://archive.ubuntu.com/ubuntu focal/main amd64 liblua5.2-0 amd64 5.2.4-1.1build3 [106 kB]
+Get:13 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 tzdata all 2020d-0ubuntu0.20.04 [294 kB]
+Get:14 http://archive.ubuntu.com/ubuntu focal/main amd64 libicu66 amd64 66.1-2ubuntu2 [8520 kB]
+Get:15 http://archive.ubuntu.com/ubuntu focal/main amd64 libxml2 amd64 2.9.10+dfsg-5 [640 kB]
+Get:16 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 apache2-bin amd64 2.4.41-4ubuntu3.1 [1180 kB]
+Get:17 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 apache2-data all 2.4.41-4ubuntu3.1 [158 kB]
+Get:18 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 apache2-utils amd64 2.4.41-4ubuntu3.1 [83.8kB]
+Get:19 http://archive.ubuntu.com/ubuntu focal/main amd64 mime-support all 3.64ubuntu1 [30.6 kB]
+Get:20 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 apache2 amd64 2.4.41-4ubuntu3.1 [95.5 kB]
+Get:21 http://archive.ubuntu.com/ubuntu focal/main amd64 libmagic-mgc amd64 1:5.38-4 [218 kB]
+Get:22 http://archive.ubuntu.com/ubuntu focal/main amd64 libmagic1 amd64 1:5.38-4 [75.9 kB]
+Get:23 http://archive.ubuntu.com/ubuntu focal/main amd64 file amd64 1:5.38-4 [23.3 kB]
+Get:24 http://archive.ubuntu.com/ubuntu focal/main amd64 netbase all 6.1 [13.1 kB]
+Get:25 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 xz-utils amd64 5.2.4-1ubuntu1 [82.5 kB]
+Get:26 http://archive.ubuntu.com/ubuntu focal/main amd64 ssl-cert all 1.0.39 [17.0 kB]
+Fetched 18.8 MB in 0s (39.7 MB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package perl-modules-5.30.
+(Reading database ... 4664 files and directories currently installed.)
+Preparing to unpack .../00-perl-modules-5.30_5.30.0-9ubuntu0.2_all.deb ...
+Unpacking perl-modules-5.30 (5.30.0-9ubuntu0.2) ...
+Selecting previously unselected package libgdbm6:amd64.
+Preparing to unpack .../01-libgdbm6_1.18.1-5_amd64.deb ...
+Unpacking libgdbm6:amd64 (1.18.1-5) ...
+Selecting previously unselected package libgdbm-compat4:amd64.
+Preparing to unpack .../02-libgdbm-compat4_1.18.1-5_amd64.deb ...
+Unpacking libgdbm-compat4:amd64 (1.18.1-5) ...
+Selecting previously unselected package libperl5.30:amd64.
+Preparing to unpack .../03-libperl5.30_5.30.0-9ubuntu0.2_amd64.deb ...
+Unpacking libperl5.30:amd64 (5.30.0-9ubuntu0.2) ...
+Selecting previously unselected package perl.
+Preparing to unpack .../04-perl_5.30.0-9ubuntu0.2_amd64.deb ...
+Unpacking perl (5.30.0-9ubuntu0.2) ...
+Selecting previously unselected package libapr1:amd64.
+Preparing to unpack .../05-libapr1_1.6.5-1ubuntu1_amd64.deb ...
+Unpacking libapr1:amd64 (1.6.5-1ubuntu1) ...
+Selecting previously unselected package libexpat1:amd64.
+Preparing to unpack .../06-libexpat1_2.2.9-1build1_amd64.deb ...
+Unpacking libexpat1:amd64 (2.2.9-1build1) ...
+Selecting previously unselected package libaprutil1:amd64.
+Preparing to unpack .../07-libaprutil1_1.6.1-4ubuntu2_amd64.deb ...
+Unpacking libaprutil1:amd64 (1.6.1-4ubuntu2) ...
+Selecting previously unselected package libaprutil1-dbd-sqlite3:amd64.
+Preparing to unpack .../08-libaprutil1-dbd-sqlite3_1.6.1-4ubuntu2_amd64.deb ...
+Unpacking libaprutil1-dbd-sqlite3:amd64 (1.6.1-4ubuntu2) ...
+Selecting previously unselected package libaprutil1-ldap:amd64.
+Preparing to unpack .../09-libaprutil1-ldap_1.6.1-4ubuntu2_amd64.deb ...
+Unpacking libaprutil1-ldap:amd64 (1.6.1-4ubuntu2) ...
+Selecting previously unselected package libjansson4:amd64.
+Preparing to unpack .../10-libjansson4_2.12-1build1_amd64.deb ...
+Unpacking libjansson4:amd64 (2.12-1build1) ...
+Selecting previously unselected package liblua5.2-0:amd64.
+Preparing to unpack .../11-liblua5.2-0_5.2.4-1.1build3_amd64.deb ...
+Unpacking liblua5.2-0:amd64 (5.2.4-1.1build3) ...
+Selecting previously unselected package tzdata.
+Preparing to unpack .../12-tzdata_2020d-0ubuntu0.20.04_all.deb ...
+Unpacking tzdata (2020d-0ubuntu0.20.04) ...
+Selecting previously unselected package libicu66:amd64.
+Preparing to unpack .../13-libicu66_66.1-2ubuntu2_amd64.deb ...
+Unpacking libicu66:amd64 (66.1-2ubuntu2) ...
+Selecting previously unselected package libxml2:amd64.
+Preparing to unpack .../14-libxml2_2.9.10+dfsg-5_amd64.deb ...
+Unpacking libxml2:amd64 (2.9.10+dfsg-5) ...
+Selecting previously unselected package apache2-bin.
+Preparing to unpack .../15-apache2-bin_2.4.41-4ubuntu3.1_amd64.deb ...
+Unpacking apache2-bin (2.4.41-4ubuntu3.1) ...
+Selecting previously unselected package apache2-data.
+Preparing to unpack .../16-apache2-data_2.4.41-4ubuntu3.1_all.deb ...
+Unpacking apache2-data (2.4.41-4ubuntu3.1) ...
+Selecting previously unselected package apache2-utils.
+Preparing to unpack .../17-apache2-utils_2.4.41-4ubuntu3.1_amd64.deb ...
+Unpacking apache2-utils (2.4.41-4ubuntu3.1) ...
+Selecting previously unselected package mime-support.
+Preparing to unpack .../18-mime-support_3.64ubuntu1_all.deb ...
+Unpacking mime-support (3.64ubuntu1) ...
+Selecting previously unselected package apache2.
+Preparing to unpack .../19-apache2_2.4.41-4ubuntu3.1_amd64.deb ...
+Unpacking apache2 (2.4.41-4ubuntu3.1) ...
+Selecting previously unselected package libmagic-mgc.
+Preparing to unpack .../20-libmagic-mgc_1%3a5.38-4_amd64.deb ...
+Unpacking libmagic-mgc (1:5.38-4) ...
+Selecting previously unselected package libmagic1:amd64.
+Preparing to unpack .../21-libmagic1_1%3a5.38-4_amd64.deb ...
+Unpacking libmagic1:amd64 (1:5.38-4) ...
+Selecting previously unselected package file.
+Preparing to unpack .../22-file_1%3a5.38-4_amd64.deb ...
+Unpacking file (1:5.38-4) ...
+Selecting previously unselected package netbase.
+Preparing to unpack .../23-netbase_6.1_all.deb ...
+Unpacking netbase (6.1) ...
+Selecting previously unselected package xz-utils.
+Preparing to unpack .../24-xz-utils_5.2.4-1ubuntu1_amd64.deb ...
+Unpacking xz-utils (5.2.4-1ubuntu1) ...
+Selecting previously unselected package ssl-cert.
+Preparing to unpack .../25-ssl-cert_1.0.39_all.deb ...
+Unpacking ssl-cert (1.0.39) ...
+Setting up libexpat1:amd64 (2.2.9-1build1) ...
+Setting up perl-modules-5.30 (5.30.0-9ubuntu0.2) ...
+Setting up mime-support (3.64ubuntu1) ...
+Setting up libmagic-mgc (1:5.38-4) ...
+Setting up libmagic1:amd64 (1:5.38-4) ...
+Setting up libapr1:amd64 (1.6.5-1ubuntu1) ...
+Setting up file (1:5.38-4) ...
+Setting up libjansson4:amd64 (2.12-1build1) ...
+Setting up tzdata (2020d-0ubuntu0.20.04) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 76.)
+debconf: falling back to frontend: Readline
+Configuring tzdata
+------------------
+
+Please select the geographic area in which you live. Subsequent configuration questions will narrow this
+down by presenting a list of cities, representing the time zones in which they are located.
+
+  1. Africa   3. Antarctica  5. Arctic  7. Atlantic  9. Indian    11. SystemV  13. Etc
+  2. America  4. Australia   6. Asia    8. Europe    10. Pacific  12. US
+Geographic area: 1
+
+Please select the city or region corresponding to your time zone.
+
+  1. Abidjan      10. Blantyre       19. Djibouti      28. Khartoum    37. Malabo     46. Nouakchott
+  2. Accra        11. Brazzaville    20. Douala        29. Kigali      38. Maputo     47. Ouagadougou
+  3. Addis_Ababa  12. Bujumbura      21. El_Aaiun      30. Kinshasa    39. Maseru     48. Porto-Novo
+  4. Algiers      13. Cairo          22. Freetown      31. Lagos       40. Mbabane    49. Sao_Tome
+  5. Asmara       14. Casablanca     23. Gaborone      32. Libreville  41. Mogadishu  50. Timbuktu
+  6. Bamako       15. Ceuta          24. Harare        33. Lome        42. Monrovia   51. Tripoli
+  7. Bangui       16. Conakry        25. Johannesburg  34. Luanda      43. Nairobi    52. Tunis
+  8. Banjul       17. Dakar          26. Juba          35. Lubumbashi  44. Ndjamena   53. Windhoek
+  9. Bissau       18. Dar_es_Salaam  27. Kampala       36. Lusaka      45. Niamey
+Time zone: 1
+
+
+Current default time zone: 'Africa/Abidjan'
+Local time is now:      Tue Dec 15 20:09:27 GMT 2020.
+Universal Time is now:  Tue Dec 15 20:09:27 UTC 2020.
+Run 'dpkg-reconfigure tzdata' if you wish to change it.
+
+Setting up ssl-cert (1.0.39) ...
+debconf: unable to initialize frontend: Dialog
+debconf: (No usable dialog-like program is installed, so the dialog based frontend cannot be used. at /usr/share/perl5/Debconf/FrontEnd/Dialog.pm line 76.)
+debconf: falling back to frontend: Readline
+Setting up xz-utils (5.2.4-1ubuntu1) ...
+update-alternatives: using /usr/bin/xz to provide /usr/bin/lzma (lzma) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzma.1.gz because associated file /usr/share/man/man1/xz.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/unlzma.1.gz because associated file /usr/share/man/man1/unxz.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzcat.1.gz because associated file /usr/share/man/man1/xzcat.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzmore.1.gz because associated file /usr/share/man/man1/xzmore.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzless.1.gz because associated file /usr/share/man/man1/xzless.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzdiff.1.gz because associated file /usr/share/man/man1/xzdiff.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzcmp.1.gz because associated file /usr/share/man/man1/xzcmp.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzgrep.1.gz because associated file /usr/share/man/man1/xzgrep.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzegrep.1.gz because associated file /usr/share/man/man1/xzegrep.1.gz (of link group lzma) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/lzfgrep.1.gz because associated file /usr/share/man/man1/xzfgrep.1.gz (of link group lzma) doesn't exist
+Setting up liblua5.2-0:amd64 (5.2.4-1.1build3) ...
+Setting up netbase (6.1) ...
+Setting up apache2-data (2.4.41-4ubuntu3.1) ...
+Setting up libgdbm6:amd64 (1.18.1-5) ...
+Setting up libaprutil1:amd64 (1.6.1-4ubuntu2) ...
+Setting up libicu66:amd64 (66.1-2ubuntu2) ...
+Setting up libaprutil1-ldap:amd64 (1.6.1-4ubuntu2) ...
+Setting up libaprutil1-dbd-sqlite3:amd64 (1.6.1-4ubuntu2) ...
+Setting up libgdbm-compat4:amd64 (1.18.1-5) ...
+Setting up libperl5.30:amd64 (5.30.0-9ubuntu0.2) ...
+Setting up libxml2:amd64 (2.9.10+dfsg-5) ...
+Setting up apache2-utils (2.4.41-4ubuntu3.1) ...
+Setting up perl (5.30.0-9ubuntu0.2) ...
+Setting up apache2-bin (2.4.41-4ubuntu3.1) ...
+Setting up apache2 (2.4.41-4ubuntu3.1) ...
+Enabling module mpm_event.
+Enabling module authz_core.
+Enabling module authz_host.
+Enabling module authn_core.
+Enabling module auth_basic.
+Enabling module access_compat.
+Enabling module authn_file.
+Enabling module authz_user.
+Enabling module alias.
+Enabling module dir.
+Enabling module autoindex.
+Enabling module env.
+Enabling module mime.
+Enabling module negotiation.
+Enabling module setenvif.
+Enabling module filter.
+Enabling module deflate.
+Enabling module status.
+Enabling module reqtimeout.
+Enabling conf charset.
+Enabling conf localized-error-pages.
+Enabling conf other-vhosts-access-log.
+Enabling conf security.
+Enabling conf serve-cgi-bin.
+Enabling site 000-default.
+invoke-rc.d: could not determine current runlevel
+invoke-rc.d: policy-rc.d denied execution of start.
+Processing triggers for libc-bin (2.31-0ubuntu9.1) ...
+root@b572af571f14:/# date
+Tue Dec 15 20:09:33 GMT 2020
+root@b572af571f14:/# cd /etc
+root@b572af571f14:/etc# ls -ltr
+total 384
+-rw-r--r-- 1 root root     887 Apr  1  2013 rpc
+-rw-r--r-- 1 root root    2932 Apr  1  2013 protocols
+-rw-r--r-- 1 root root     604 Sep 15  2018 deluser.conf
+drwxr-xr-x 3 root root    4096 Jun 21  2019 systemd
+-rw-r--r-- 1 root root    2969 Aug  3  2019 debconf.conf
+-rw-r--r-- 1 root root     642 Sep 24  2019 xattr.conf
+-rw-r--r-- 1 root root   24546 Oct 18  2019 mime.types
+-rw-r--r-- 1 root root     449 Oct 18  2019 mailcap.order
+-rw-r--r-- 1 root root     581 Dec  5  2019 profile
+-rw-r--r-- 1 root root      91 Dec  5  2019 networks
+-rw-r--r-- 1 root root     267 Dec  5  2019 legal
+-rw-r--r-- 1 root root      92 Dec  5  2019 host.conf
+-rw-r--r-- 1 root root      13 Dec  5  2019 debian_version
+-rw-r--r-- 1 root root     552 Dec 17  2019 pam.conf
+-rw-r--r-- 1 root root    1816 Dec 27  2019 ethertypes
+-rw-r--r-- 1 root root     111 Jan 16  2020 magic.mime
+-rw-r--r-- 1 root root     111 Jan 16  2020 magic
+-rw-r--r-- 1 root root    2584 Feb  1  2020 gai.conf
+-rw-r--r-- 1 root root   10550 Feb  7  2020 login.defs
+-rw-r--r-- 1 root root    2351 Feb 13  2020 sysctl.conf
+-rw-r--r-- 1 root root     808 Feb 14  2020 mke2fs.conf
+-rw-r--r-- 1 root root     685 Feb 14  2020 e2scrub.conf
+-rw-r--r-- 1 root root   14464 Feb 16  2020 services
+-rw-r--r-- 1 root root     191 Feb 18  2020 libaudit.conf
+-rw-r--r-- 1 root root    2319 Feb 25  2020 bash.bashrc
+lrwxrwxrwx 1 root root      13 Mar 14  2020 rmt -> /usr/sbin/rmt
+-rw-r--r-- 1 root root     494 Apr 14  2020 nsswitch.conf
+-rw-r--r-- 1 root root      34 Apr 14  2020 ld.so.conf
+-rw-r--r-- 1 root root     367 Apr 14  2020 bindresvport.blacklist
+lrwxrwxrwx 1 root root      21 Aug 17 13:31 os-release -> ../usr/lib/os-release
+-rw-r--r-- 1 root root     104 Aug 17 13:31 lsb-release
+-rw-r--r-- 1 root root      19 Aug 17 13:31 issue.net
+-rw-r--r-- 1 root root      26 Aug 17 13:31 issue
+drwxr-xr-x 2 root root    4096 Nov  6 01:21 opt
+-rw-r--r-- 1 root root      37 Nov  6 01:21 fstab
+drwxr-xr-x 2 root root    4096 Nov  6 01:21 rcS.d
+-rw-r--r-- 1 root root       0 Nov  6 01:21 subuid
+-rw-r--r-- 1 root root       0 Nov  6 01:21 subgid
+-rw-r--r-- 1 root root     116 Nov  6 01:21 shells
+-rw-r----- 1 root shadow   374 Nov  6 01:21 gshadow-
+-rw-r--r-- 1 root root     446 Nov  6 01:21 group-
+drwxr-xr-x 3 root root    4096 Nov  6 01:21 kernel
+drwxr-xr-x 7 root root    4096 Nov  6 01:21 apt
+-rw-r----- 1 root shadow   501 Nov  6 01:21 shadow
+-rw-r--r-- 1 root root     926 Nov  6 01:21 passwd
+-rw-r--r-- 1 root root    3028 Nov  6 01:21 adduser.conf
+drwxr-xr-x 4 root root    4096 Nov  6 01:22 dpkg
+drwxr-xr-x 2 root root    4096 Nov  6 01:22 cron.d
+drwxr-xr-x 2 root root    4096 Nov  6 01:24 selinux
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 terminfo
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 sysctl.d
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 update-motd.d
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 skel
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 profile.d
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 ld.so.conf.d
+drwxr-xr-x 4 root root    4096 Nov  6 01:25 security
+drwxr-xr-x 2 root root    4096 Nov  6 01:25 pam.d
+-rw-r--r-- 1 root root     106 Nov  6 01:25 environment
+-rw-r--r-- 1 root root       0 Nov  6 01:25 machine-id
+lrwxrwxrwx 1 root root      12 Dec 15 20:03 mtab -> /proc/mounts
+-rw-r--r-- 1 root root      86 Dec 15 20:03 resolv.conf
+-rw-r--r-- 1 root root     174 Dec 15 20:03 hosts
+-rw-r--r-- 1 root root      13 Dec 15 20:03 hostname
+drwxr-xr-x 3 root root    4096 Dec 15 20:03 ca-certificates
+drwxr-xr-x 3 root root    4096 Dec 15 20:03 gss
+drwxr-xr-x 3 root root    4096 Dec 15 20:04 logcheck
+drwxr-xr-x 2 root root    4096 Dec 15 20:04 ldap
+drwxr-xr-x 4 root root    4096 Dec 15 20:04 ssl
+-rw-r--r-- 1 root root    6081 Dec 15 20:04 ca-certificates.conf
+drwxr-xr-x 3 root root    4096 Dec 15 20:08 perl
+drwxr-xr-x 3 root root    4096 Dec 15 20:08 ufw
+-rw-r--r-- 1 root root    1604 Dec 15 20:08 mailcap
+-rw-r--r-- 1 root root      15 Dec 15 20:09 timezone
+lrwxrwxrwx 1 root root      34 Dec 15 20:09 localtime -> /usr/share/zoneinfo/Africa/Abidjan
+-rw-r----- 1 root shadow   387 Dec 15 20:09 gshadow
+-rw-r--r-- 1 root root     462 Dec 15 20:09 group
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 alternatives
+drwxr-xr-x 8 root root    4096 Dec 15 20:09 apache2
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 cron.daily
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 default
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 init.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 logrotate.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc6.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc1.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc0.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc5.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc4.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc3.d
+drwxr-xr-x 2 root root    4096 Dec 15 20:09 rc2.d
+-rw-r--r-- 1 root root    9746 Dec 15 20:09 ld.so.cache
+root@b572af571f14:/etc# cd apache2/
+root@b572af571f14:/etc/apache2# ls -l
+total 80
+-rw-r--r-- 1 root root  7224 Aug 12 19:46 apache2.conf
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 conf-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 conf-enabled
+-rw-r--r-- 1 root root  1782 Apr 13  2020 envvars
+-rw-r--r-- 1 root root 31063 Apr 13  2020 magic
+drwxr-xr-x 2 root root 12288 Dec 15 20:09 mods-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 mods-enabled
+-rw-r--r-- 1 root root   320 Apr 13  2020 ports.conf
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 sites-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 sites-enabled
+root@b572af571f14:/etc/apache2# vi ports.conf
+bash: vi: command not found
+root@b572af571f14:/etc/apache2# apt-get install vim
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following additional packages will be installed:
+  alsa-topology-conf alsa-ucm-conf libasound2 libasound2-data libcanberra0 libgpm2 libltdl7 libmpdec2
+  libogg0 libpython3.8 libpython3.8-minimal libpython3.8-stdlib libreadline8 libtdb1 libvorbis0a
+  libvorbisfile3 readline-common sound-theme-freedesktop vim-common vim-runtime xxd
+Suggested packages:
+  libasound2-plugins alsa-utils libcanberra-gtk0 libcanberra-pulse gpm readline-doc ctags vim-doc
+  vim-scripts
+The following NEW packages will be installed:
+  alsa-topology-conf alsa-ucm-conf libasound2 libasound2-data libcanberra0 libgpm2 libltdl7 libmpdec2
+  libogg0 libpython3.8 libpython3.8-minimal libpython3.8-stdlib libreadline8 libtdb1 libvorbis0a
+  libvorbisfile3 readline-common sound-theme-freedesktop vim vim-common vim-runtime xxd
+0 upgraded, 22 newly installed, 0 to remove and 2 not upgraded.
+Need to get 12.6 MB of archives.
+After this operation, 58.0 MB of additional disk space will be used.
+Do you want to continue? [Y/n] y
+Get:1 http://archive.ubuntu.com/ubuntu focal/main amd64 libmpdec2 amd64 2.4.2-3 [81.1 kB]
+Get:2 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8-minimal amd64 3.8.5-1~20.04 [714 kB]
+Get:3 http://archive.ubuntu.com/ubuntu focal/main amd64 readline-common all 8.0-4 [53.5 kB]
+Get:4 http://archive.ubuntu.com/ubuntu focal/main amd64 libreadline8 amd64 8.0-4 [131 kB]
+Get:5 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8-stdlib amd64 3.8.5-1~20.04 [1671 kB]
+Get:6 http://archive.ubuntu.com/ubuntu focal/main amd64 xxd amd64 2:8.1.2269-1ubuntu5 [50.1 kB]
+Get:7 http://archive.ubuntu.com/ubuntu focal/main amd64 vim-common all 2:8.1.2269-1ubuntu5 [85.1 kB]
+Get:8 http://archive.ubuntu.com/ubuntu focal/main amd64 alsa-topology-conf all 1.2.2-1 [7364 B]
+Get:9 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 alsa-ucm-conf all 1.2.2-1ubuntu0.5 [25.7 kB]
+Get:10 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libasound2-data all 1.2.2-2.1ubuntu2.2 [20.2 kB]
+Get:11 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libasound2 amd64 1.2.2-2.1ubuntu2.2 [335 kB]
+Get:12 http://archive.ubuntu.com/ubuntu focal/main amd64 libltdl7 amd64 2.4.6-14 [38.5 kB]
+Get:13 http://archive.ubuntu.com/ubuntu focal/main amd64 libtdb1 amd64 1.4.2-3build1 [44.1 kB]
+Get:14 http://archive.ubuntu.com/ubuntu focal/main amd64 libogg0 amd64 1.3.4-0ubuntu1 [24.0 kB]
+Get:15 http://archive.ubuntu.com/ubuntu focal/main amd64 libvorbis0a amd64 1.3.6-2ubuntu1 [87.0 kB]
+Get:16 http://archive.ubuntu.com/ubuntu focal/main amd64 libvorbisfile3 amd64 1.3.6-2ubuntu1 [16.1 kB]
+Get:17 http://archive.ubuntu.com/ubuntu focal/main amd64 sound-theme-freedesktop all 0.8-2ubuntu1 [384 kB]
+Get:18 http://archive.ubuntu.com/ubuntu focal/main amd64 libcanberra0 amd64 0.30-7ubuntu1 [38.1 kB]
+Get:19 http://archive.ubuntu.com/ubuntu focal/main amd64 libgpm2 amd64 1.20.7-5 [15.1 kB]
+Get:20 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 libpython3.8 amd64 3.8.5-1~20.04 [1624 kB]
+Get:21 http://archive.ubuntu.com/ubuntu focal/main amd64 vim-runtime all 2:8.1.2269-1ubuntu5 [5873 kB]
+Get:22 http://archive.ubuntu.com/ubuntu focal/main amd64 vim amd64 2:8.1.2269-1ubuntu5 [1238 kB]
+Fetched 12.6 MB in 0s (31.4 MB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package libmpdec2:amd64.
+(Reading database ... 9386 files and directories currently installed.)
+Preparing to unpack .../00-libmpdec2_2.4.2-3_amd64.deb ...
+Unpacking libmpdec2:amd64 (2.4.2-3) ...
+Selecting previously unselected package libpython3.8-minimal:amd64.
+Preparing to unpack .../01-libpython3.8-minimal_3.8.5-1~20.04_amd64.deb ...
+Unpacking libpython3.8-minimal:amd64 (3.8.5-1~20.04) ...
+Selecting previously unselected package readline-common.
+Preparing to unpack .../02-readline-common_8.0-4_all.deb ...
+Unpacking readline-common (8.0-4) ...
+Selecting previously unselected package libreadline8:amd64.
+Preparing to unpack .../03-libreadline8_8.0-4_amd64.deb ...
+Unpacking libreadline8:amd64 (8.0-4) ...
+Selecting previously unselected package libpython3.8-stdlib:amd64.
+Preparing to unpack .../04-libpython3.8-stdlib_3.8.5-1~20.04_amd64.deb ...
+Unpacking libpython3.8-stdlib:amd64 (3.8.5-1~20.04) ...
+Selecting previously unselected package xxd.
+Preparing to unpack .../05-xxd_2%3a8.1.2269-1ubuntu5_amd64.deb ...
+Unpacking xxd (2:8.1.2269-1ubuntu5) ...
+Selecting previously unselected package vim-common.
+Preparing to unpack .../06-vim-common_2%3a8.1.2269-1ubuntu5_all.deb ...
+Unpacking vim-common (2:8.1.2269-1ubuntu5) ...
+Selecting previously unselected package alsa-topology-conf.
+Preparing to unpack .../07-alsa-topology-conf_1.2.2-1_all.deb ...
+Unpacking alsa-topology-conf (1.2.2-1) ...
+Selecting previously unselected package alsa-ucm-conf.
+Preparing to unpack .../08-alsa-ucm-conf_1.2.2-1ubuntu0.5_all.deb ...
+Unpacking alsa-ucm-conf (1.2.2-1ubuntu0.5) ...
+Selecting previously unselected package libasound2-data.
+Preparing to unpack .../09-libasound2-data_1.2.2-2.1ubuntu2.2_all.deb ...
+Unpacking libasound2-data (1.2.2-2.1ubuntu2.2) ...
+Selecting previously unselected package libasound2:amd64.
+Preparing to unpack .../10-libasound2_1.2.2-2.1ubuntu2.2_amd64.deb ...
+Unpacking libasound2:amd64 (1.2.2-2.1ubuntu2.2) ...
+Selecting previously unselected package libltdl7:amd64.
+Preparing to unpack .../11-libltdl7_2.4.6-14_amd64.deb ...
+Unpacking libltdl7:amd64 (2.4.6-14) ...
+Selecting previously unselected package libtdb1:amd64.
+Preparing to unpack .../12-libtdb1_1.4.2-3build1_amd64.deb ...
+Unpacking libtdb1:amd64 (1.4.2-3build1) ...
+Selecting previously unselected package libogg0:amd64.
+Preparing to unpack .../13-libogg0_1.3.4-0ubuntu1_amd64.deb ...
+Unpacking libogg0:amd64 (1.3.4-0ubuntu1) ...
+Selecting previously unselected package libvorbis0a:amd64.
+Preparing to unpack .../14-libvorbis0a_1.3.6-2ubuntu1_amd64.deb ...
+Unpacking libvorbis0a:amd64 (1.3.6-2ubuntu1) ...
+Selecting previously unselected package libvorbisfile3:amd64.
+Preparing to unpack .../15-libvorbisfile3_1.3.6-2ubuntu1_amd64.deb ...
+Unpacking libvorbisfile3:amd64 (1.3.6-2ubuntu1) ...
+Selecting previously unselected package sound-theme-freedesktop.
+Preparing to unpack .../16-sound-theme-freedesktop_0.8-2ubuntu1_all.deb ...
+Unpacking sound-theme-freedesktop (0.8-2ubuntu1) ...
+Selecting previously unselected package libcanberra0:amd64.
+Preparing to unpack .../17-libcanberra0_0.30-7ubuntu1_amd64.deb ...
+Unpacking libcanberra0:amd64 (0.30-7ubuntu1) ...
+Selecting previously unselected package libgpm2:amd64.
+Preparing to unpack .../18-libgpm2_1.20.7-5_amd64.deb ...
+Unpacking libgpm2:amd64 (1.20.7-5) ...
+Selecting previously unselected package libpython3.8:amd64.
+Preparing to unpack .../19-libpython3.8_3.8.5-1~20.04_amd64.deb ...
+Unpacking libpython3.8:amd64 (3.8.5-1~20.04) ...
+Selecting previously unselected package vim-runtime.
+Preparing to unpack .../20-vim-runtime_2%3a8.1.2269-1ubuntu5_all.deb ...
+Adding 'diversion of /usr/share/vim/vim81/doc/help.txt to /usr/share/vim/vim81/doc/help.txt.vim-tiny by vim-runtime'
+Adding 'diversion of /usr/share/vim/vim81/doc/tags to /usr/share/vim/vim81/doc/tags.vim-tiny by vim-runtime'
+Unpacking vim-runtime (2:8.1.2269-1ubuntu5) ...
+Selecting previously unselected package vim.
+Preparing to unpack .../21-vim_2%3a8.1.2269-1ubuntu5_amd64.deb ...
+Unpacking vim (2:8.1.2269-1ubuntu5) ...
+Setting up libpython3.8-minimal:amd64 (3.8.5-1~20.04) ...
+Setting up libgpm2:amd64 (1.20.7-5) ...
+Setting up libogg0:amd64 (1.3.4-0ubuntu1) ...
+Setting up alsa-ucm-conf (1.2.2-1ubuntu0.5) ...
+Setting up libtdb1:amd64 (1.4.2-3build1) ...
+Setting up xxd (2:8.1.2269-1ubuntu5) ...
+Setting up libasound2-data (1.2.2-2.1ubuntu2.2) ...
+Setting up vim-common (2:8.1.2269-1ubuntu5) ...
+Setting up libvorbis0a:amd64 (1.3.6-2ubuntu1) ...
+Setting up libltdl7:amd64 (2.4.6-14) ...
+Setting up alsa-topology-conf (1.2.2-1) ...
+Setting up sound-theme-freedesktop (0.8-2ubuntu1) ...
+Setting up libasound2:amd64 (1.2.2-2.1ubuntu2.2) ...
+Setting up libmpdec2:amd64 (2.4.2-3) ...
+Setting up vim-runtime (2:8.1.2269-1ubuntu5) ...
+Setting up readline-common (8.0-4) ...
+Setting up libreadline8:amd64 (8.0-4) ...
+Setting up libvorbisfile3:amd64 (1.3.6-2ubuntu1) ...
+Setting up libpython3.8-stdlib:amd64 (3.8.5-1~20.04) ...
+Setting up libcanberra0:amd64 (0.30-7ubuntu1) ...
+Setting up libpython3.8:amd64 (3.8.5-1~20.04) ...
+Setting up vim (2:8.1.2269-1ubuntu5) ...
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/vim (vim) in auto mode
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/vimdiff (vimdiff) in auto mode
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/rvim (rvim) in auto mode
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/rview (rview) in auto mode
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/vi (vi) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/da/man1/vi.1.gz because associated file /usr/share/man/da/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/de/man1/vi.1.gz because associated file /usr/share/man/de/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/vi.1.gz because associated file /usr/share/man/fr/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/it/man1/vi.1.gz because associated file /usr/share/man/it/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ja/man1/vi.1.gz because associated file /usr/share/man/ja/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/pl/man1/vi.1.gz because associated file /usr/share/man/pl/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ru/man1/vi.1.gz because associated file /usr/share/man/ru/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/vi.1.gz because associated file /usr/share/man/man1/vim.1.gz (of link group vi) doesn't exist
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/view (view) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/da/man1/view.1.gz because associated file /usr/share/man/da/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/de/man1/view.1.gz because associated file /usr/share/man/de/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/view.1.gz because associated file /usr/share/man/fr/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/it/man1/view.1.gz because associated file /usr/share/man/it/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ja/man1/view.1.gz because associated file /usr/share/man/ja/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/pl/man1/view.1.gz because associated file /usr/share/man/pl/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ru/man1/view.1.gz because associated file /usr/share/man/ru/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/view.1.gz because associated file /usr/share/man/man1/vim.1.gz (of link group view) doesn't exist
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/ex (ex) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/da/man1/ex.1.gz because associated file /usr/share/man/da/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/de/man1/ex.1.gz because associated file /usr/share/man/de/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/ex.1.gz because associated file /usr/share/man/fr/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/it/man1/ex.1.gz because associated file /usr/share/man/it/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ja/man1/ex.1.gz because associated file /usr/share/man/ja/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/pl/man1/ex.1.gz because associated file /usr/share/man/pl/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ru/man1/ex.1.gz because associated file /usr/share/man/ru/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/ex.1.gz because associated file /usr/share/man/man1/vim.1.gz (of link group ex) doesn't exist
+update-alternatives: using /usr/bin/vim.basic to provide /usr/bin/editor (editor) in auto mode
+update-alternatives: warning: skip creation of /usr/share/man/da/man1/editor.1.gz because associated file /usr/share/man/da/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/de/man1/editor.1.gz because associated file /usr/share/man/de/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/fr/man1/editor.1.gz because associated file /usr/share/man/fr/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/it/man1/editor.1.gz because associated file /usr/share/man/it/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ja/man1/editor.1.gz because associated file /usr/share/man/ja/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/pl/man1/editor.1.gz because associated file /usr/share/man/pl/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/ru/man1/editor.1.gz because associated file /usr/share/man/ru/man1/vim.1.gz (of link group editor) doesn't exist
+update-alternatives: warning: skip creation of /usr/share/man/man1/editor.1.gz because associated file /usr/share/man/man1/vim.1.gz (of link group editor) doesn't exist
+Processing triggers for libc-bin (2.31-0ubuntu9.1) ...
+Processing triggers for mime-support (3.64ubuntu1) ...
+root@b572af571f14:/etc/apache2# ls -l
+total 80
+-rw-r--r-- 1 root root  7224 Aug 12 19:46 apache2.conf
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 conf-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 conf-enabled
+-rw-r--r-- 1 root root  1782 Apr 13  2020 envvars
+-rw-r--r-- 1 root root 31063 Apr 13  2020 magic
+drwxr-xr-x 2 root root 12288 Dec 15 20:09 mods-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 mods-enabled
+-rw-r--r-- 1 root root   320 Apr 13  2020 ports.conf
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 sites-available
+drwxr-xr-x 2 root root  4096 Dec 15 20:09 sites-enabled
+root@b572af571f14:/etc/apache2# vim ports.conf
+root@b572af571f14:/etc/apache2# cat apache2.conf
+# This is the main Apache server configuration file.  It contains the
+# configuration directives that give the server its instructions.
+# See http://httpd.apache.org/docs/2.4/ for detailed information about
+# the directives and /usr/share/doc/apache2/README.Debian about Debian specific
+# hints.
+#
+#
+# Summary of how the Apache 2 configuration works in Debian:
+# The Apache 2 web server configuration in Debian is quite different to
+# upstream's suggested way to configure the web server. This is because Debian's
+# default Apache2 installation attempts to make adding and removing modules,
+# virtual hosts, and extra configuration directives as flexible as possible, in
+# order to make automating the changes and administering the server as easy as
+# possible.
+
+# It is split into several files forming the configuration hierarchy outlined
+# below, all located in the /etc/apache2/ directory:
+#
+#       /etc/apache2/
+#       |-- apache2.conf
+#       |       `--  ports.conf
+#       |-- mods-enabled
+#       |       |-- *.load
+#       |       `-- *.conf
+#       |-- conf-enabled
+#       |       `-- *.conf
+#       `-- sites-enabled
+#               `-- *.conf
+#
+#
+# * apache2.conf is the main configuration file (this file). It puts the pieces
+#   together by including all remaining configuration files when starting up the
+#   web server.
+#
+# * ports.conf is always included from the main configuration file. It is
+#   supposed to determine listening ports for incoming connections which can be
+#   customized anytime.
+#
+# * Configuration files in the mods-enabled/, conf-enabled/ and sites-enabled/
+#   directories contain particular configuration snippets which manage modules,
+#   global configuration fragments, or virtual host configurations,
+#   respectively.
+#
+#   They are activated by symlinking available configuration files from their
+#   respective *-available/ counterparts. These should be managed by using our
+#   helpers a2enmod/a2dismod, a2ensite/a2dissite and a2enconf/a2disconf. See
+#   their respective man pages for detailed information.
+#
+# * The binary is called apache2. Due to the use of environment variables, in
+#   the default configuration, apache2 needs to be started/stopped with
+#   /etc/init.d/apache2 or apache2ctl. Calling /usr/bin/apache2 directly will not
+#   work with the default configuration.
+
+
+# Global configuration
+#
+
+#
+# ServerRoot: The top of the directory tree under which the server's
+# configuration, error, and log files are kept.
+#
+# NOTE!  If you intend to place this on an NFS (or otherwise network)
+# mounted filesystem then please read the Mutex documentation (available
+# at <URL:http://httpd.apache.org/docs/2.4/mod/core.html#mutex>);
+# you will save yourself a lot of trouble.
+#
+# Do NOT add a slash at the end of the directory path.
+#
+#ServerRoot "/etc/apache2"
+
+#
+# The accept serialization lock file MUST BE STORED ON A LOCAL DISK.
+#
+#Mutex file:${APACHE_LOCK_DIR} default
+
+#
+# The directory where shm and other runtime files will be stored.
+#
+
+DefaultRuntimeDir ${APACHE_RUN_DIR}
+
+#
+# PidFile: The file in which the server should record its process
+# identification number when it starts.
+# This needs to be set in /etc/apache2/envvars
+#
+PidFile ${APACHE_PID_FILE}
+
+#
+# Timeout: The number of seconds before receives and sends time out.
+#
+Timeout 300
+
+#
+# KeepAlive: Whether or not to allow persistent connections (more than
+# one request per connection). Set to "Off" to deactivate.
+#
+KeepAlive On
+
+#
+# MaxKeepAliveRequests: The maximum number of requests to allow
+# during a persistent connection. Set to 0 to allow an unlimited amount.
+# We recommend you leave this number high, for maximum performance.
+#
+MaxKeepAliveRequests 100
+
+#
+# KeepAliveTimeout: Number of seconds to wait for the next request from the
+# same client on the same connection.
+#
+KeepAliveTimeout 5
+
+
+# These need to be set in /etc/apache2/envvars
+User ${APACHE_RUN_USER}
+Group ${APACHE_RUN_GROUP}
+
+#
+# HostnameLookups: Log the names of clients or just their IP addresses
+# e.g., www.apache.org (on) or 204.62.129.132 (off).
+# The default is off because it'd be overall better for the net if people
+# had to knowingly turn this feature on, since enabling it means that
+# each client request will result in AT LEAST one lookup request to the
+# nameserver.
+#
+HostnameLookups Off
+
+# ErrorLog: The location of the error log file.
+# If you do not specify an ErrorLog directive within a <VirtualHost>
+# container, error messages relating to that virtual host will be
+# logged here.  If you *do* define an error logfile for a <VirtualHost>
+# container, that host's errors will be logged there and not here.
+#
+ErrorLog ${APACHE_LOG_DIR}/error.log
+
+#
+# LogLevel: Control the severity of messages logged to the error_log.
+# Available values: trace8, ..., trace1, debug, info, notice, warn,
+# error, crit, alert, emerg.
+# It is also possible to configure the log level for particular modules, e.g.
+# "LogLevel info ssl:warn"
+#
+LogLevel warn
+
+# Include module configuration:
+IncludeOptional mods-enabled/*.load
+IncludeOptional mods-enabled/*.conf
+
+# Include list of ports to listen on
+Include ports.conf
+
+
+# Sets the default security model of the Apache2 HTTPD server. It does
+# not allow access to the root filesystem outside of /usr/share and /var/www.
+# The former is used by web applications packaged in Debian,
+# the latter may be used for local directories served by the web server. If
+# your system is serving content from a sub-directory in /srv you must allow
+# access here, or in any related virtual host.
+<Directory />
+        Options FollowSymLinks
+        AllowOverride None
+        Require all denied
+</Directory>
+
+<Directory /usr/share>
+        AllowOverride None
+        Require all granted
+</Directory>
+
+<Directory /var/www/>
+        Options Indexes FollowSymLinks
+        AllowOverride None
+        Require all granted
+</Directory>
+
+#<Directory /srv/>
+#       Options Indexes FollowSymLinks
+#       AllowOverride None
+#       Require all granted
+#</Directory>
+
+
+
+
+# AccessFileName: The name of the file to look for in each directory
+# for additional configuration directives.  See also the AllowOverride
+# directive.
+#
+AccessFileName .htaccess
+
+#
+# The following lines prevent .htaccess and .htpasswd files from being
+# viewed by Web clients.
+#
+<FilesMatch "^\.ht">
+        Require all denied
+</FilesMatch>
+
+
+#
+# The following directives define some format nicknames for use with
+# a CustomLog directive.
+#
+# These deviate from the Common Log Format definitions in that they use %O
+# (the actual bytes sent including headers) instead of %b (the size of the
+# requested file), because the latter makes it impossible to detect partial
+# requests.
+#
+# Note that the use of %{X-Forwarded-For}i instead of %h is not recommended.
+# Use mod_remoteip instead.
+#
+LogFormat "%v:%p %h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" vhost_combined
+LogFormat "%h %l %u %t \"%r\" %>s %O \"%{Referer}i\" \"%{User-Agent}i\"" combined
+LogFormat "%h %l %u %t \"%r\" %>s %O" common
+LogFormat "%{Referer}i -> %U" referer
+LogFormat "%{User-agent}i" agent
+
+# Include of directories ignores editors' and dpkg's backup files,
+# see README.Debian for details.
+
+# Include generic snippets of statements
+IncludeOptional conf-enabled/*.conf
+
+# Include the virtual host configurations:
+IncludeOptional sites-enabled/*.conf
+
+# vim: syntax=apache ts=4 sw=4 sts=4 sr noet
+root@b572af571f14:/etc/apache2# systemctl status apache2
+bash: systemctl: command not found
+root@b572af571f14:/etc/apache2# ps -ef|grep -i apache
+root      4100  3016  0 20:12 pts/1    00:00:00 grep --color=auto -i apache
+root@b572af571f14:/etc/apache2# uname -a
+Linux b572af571f14 4.4.0-166-generic #195-Ubuntu SMP Tue Oct 1 09:35:25 UTC 2019 x86_64 x86_64 x86_64 GNU/Linux
+root@b572af571f14:/etc/apache2# systemctl |grep runnig
+bash: systemctl: command not found
+root@b572af571f14:/etc/apache2# service --status-all
+ [ - ]  apache-htcacheclean
+ [ - ]  apache2
+ [ ? ]  hwclock.sh
+ [ - ]  procps
+root@b572af571f14:/etc/apache2# service apache2 status
+ * apache2 is not running
+root@b572af571f14:/etc/apache2# service apache2 start
+ * Starting Apache httpd web server apache2AH00558: apache2: Could not reliably determine the server's fully qualified domain name, using 172.17.0.2. Set the 'ServerName' directive globally to suppress this message
+ *
+root@b572af571f14:/etc/apache2# service apache2 status
+ * apache2 is running
+root@b572af571f14:/etc/apache2# exit
+exit
+[root@stapp03 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+b572af571f14        ubuntu:latest       "/bin/bash"         11 minutes ago      Up 11 minutes           kkloud

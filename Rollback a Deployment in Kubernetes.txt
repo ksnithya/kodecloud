@@ -1,0 +1,373 @@
+This morning the Nautilus DevOps team rolled out a new release for one of the applications. Recently on of the customers logged a complaint which seems to be about a bug related to the recent release. Therefore, the team wants to rollback the recent release.
+
+
+There is a deployment named nginx-deployment; roll it back to the previous revision.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+thor@jump_host /$ kubectl get nodes
+NAME           STATUS   ROLES    AGE     VERSION
+controlplane   Ready    master   9m12s   v1.19.0
+node01         Ready    <none>   8m46s   v1.19.0
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:10:01 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 2
+                        kubernetes.io/change-cause: kubectl set image deployment nginx-deployment nginx-container=nginx:alpine --record=true
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:alpine
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-5946cc7684 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  92s   deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  81s   deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 1
+  Normal  ScalingReplicaSet  77s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  77s   deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  75s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  74s   deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 3
+  Normal  ScalingReplicaSet  72s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine --record=true
+
+thor@jump_host /$ kubectl rollout undo deployment/nginx-deployment --to-revision=1
+deployment.apps/nginx-deployment rolled back
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine --record=true
+3         <none>
+
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:10:01 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:1.16
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-74fb588559 (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  4m57s              deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  4m46s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 1
+  Normal  ScalingReplicaSet  4m42s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  4m42s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  4m40s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  4m39s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 3
+  Normal  ScalingReplicaSet  4m37s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+  Normal  ScalingReplicaSet  16s                deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  15s                deployment-controller  Scaled down replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  10s (x4 over 15s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-5946cc7684 to 0
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:10:01 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:1.16
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-74fb588559 (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  5m19s              deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  5m8s               deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 1
+  Normal  ScalingReplicaSet  5m4s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  5m4s               deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  5m2s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  5m1s               deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 3
+  Normal  ScalingReplicaSet  4m59s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+  Normal  ScalingReplicaSet  38s                deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  37s                deployment-controller  Scaled down replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  32s (x4 over 37s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-5946cc7684 to 0
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine --record=true
+3         <none>
+
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:10:01 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:1.16
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-74fb588559 (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  5m42s              deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  5m31s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 1
+  Normal  ScalingReplicaSet  5m27s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  5m27s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  5m25s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  5m24s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 3
+  Normal  ScalingReplicaSet  5m22s              deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+  Normal  ScalingReplicaSet  61s                deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  60s                deployment-controller  Scaled down replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  55s (x4 over 60s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-5946cc7684 to 0
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           5m51s
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-74fb588559-bgxfz   1/1     Running   0          81s
+nginx-deployment-74fb588559-kpkfn   1/1     Running   0          85s
+nginx-deployment-74fb588559-mcs2d   1/1     Running   0          84s
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:10:01 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:1.16
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-74fb588559 (3/3 replicas created)
+Events:
+  Type    Reason             Age                From                   Message
+  ----    ------             ----               ----                   -------
+  Normal  ScalingReplicaSet  6m21s              deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  6m10s              deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 1
+  Normal  ScalingReplicaSet  6m6s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  6m6s               deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  6m4s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  6m3s               deployment-controller  Scaled up replica set nginx-deployment-5946cc7684 to 3
+  Normal  ScalingReplicaSet  6m1s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+  Normal  ScalingReplicaSet  100s               deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  99s                deployment-controller  Scaled down replica set nginx-deployment-5946cc7684 to 2
+  Normal  ScalingReplicaSet  94s (x4 over 99s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-5946cc7684 to 0
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine --record=true
+3         <none>
+
+thor@jump_host /$ 
+
+======================================================
+thor@jump_host /$ kubectl get node
+NAME           STATUS   ROLES    AGE   VERSION
+controlplane   Ready    master   81m   v1.19.0
+node01         Ready    <none>   80m   v1.19.0
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           34s
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-594c94667b-2x92x   1/1     Running   0          23s
+nginx-deployment-594c94667b-5mvx6   1/1     Running   0          21s
+nginx-deployment-594c94667b-fm2nk   1/1     Running   0          31s
+thor@jump_host /$ kubectl describe deploy 
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:25:05 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 2
+                        kubernetes.io/change-cause: kubectl set image deployment nginx-deployment nginx-container=nginx:alpine-perl --record=true
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:alpine-perl
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-594c94667b (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  58s   deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  47s   deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 1
+  Normal  ScalingReplicaSet  39s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  39s   deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 2
+  Normal  ScalingReplicaSet  37s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  37s   deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 3
+  Normal  ScalingReplicaSet  34s   deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine-perl --record=true
+
+thor@jump_host /$ kubectl rollout undo deployment/nginx-deployment
+deployment.apps/nginx-deployment rolled back
+thor@jump_host /$ kubectl rollout history deployment/nginx-deployment
+deployment.apps/nginx-deployment 
+REVISION  CHANGE-CAUSE
+2         kubectl set image deployment nginx-deployment nginx-container=nginx:alpine-perl --record=true
+3         <none>
+
+thor@jump_host /$ kubectl describe deploy 
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 09 Mar 2021 18:25:05 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=nginx-app
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:        nginx:1.16
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-74fb588559 (3/3 replicas created)
+Events:
+  Type    Reason             Age                 From                   Message
+  ----    ------             ----                ----                   -------
+  Normal  ScalingReplicaSet  2m26s               deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 1
+  Normal  ScalingReplicaSet  2m18s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 2
+  Normal  ScalingReplicaSet  2m18s               deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 2
+  Normal  ScalingReplicaSet  2m16s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  2m16s               deployment-controller  Scaled up replica set nginx-deployment-594c94667b to 3
+  Normal  ScalingReplicaSet  2m13s               deployment-controller  Scaled down replica set nginx-deployment-74fb588559 to 0
+  Normal  ScalingReplicaSet  12s                 deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 1
+  Normal  ScalingReplicaSet  9s                  deployment-controller  Scaled down replica set nginx-deployment-594c94667b to 2
+  Normal  ScalingReplicaSet  7s (x2 over 2m37s)  deployment-controller  Scaled up replica set nginx-deployment-74fb588559 to 3
+  Normal  ScalingReplicaSet  5s (x3 over 9s)     deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-594c94667b to 0
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   3/3     3            3           2m47s
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-74fb588559-jr7tg   1/1     Running   0          29s
+nginx-deployment-74fb588559-lcmhc   1/1     Running   0          24s
+nginx-deployment-74fb588559-qv22w   1/1     Running   0          26s
+thor@jump_host /$ 

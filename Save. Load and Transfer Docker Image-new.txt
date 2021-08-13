@@ -1,0 +1,112 @@
+One of the DevOps team members was working on to create a new custom docker image on App Server 1 in Stratos DC. He is done with his changes and image is saved on same server with name games:nautilus. Recently a requirement has been raised by a team to use that image for testing, but the team wants to test the same on App Server 3. So we need to provide them that image on App Server 3 in Stratos DC.
+
+
+a. On App Server 1 save the image games:nautilus in an archive.
+
+docker images
+docker save --output saved-games.tar games:datacenter
+chmod 755 saved-games.tar
+
+----------------------------------------------------------
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
+games               datacenter          90379d5d3d3d        About a minute ago   100MB
+ubuntu              latest              4dd97cefde62        8 days ago           72.9MB
+[root@stapp01 ~]# docker save --output saved-games.tar games:datacenter
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+games               datacenter          90379d5d3d3d        4 minutes ago       100MB
+ubuntu              latest              4dd97cefde62        8 days ago          72.9MB
+[root@stapp01 ~]# ls -l
+total 100220
+-rw------- 380 root root      3415 Aug  1  2019 anaconda-ks.cfg
+-rw-------   1 root root 102618112 Mar 12 18:04 saved-games.tar
+[root@stapp01 ~]# chmod 755 saved-games.tar 
+[root@stapp01 ~]# scp saved-games.tar banner@stapp03:/tmp/
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:NFIQr4oUDd6xW51/M2EhFAtKCRb75Evsbr2cyaMFiCA.
+ECDSA key fingerprint is MD5:8f:a1:11:d7:18:e7:7e:09:f0:c6:09:6f:83:56:f2:1a.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password: 
+saved-games.tar                                                     100%   98MB 138.4MB/s   00:00    
+[root@stapp01 ~]# 
+-------------------
+
+b. Transfer the image archive to App Server 3.
+
+scp saved-games.tar banner@stapp03:/tmp/
+
+c. Load that image archive on App Server 3 with same name and tag which was used on App Server 1.
+[root@stapp03 ~]# systemctl start docker
+[root@stapp03 ~]# systemctl status docker
+docker load --input saved-games.tar
+
+-----------------------------------
+thor@jump_host /$ ssh banner@stapp03
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:NFIQr4oUDd6xW51/M2EhFAtKCRb75Evsbr2cyaMFiCA.
+ECDSA key fingerprint is MD5:8f:a1:11:d7:18:e7:7e:09:f0:c6:09:6f:83:56:f2:1a.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password: 
+[banner@stapp03 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for banner: 
+[root@stapp03 ~]# docker images
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+[root@stapp03 ~]# systemctl status docker
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: https://docs.docker.com
+[root@stapp03 ~]# systemctl start docker
+[root@stapp03 ~]# systemctl status docker
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+   Active: active (running) since Fri 2021-03-12 18:06:59 UTC; 2s ago
+     Docs: https://docs.docker.com
+ Main PID: 157 (dockerd)
+    Tasks: 10
+   Memory: 121.4M
+   CGroup: /docker/f1876dba974e4c08825e0f77a9cc084a30bc6a403db9e5fd8fcc819054093678/system.slice/docker.service
+           └─157 /usr/bin/dockerd -H fd:// --containerd=/run/containerd/containerd.sock
+
+Mar 12 18:06:58 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:58.95729375..."
+Mar 12 18:06:58 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:58.95753747..."
+Mar 12 18:06:58 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:58.95774475..."
+Mar 12 18:06:58 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:58.95815791..."
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:59.07776587..."
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:59.12778619..."
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:59.14735218...8
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:59.14753303..."
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com systemd[1]: Started Docker Application Container....
+Mar 12 18:06:59 stapp03.stratos.xfusioncorp.com dockerd[157]: time="2021-03-12T18:06:59.23213896..."
+Hint: Some lines were ellipsized, use -l to show in full.
+[root@stapp03 ~]# cd /tmp
+[root@stapp03 tmp]# ls -l
+total 100224
+-rwx------ 380 root   root         836 Aug  1  2019 ks-script-rnBCJB
+-rwxr-xr-x   1 banner banner 102618112 Mar 12 18:05 saved-games.tar
+-rw------- 380 root   root           0 Aug  1  2019 yum.log
+[root@stapp03 tmp]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+[root@stapp03 tmp]# docker load --input saved-games.tar 
+aeb3f02e9374: Loading layer  75.27MB/75.27MB
+db978cae6a05: Loading layer  15.36kB/15.36kB
+c20d459170d8: Loading layer  3.072kB/3.072kB
+9497f38b5567: Loading layer  27.31MB/27.31MB
+Loaded image: games:datacenter
+[root@stapp03 tmp]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+games               datacenter          90379d5d3d3d        7 minutes ago       100MB
+[root@stapp03 tmp]# 
+---------------------------------
+Note: Docker is already installed on both servers; however, if its service is down please make sure to start it.

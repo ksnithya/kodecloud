@@ -1,0 +1,137 @@
+Some new developers have joined xFusionCorp Industries and have been assigned Nautilus project. They are going to start development on a new application, 
+and some pre-requisites have been shared with the DevOps team to proceed with. Please note that all tasks need to be performed on storage server in Stratos DC.
+
+
+a. Install git, set up any values for user.email and user.name globally and create a bare repository /opt/apps.git.
+
+b. There is an update hook (to block direct pushes to master branch) under /tmp on storage server itself; use the same to block direct pushes to master branch in /opt/apps.git repo.
+
+c. Clone /opt/apps.git repo in /usr/src/kodekloudrepos/apps directory.
+
+d. Create a new branch xfusioncorp_apps in repo that you cloned in /usr/src/kodekloudrepos.
+
+e. There is a readme.md file in /tmp on storage server itself; copy that to repo, add/commit in the new branch you created, and finally push your branch to origin.
+
+f. Also create master branch from your branch and remember you should not be able to push to master as per hook you have set up.
+
+
+ [root@ststor01 ~]# git config --global user.name "nithya"
+[root@ststor01 ~]# git config --global user.email "ksnithyamsc@gmail.com"
+[root@ststor01 ~]# git init --bare /opt/games.git
+Initialized empty Git repository in /opt/games.git/
+[root@ststor01 ~]# cd /opt/games.git
+[root@ststor01 games.git]# ls -l
+total 32
+drwxr-xr-x 2 root root 4096 Feb  7 14:42 branches
+-rw-r--r-- 1 root root   66 Feb  7 14:42 config
+-rw-r--r-- 1 root root   73 Feb  7 14:42 description
+-rw-r--r-- 1 root root   23 Feb  7 14:42 HEAD
+drwxr-xr-x 2 root root 4096 Feb  7 14:42 hooks
+drwxr-xr-x 2 root root 4096 Feb  7 14:42 info
+drwxr-xr-x 4 root root 4096 Feb  7 14:42 objects
+drwxr-xr-x 4 root root 4096 Feb  7 14:42 refs
+[root@ststor01 games.git]# cd hooks/
+[root@ststor01 hooks]# cp /tmp/update .
+[root@ststor01 hooks]# ls -l
+total 44
+-rwxr-xr-x 1 root root  452 Feb  7 14:42 applypatch-msg.sample
+-rwxr-xr-x 1 root root  896 Feb  7 14:42 commit-msg.sample
+-rwxr-xr-x 1 root root  189 Feb  7 14:42 post-update.sample
+-rwxr-xr-x 1 root root  398 Feb  7 14:42 pre-applypatch.sample
+-rwxr-xr-x 1 root root 1704 Feb  7 14:42 pre-commit.sample
+-rwxr-xr-x 1 root root 1239 Feb  7 14:42 prepare-commit-msg.sample
+-rw-r--r-- 1 root root 1348 Feb  7 14:42 pre-push.sample
+-rwxr-xr-x 1 root root 4951 Feb  7 14:42 pre-rebase.sample
+-rwxr-xr-x 1 root root  127 Feb  7 14:43 update
+-rwxr-xr-x 1 root root 3611 Feb  7 14:42 update.sample
+[root@ststor01 hooks]# cd /
+[root@ststor01 /]# cd /opt/games.git
+[root@ststor01 games.git]# git status
+fatal: This operation must be run in a work tree
+[root@ststor01 games.git]# git push origin
+warning: push.default is unset; its implicit value is changing in
+Git 2.0 from 'matching' to 'simple'. To squelch this message
+and maintain the current behavior after the default changes, use:
+
+  git config --global push.default matching
+
+To squelch this message and adopt the new behavior now, use:
+
+  git config --global push.default simple
+
+See 'git help config' and search for 'push.default' for further information.
+(the 'simple' mode was introduced in Git 1.7.11. Use the similar mode
+'current' instead of 'simple' if you sometimes use older versions of Git)
+
+fatal: 'origin' does not appear to be a git repository
+fatal: Could not read from remote repository.
+
+Please make sure you have the correct access rights
+and the repository exists.
+[root@ststor01 games.git]# git clone /opt/games.git /usr/src/kodekloudrepos/games
+Cloning into '/usr/src/kodekloudrepos/games'...
+warning: You appear to have cloned an empty repository.
+done.
+[root@ststor01 games.git]# cd /usr/src/kodekloudrepos/games
+[root@ststor01 games]# git checkout -b xfusioncorp_games
+Switched to a new branch 'xfusioncorp_games'
+[root@ststor01 games]# git branch
+[root@ststor01 games]# git branch -a
+[root@ststor01 games]# git push origin xfusioncorp_games
+error: src refspec xfusioncorp_games does not match any.
+error: failed to push some refs to '/opt/games.git'
+[root@ststor01 games]# git branch
+[root@ststor01 games]# git checkout -b xfusioncorp_games
+Switched to a new branch 'xfusioncorp_games'
+[root@ststor01 games]# cp /tmp/readme.md .
+[root@ststor01 games]# git status
+# On branch xfusioncorp_games
+#
+# Initial commit
+#
+# Untracked files:
+#   (use "git add <file>..." to include in what will be committed)
+#
+#       readme.md
+nothing added to commit but untracked files present (use "git add" to track)
+[root@ststor01 games]# git add .
+[root@ststor01 games]# git commit -m "added"
+[xfusioncorp_games (root-commit) cc3e669] added
+ 1 file changed, 1 insertion(+)
+ create mode 100644 readme.md
+[root@ststor01 games]# git push origin xfusioncorp_games
+Counting objects: 3, done.
+Writing objects: 100% (3/3), 238 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+To /opt/games.git
+ * [new branch]      xfusioncorp_games -> xfusioncorp_games
+[root@ststor01 games]# git branch
+* xfusioncorp_games
+[root@ststor01 games]# cp /tmp/update .git/hooks/.
+[root@ststor01 games]# ls -l .git/hooks/
+total 44
+-rwxr-xr-x 1 root root  452 Feb  7 14:44 applypatch-msg.sample
+-rwxr-xr-x 1 root root  896 Feb  7 14:44 commit-msg.sample
+-rwxr-xr-x 1 root root  189 Feb  7 14:44 post-update.sample
+-rwxr-xr-x 1 root root  398 Feb  7 14:44 pre-applypatch.sample
+-rwxr-xr-x 1 root root 1704 Feb  7 14:44 pre-commit.sample
+-rwxr-xr-x 1 root root 1239 Feb  7 14:44 prepare-commit-msg.sample
+-rw-r--r-- 1 root root 1348 Feb  7 14:44 pre-push.sample
+-rwxr-xr-x 1 root root 4951 Feb  7 14:44 pre-rebase.sample
+-rwxr-xr-x 1 root root  127 Feb  7 14:47 update
+-rwxr-xr-x 1 root root 3611 Feb  7 14:44 update.sample
+[root@ststor01 games]# git status
+# On branch xfusioncorp_games
+nothing to commit, working directory clean
+[root@ststor01 games]# git add .
+[root@ststor01 games]# git push origin xfusioncorp_games
+Everything up-to-date
+[root@ststor01 games]# git checkout -b master
+Switched to a new branch 'master'
+[root@ststor01 games]# git push origin master
+Total 0 (delta 0), reused 0 (delta 0)
+remote: Manual pushing to this repo's master branch is restricted
+remote: error: hook declined to update refs/heads/master
+To /opt/games.git
+ ! [remote rejected] master -> master (hook declined)
+error: failed to push some refs to '/opt/games.git'

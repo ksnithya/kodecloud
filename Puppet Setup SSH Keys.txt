@@ -1,0 +1,197 @@
+The Puppet master and Puppet agent nodes have been set up by the Nautilus DevOps team so they can perform testing. 
+In Stratos DC all app servers have been configured as Puppet agent nodes. They want to setup a password less SSH connection between puppet master and 
+puppet agent nodes and this task needs to be done using puppet itself. Below are details about the task:
+
+
+Create a puppet programming file games.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master node i.e on Jump Server. 
+Define a class ssh_node1 for agent node 1 i.e app server 1, ssh_node2 for agent node 2 i.e app server 2, ssh_node3 for agent node3 i.e app server 3. 
+We already have a default ssh key under location /root/.ssh/ on Jump Server that needs to be added on all app servers.
+
+Configure a password less SSH connection from puppet master i.e jump host to all app servers. However make sure key is added to each app's sudo user (i.e tony for app server 1)
+
+Note: Create a single puppet programming code games.pp for above mentioned tasks.
+
+mkdir -p ssh_node1/{files,templates,manifests}
+mkdir -p ssh_node2/{files,templates,manifests}
+mkdir -p ssh_node3/{files,templates,manifests}
+
+sh-4.2# cat init.pp
+class ssh_node3{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'banner',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDINR0CKRPLWt7fyxm2diVL3mTTQYVxMOlz57G0TVFO6qrK9KqBh2HXstECPyex71uwDUkYR+joG1OHwvE6n2TQm4PhUa9cIp+Ppp6UJOJ8oACB2rNIqwjMVrjVjq3kLKP+nDSJNo5Dgclth3jd6FL40leTboxi1ZflrZ4k0cNYpcNEFoSiYGrb52V05YcXbnrWbDJkn6ObrfanuyeJj/ppoYQ+st36Sqo8FEhEOx3U4cC1vnFZaiIjiT3UUR4TlHYuhM16YxNHbBdSLFc4ABkm8PMlc2o4sDzCv8zD1V2Ka4C21hUBCfyfk1INYt5FxT8VaFc7gW/Vb6IHJQNZTTOn',
+  }
+}
+sh-4.2#
+
+node 'stapp01.stratos.xfusioncorp.com'{
+	include ssh_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+	include ssh_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+	include ssh_node3
+}
+
+root@jump_host manifests]# cat init.pp
+class ssh_node1{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'tony',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDcYTP4NTXjYW0QY90bLIUbNgIPWg2maZy3F61mTQFdGsGHSG4N7Cnp5PhyLb01NzJMOPkyWJ5dshs+qTWRd/ObAt2u3kR9rdee/qxHObXIUZ6n1nPIvsU29aRm5SNSDBH9mfA2N70Ai6TCWrnIV88NBjF+kQMeWc3mmZnNpiiWYMXm03NAk7lKolLT4GfsRZ6HXOauDiLLi8Ki29hMiSACqwyBVqnRQOrXP3jk2nGwSMlZzEhPfAwmpTsZcWaUuMsxQ1DeBaX/J8CMZkXx+LKRiTMHrgU797WQgjxI8x3jmRcC+86q/tfLTvKl3fwH42jnW/gbYiTLeYSbW8b287+l',
+  }
+}
+class ssh_node2{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'steve',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDcYTP4NTXjYW0QY90bLIUbNgIPWg2maZy3F61mTQFdGsGHSG4N7Cnp5PhyLb01NzJMOPkyWJ5dshs+qTWRd/ObAt2u3kR9rdee/qxHObXIUZ6n1nPIvsU29aRm5SNSDBH9mfA2N70Ai6TCWrnIV88NBjF+kQMeWc3mmZnNpiiWYMXm03NAk7lKolLT4GfsRZ6HXOauDiLLi8Ki29hMiSACqwyBVqnRQOrXP3jk2nGwSMlZzEhPfAwmpTsZcWaUuMsxQ1DeBaX/J8CMZkXx+LKRiTMHrgU797WQgjxI8x3jmRcC+86q/tfLTvKl3fwH42jnW/gbYiTLeYSbW8b287+l',
+  }
+}
+class ssh_node3{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'banner',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDcYTP4NTXjYW0QY90bLIUbNgIPWg2maZy3F61mTQFdGsGHSG4N7Cnp5PhyLb01NzJMOPkyWJ5dshs+qTWRd/ObAt2u3kR9rdee/qxHObXIUZ6n1nPIvsU29aRm5SNSDBH9mfA2N70Ai6TCWrnIV88NBjF+kQMeWc3mmZnNpiiWYMXm03NAk7lKolLT4GfsRZ6HXOauDiLLi8Ki29hMiSACqwyBVqnRQOrXP3jk2nGwSMlZzEhPfAwmpTsZcWaUuMsxQ1DeBaX/J8CMZkXx+LKRiTMHrgU797WQgjxI8x3jmRcC+86q/tfLTvKl3fwH42jnW/gbYiTLeYSbW8b287+l',
+  }
+}
+node 'stapp01.stratos.xfusioncorp.com'{
+        include ssh_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include ssh_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include ssh_node3
+}
+
+
+class ssh_node1{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'tony',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node2{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'steve',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node3{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'banner',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+node 'stapp01.stratos.xfusioncorp.com'{
+        include ssh_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include ssh_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include ssh_node3
+}
+
+--------------------------------
+root@jump_host /# cd /root/.ssh
+root@jump_host ~/.ssh# cat id_rsa.pub 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n root@jump_host.stratos.xfusioncorp.com
+root@jump_host ~/.ssh# cd /etc/puppetlabs/code/environments/production/manifests
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# vi cluster.pp
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat cluster.pp 
+class ssh_node1{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'tony',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node2{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'steve',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node3{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'banner',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+node 'stapp01.stratos.xfusioncorp.com'{
+        include ssh_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include ssh_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include ssh_node3
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tonny@stapp01
+tonny@stapp01's password: 
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh tony@stapp01
+Last login: Wed Mar 17 16:54:43 2021 from jump_host.stratos.xfusioncorp.com
+[tony@stapp01 ~]$ exit
+logout
+Connection to stapp01 closed.
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh steve@stapp02
+Last login: Wed Mar 17 16:55:07 2021 from jump_host.stratos.xfusioncorp.com
+[steve@stapp02 ~]$ exit
+logout
+Connection to stapp02 closed.
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# ssh banner@stapp03
+Last login: Wed Mar 17 16:55:32 2021 from jump_host.stratos.xfusioncorp.com
+[banner@stapp03 ~]$ exit
+logout
+Connection to stapp03 closed.
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat cluster.pp 
+class ssh_node1{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'tony',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node2{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'steve',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+class ssh_node3{
+  ssh_authorized_key { 'root@jump_host':
+  user => 'banner',
+  ensure => 'present',
+  type => 'ssh-rsa',
+  key => 'AAAAB3NzaC1yc2EAAAADAQABAAABAQDmC4me8pa5TOIEeIOuXb0NLfmVWbZ8UTYBDlECEl0cr3XnBqYGT60xsxqjmqUul0WD3LRsCuxY+PTKgDTTCjvLYCB2oGsj4UVEcN7eOjSVgpNRN5ArU8M533kYN/TsLBuvx4T585lWyjd65rBLqu55jWnif5nqp06dxcIMLqL4iCCAB6kspohGepEQQit6cWBdYn76KpdqxGIT0YqcjNddnoGSXId+Ktky2XJy7LLCsfLrGZSDBDzz7IUHQ7PRo9I35m72i5Olv74m99h+KV2BkL95PneiJ1HW6ToZ1+APXocroNssKOM3z5L201pJHO4f0TvtQ3KkDfihUYrN1V4n',
+  }
+}
+node 'stapp01.stratos.xfusioncorp.com'{
+        include ssh_node1
+}
+node 'stapp02.stratos.xfusioncorp.com'{
+        include ssh_node2
+}
+node 'stapp03.stratos.xfusioncorp.com'{
+        include ssh_node3
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# 

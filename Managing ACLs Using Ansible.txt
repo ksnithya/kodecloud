@@ -1,0 +1,353 @@
+There are some files that need to be created on all app servers in Stratos DC. The Nautilus DevOps team want these files to be owned by user root only; however, 
+they also want that app-specific user to have a set of permissions to these files. 
+All tasks must be done using Ansible only, so they need to create a playbook. Below you can find more information about the task.
+
+
+Create a playbook.yml under /home/thor/ansible on jump host, an inventory file is already present under /home/thor/ansible on Jump Server itself.
+
+Create an empty file blog.txt under /opt/security/ directory on app server 1. Set some acl properties for this file. Using acl provide read '(r)' permissions to group tony 
+(i.e entity is tony and etype is group).
+
+Create an empty file story.txt under /opt/security/ directory on app server 2. Set some acl properties for this file. Using acl provide read + write '(rw)' 
+permissions to user steve (i.e entity is steve and etype is user).
+
+Create an empty file media.txt under /opt/security/ on app server 3. Set some acl properties for this file. Using acl provide read + write '(rw)' 
+permissions to group banner (i.e entity is banner and etype is group).
+
+Note: Validation will try to run playbook using command ansible-playbook -i inventory playbook.yml so please make sure playbook works this way, without passing any extra arguments.
+
+ansible-galaxy collection install ansible.posix
+
+---
+- name: ACL module
+  hosts: all
+  become: yes
+  tasks:
+  - name: Touch again the same file
+    file:
+      path: /opt/security/blog.txt
+      state: touch
+    when: inventory_hostname == 'stapp01'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/blog.txt
+      entity: tony
+      etype: group
+      permissions: r
+      state: present
+    when: inventory_hostname == 'stapp01'
+  - name: Touch again the same file
+    file:
+      path: /opt/security/story.txt
+      state: touch
+    when: inventory_hostname == 'stapp02'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/story.txt
+      entity: steve
+      etype: user
+      permissions: rw
+      state: present
+    when: inventory_hostname == 'stapp02'
+  - name: Touch again the same file
+    file:
+      path: /opt/security/media.txt
+      state: touch
+    when: inventory_hostname == 'stapp03'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/media.txt
+      entity: banner
+      etype: group
+      permissions: rw
+      state: present
+    when: inventory_hostname == 'stapp03'
+
+thor@jump_host /$ cd /home/thor/ansible
+thor@jump_host ~/ansible$ ls -l
+total 8
+-rw-r--r-- 1 thor thor  36 Oct 22 16:18 ansible.cfg
+-rw-r--r-- 1 thor thor 237 Oct 22 16:18 inventory
+thor@jump_host ~/ansible$ cat ansible.cfg
+[defaults]
+host_key_checking = Falsethor@jump_host ~/ansible$ cat inventory
+stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=bannerthor@jump_host ~/ansible$
+thor@jump_host ~/ansible$ vi playbook.yml
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml --syntax-check
+ERROR! couldn't resolve module/action 'ansible.posix.acl'. This often indicates a misspelling, missing collection, or incorrect module path.
+The error appears to be in '/home/thor/ansible/playbook.yml': line 11, column 5, but may
+be elsewhere in the file depending on the exact syntax problem.
+
+The offending line appears to be:
+
+    when: inventory_hostname == 'stapp01'
+  - name: Grant user tony read access to a file
+    ^ here
+thor@jump_host ~/ansible$ vi playbook.yml
+thor@jump_host ~/ansible$ ansible-galaxy collection install ansible.posix
+Process install dependency map
+Starting collection install process
+Installing 'ansible.posix:1.1.1' to '/home/thor/.ansible/collections/ansible_collections/ansible/posix'
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml --syntax-check
+
+playbook: playbook.yml
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml -vv
+ansible-playbook 2.9.9
+  config file = /home/thor/ansible/ansible.cfg
+  configured module search path = [u'/home/thor/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/site-packages/ansible
+  executable location = /usr/bin/ansible-playbook
+  python version = 2.7.5 (default, Jun 20 2019, 20:27:34) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
+Using /home/thor/ansible/ansible.cfg as config file
+
+PLAYBOOK: playbook.yml **************************************************************************************
+1 plays in playbook.yml
+
+PLAY [ACL module] *******************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************
+task path: /home/thor/ansible/playbook.yml:2
+ok: [stapp01]
+ok: [stapp03]
+ok: [stapp02]
+META: ran handlers
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:6
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp01] => {"changed": true, "dest": "/opt/security/blog.txt", "gid": 0, "group": "root", "mode":"0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:11
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp01] => {"acl": ["user::rw-", "group::r--", "group:tony:r--", "mask::r--", "other::r--"], "changed": true, "msg": "group:tony:r is present"}
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:19
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp02] => {"changed": true, "dest": "/opt/security/story.txt", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:24
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+fatal: [stapp02]: FAILED! => {"changed": false, "msg": "Path not found or not accessible."}
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:32
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp03] => {"changed": true, "dest": "/opt/security/media.txt", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:37
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+fatal: [stapp03]: FAILED! => {"changed": false, "msg": "Path not found or not accessible."}
+META: ran handlers
+META: ran handlers
+
+PLAY RECAP **************************************************************************************************
+stapp01                    : ok=3    changed=2    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+stapp02                    : ok=2    changed=1    unreachable=0    failed=1    skipped=2    rescued=0    ignored=0
+stapp03                    : ok=2    changed=1    unreachable=0    failed=1    skipped=4    rescued=0    ignored=0
+
+thor@jump_host ~/ansible$ vi playbook.yml
+thor@jump_host ~/ansible$ ansible stapp01 -m command -a "getfacl /opt/security/blog.txt"
+[WARNING]: provided hosts list is empty, only localhost is available. Note that the implicit localhost does
+not match 'all'
+[WARNING]: Could not match supplied host pattern, ignoring: stapp01
+thor@jump_host ~/ansible$ ansible stapp01 -i inventory -m command -a "getfacl /opt/security/blog.txt"
+stapp01 | CHANGED | rc=0 >>
+# file: opt/security/blog.txt
+# owner: root
+# group: root
+user::rw-
+group::r--
+group:tony:r--
+mask::r--
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ >playbook.yml
+thor@jump_host ~/ansible$ vi playbook.yml
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml --syntax-check
+
+playbook: playbook.yml
+thor@jump_host ~/ansible$ ansible-playbook -i inventory playbook.yml -vv
+ansible-playbook 2.9.9
+  config file = /home/thor/ansible/ansible.cfg
+  configured module search path = [u'/home/thor/.ansible/plugins/modules', u'/usr/share/ansible/plugins/modules']
+  ansible python module location = /usr/lib/python2.7/site-packages/ansible
+  executable location = /usr/bin/ansible-playbook
+  python version = 2.7.5 (default, Jun 20 2019, 20:27:34) [GCC 4.8.5 20150623 (Red Hat 4.8.5-36)]
+Using /home/thor/ansible/ansible.cfg as config file
+
+PLAYBOOK: playbook.yml **************************************************************************************
+1 plays in playbook.yml
+
+PLAY [ACL module] *******************************************************************************************
+
+TASK [Gathering Facts] **************************************************************************************
+task path: /home/thor/ansible/playbook.yml:2
+ok: [stapp03]
+ok: [stapp02]
+ok: [stapp01]
+META: ran handlers
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:6
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp01] => {"changed": true, "dest": "/opt/security/blog.txt", "gid": 0, "group": "root", "mode":"0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:11
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+ok: [stapp01] => {"acl": ["user::rw-", "group::r--", "group:tony:r--", "mask::r--", "other::r--"], "changed": false, "msg": "group:tony:r is present"}
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:19
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp02] => {"changed": true, "dest": "/opt/security/story.txt", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:24
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp03] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp02] => {"acl": ["user::rw-", "user:steve:rw-", "group::r--", "mask::rw-", "other::r--"], "changed": true, "msg": "user:steve:rw is present"}
+
+TASK [Touch again the same file] ****************************************************************************
+task path: /home/thor/ansible/playbook.yml:32
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp03] => {"changed": true, "dest": "/opt/security/media.txt", "gid": 0, "group": "root", "mode": "0644", "owner": "root", "size": 0, "state": "file", "uid": 0}
+
+TASK [Grant user tony read access to a file] ****************************************************************
+task path: /home/thor/ansible/playbook.yml:37
+skipping: [stapp01] => {"changed": false, "skip_reason": "Conditional result was False"}
+skipping: [stapp02] => {"changed": false, "skip_reason": "Conditional result was False"}
+changed: [stapp03] => {"acl": ["user::rw-", "group::r--", "group:banner:rw-", "mask::rw-", "other::r--"], "changed": true, "msg": "group:banner:rw is present"}
+META: ran handlers
+META: ran handlers
+
+PLAY RECAP **************************************************************************************************
+stapp01                    : ok=3    changed=1    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+stapp02                    : ok=3    changed=2    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+stapp03                    : ok=3    changed=2    unreachable=0    failed=0    skipped=4    rescued=0    ignored=0
+
+thor@jump_host ~/ansible$ ansible stapp02 -i inventory -m command -a "getfacl /opt/security/story.txt"
+stapp02 | CHANGED | rc=0 >>
+# file: opt/security/story.txt
+# owner: root
+# group: root
+user::rw-
+user:steve:rw-
+group::r--
+mask::rw-
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ ansible stapp01 -i inventory -m command -a "getfacl /opt/security/blog.txt"
+stapp01 | CHANGED | rc=0 >>
+# file: opt/security/blog.txt
+# owner: root
+# group: root
+user::rw-
+group::r--
+group:tony:r--
+mask::r--
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ ansible stapp03 -i inventory -m command -a "getfacl /opt/security/media.txt"
+stapp03 | CHANGED | rc=0 >>
+# file: opt/security/media.txt
+# owner: root
+# group: root
+user::rw-
+group::r--
+group:banner:rw-
+mask::rw-
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ cat inventory
+stapp01 ansible_host=172.16.238.10 ansible_ssh_pass=Ir0nM@n ansible_user=tony
+stapp02 ansible_host=172.16.238.11 ansible_ssh_pass=Am3ric@ ansible_user=steve
+stapp03 ansible_host=172.16.238.12 ansible_ssh_pass=BigGr33n ansible_user=bannerthor@jump_host ~/ansible$
+thor@jump_host ~/ansible$ cat playbook.yml
+---
+- name: ACL module
+  hosts: all
+  become: yes
+  tasks:
+  - name: Touch again the same file
+    file:
+      path: /opt/security/blog.txt
+      state: touch
+    when: inventory_hostname == 'stapp01'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/blog.txt
+      entity: tony
+      etype: group
+      permissions: r
+      state: present
+    when: inventory_hostname == 'stapp01'
+  - name: Touch again the same file
+    file:
+      path: /opt/security/story.txt
+      state: touch
+    when: inventory_hostname == 'stapp02'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/story.txt
+      entity: steve
+      etype: user
+      permissions: rw
+      state: present
+    when: inventory_hostname == 'stapp02'
+  - name: Touch again the same file
+    file:
+      path: /opt/security/media.txt
+      state: touch
+    when: inventory_hostname == 'stapp03'
+  - name: Grant user tony read access to a file
+    ansible.posix.acl:
+      path: /opt/security/media.txt
+      entity: banner
+      etype: group
+      permissions: rw
+      state: present
+    when: inventory_hostname == 'stapp03'
+thor@jump_host ~/ansible$
+
+thor@jump_host ~/ansible$ ansible stapp01 -i inventory -m command -a "getfacl /opt/security/blog.txt"
+stapp01 | CHANGED | rc=0 >>
+# file: opt/security/blog.txt
+# owner: root
+# group: root
+user::rw-
+group::r--
+group:tony:r--
+mask::r--
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ ansible stapp02 -i inventory -m command -a "getfacl /opt/security/story.txt"
+stapp02 | CHANGED | rc=0 >>
+# file: opt/security/story.txt
+# owner: root
+# group: root
+user::rw-
+user:steve:rw-
+group::r--
+mask::rw-
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$ ansible stapp03 -i inventory -m command -a "getfacl /opt/security/media.txt"
+stapp03 | CHANGED | rc=0 >>
+# file: opt/security/media.txt
+# owner: root
+# group: root
+user::rw-
+group::r--
+group:banner:rw-
+mask::rw-
+other::r--getfacl: Removing leading '/' from absolute path names
+thor@jump_host ~/ansible$

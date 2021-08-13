@@ -1,0 +1,318 @@
+The Nautilus DevOps team is doing some testing around the Kubernetes cluster for pods, 
+deployments etc. A new ticket has been raised by one of the developer with some particular requirements. Find below more details and perform the task accordingly.
+
+
+Create a label for node node01 color=blue,
+
+kubectl get nodes --show-labels
+kubectl label nodes node01 color=blue
+
+Based on the new label created for node01 using nodeAffinity matchExpressions create a new deployment named blue, use image nginx with latest
+ tag only and remember to mention tag i.e nginx:latest and 3 replicas; ensure container name is nginx-container and that it gets placed on the node01 node only. 
+Also make sure all pods are in running state before clicking on FINISH.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blue
+  labels:
+    app: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blue
+  template:
+    metadata:
+      labels:
+        app: blue
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: color
+                  operator: In
+                  values:
+                    - blue
+
+
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: blue
+  labels:
+    app: blue
+spec: 
+  containers:
+    - image: nginx:latest
+      name: nginx-container
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: color
+            operator: In
+            values:
+              - red
+
+thor@jump_host /$ kubectl get nodes --show-labels
+NAME     STATUS   ROLES    AGE     VERSION   LABELS
+master   Ready    master   9m27s   v1.16.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=master,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+node01   Ready    <none>   9m10s   v1.16.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=node01,kubernetes.io/os=linux
+thor@jump_host /$ kubectl label nodes node01 color=blue
+node/node01 labeled
+thor@jump_host /$ kubectl get nodes --show-labels
+NAME     STATUS   ROLES    AGE     VERSION   LABELS
+master   Ready    master   9m43s   v1.16.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,kubernetes.io/arch=amd64,kubernetes.io/hostname=master,kubernetes.io/os=linux,node-role.kubernetes.io/master=
+node01   Ready    <none>   9m26s   v1.16.0   beta.kubernetes.io/arch=amd64,beta.kubernetes.io/os=linux,color=blue,kubernetes.io/arch=amd64,kubernetes.io/hostname=node01,kubernetes.io/os=linux
+thor@jump_host /$ sudo vi deploy.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f deploy.yml
+deployment.apps/blue created
+thor@jump_host /$ kubectl get pods --outside=wide
+Error: unknown flag: --outside
+See 'kubectl get --help' for usage.
+thor@jump_host /$ kubectl get pods --output=wide
+NAME                    READY   STATUS    RESTARTS   AGE   IP          NODE     NOMINATED NODE   READINESS GATES
+blue-55467f9dbb-dtbp5   1/1     Running   0          48s   10.32.0.3   node01   <none>           <none>
+blue-55467f9dbb-l92jq   1/1     Running   0          48s   10.32.0.2   node01   <none>           <none>
+blue-55467f9dbb-ng62j   1/1     Running   0          48s   10.32.0.4   node01   <none>           <none>
+thor@jump_host /$ kubectl get deploy
+NAME   READY   UP-TO-DATE   AVAILABLE   AGE
+blue   3/3     3            3           62s
+thor@jump_host /$ kubectl describe deploy
+Name:                   blue
+Namespace:              default
+CreationTimestamp:      Fri, 18 Sep 2020 05:42:47 +0000
+Labels:                 app=blue
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=blue
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=blue
+  Containers:
+   nginx-container:
+    Image:        nginx:latest
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   blue-55467f9dbb (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  82s   deployment-controller  Scaled up replica set blue-55467f9dbb to 3
+thor@jump_host /$ kubectl describe pod
+Name:         blue-55467f9dbb-dtbp5
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.10
+Start Time:   Fri, 18 Sep 2020 05:42:48 +0000
+Labels:       app=blue
+              pod-template-hash=55467f9dbb
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.3
+IPs:
+  IP:           10.32.0.3
+Controlled By:  ReplicaSet/blue-55467f9dbb
+Containers:
+  nginx-container:
+    Container ID:   docker://8bbd21ac58fc0b6a8d0cad757e8f28079201b8f0201890856e685b2c175f92f7
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Fri, 18 Sep 2020 05:43:00 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-4lfdh (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-4lfdh:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-4lfdh
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/blue-55467f9dbb-dtbp5 to node01
+  Normal  Pulling    90s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     79s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    79s        kubelet, node01    Created container nginx-container
+  Normal  Started    79s        kubelet, node01    Started container nginx-container
+
+
+Name:         blue-55467f9dbb-l92jq
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.10
+Start Time:   Fri, 18 Sep 2020 05:42:47 +0000
+Labels:       app=blue
+              pod-template-hash=55467f9dbb
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.2
+IPs:
+  IP:           10.32.0.2
+Controlled By:  ReplicaSet/blue-55467f9dbb
+Containers:
+  nginx-container:
+    Container ID:   docker://bc03585ca6caf7d23ae4b019bd5f0bd38a745ec0320dfbd88f9fb77788f4989b
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Fri, 18 Sep 2020 05:42:57 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-4lfdh (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-4lfdh:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-4lfdh
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/blue-55467f9dbb-l92jq to node01
+  Normal  Pulling    90s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     83s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    83s        kubelet, node01    Created container nginx-container
+  Normal  Started    82s        kubelet, node01    Started container nginx-container
+
+
+Name:         blue-55467f9dbb-ng62j
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.10
+Start Time:   Fri, 18 Sep 2020 05:42:47 +0000
+Labels:       app=blue
+              pod-template-hash=55467f9dbb
+Annotations:  <none>
+Status:       Running
+IP:           10.32.0.4
+IPs:
+  IP:           10.32.0.4
+Controlled By:  ReplicaSet/blue-55467f9dbb
+Containers:
+  nginx-container:
+    Container ID:   docker://61c38f1cd4e3eda50ef178cdc6ac18744091043e0a2531ad09164d282d9e4722
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Fri, 18 Sep 2020 05:42:58 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-4lfdh (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-4lfdh:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-4lfdh
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/blue-55467f9dbb-ng62j to node01
+  Normal  Pulling    90s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     81s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    81s        kubelet, node01    Created container nginx-container
+  Normal  Started    81s        kubelet, node01    Started container nginx-container
+thor@jump_host /$ cat deploy.yml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blue
+  labels:
+    app: blue
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: blue
+  template:
+    metadata:
+      labels:
+        app: blue
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                - key: color
+                  operator: In
+                  values:
+                    - blue
+thor@jump_host /$

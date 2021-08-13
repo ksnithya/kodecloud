@@ -1,0 +1,86 @@
+Some of the developers from Nautilus project team have asked for SFTP access to at least one of the app server in Stratos DC. 
+After going through the requirements system admins team has decided to configure SFTP server on App Server 2 server in Stratos Datacenter. 
+Please configure it as per below given instructions:
+
+
+a. Create an SFTP user javed and set its password to GyQkFRVNr3.
+
+b. Password authentication should be enabled for this user.
+
+c. Set its ChrootDirectory to /var/www/webdata.
+
+d. SFTP user should only be allowed to make SFTP connections.
+
+[root@stapp02 ~]# groupadd sftpgroup
+[root@stapp02 ~]# useradd javed
+[root@stapp02 ~]# passwd javed
+Changing password for user javed.
+New password:
+Retype new password:
+passwd: all authentication tokens updated successfully.
+[root@stapp02 ~]# usermod -G sftpgroup javed
+[root@stapp02 ~]# vi /etc/ssh/sshd_config
+[root@stapp02 ~]# systemctl restart sshd
+[root@stapp02 ~]# ls -ld /var/www/opt
+ls: cannot access /var/www/opt: No such file or directory
+[root@stapp02 ~]# mkdir -R /var/www/opt
+mkdir: invalid option -- 'R'
+Try 'mkdir --help' for more information.
+[root@stapp02 ~]# sftp javed@172.16.238.10
+The authenticity of host '172.16.238.10 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:Unv+jJv06izZ2PEPTFHNd4OmM+bj5eauEOyprxkoGe4.
+ECDSA key fingerprint is MD5:72:43:82:eb:77:df:b8:fb:dc:d7:f3:f3:51:40:fd:15.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '172.16.238.10' (ECDSA) to the list of known hosts.
+javed@172.16.238.10's password:
+Permission denied, please try again.
+javed@172.16.238.10's password:
+[root@stapp02 ~]# cd /var/www
+-bash: cd: /var/www: No such file or directory
+[root@stapp02 ~]# mkdir /var/www
+[root@stapp02 ~]# mkdir /var/www/opt
+[root@stapp02 ~]# ls -ld /var/www/opt
+drwxr-xr-x 2 root root 4096 Jun 12 16:01 /var/www/opt
+[root@stapp02 ~]# usermod -s /sbin/nologin javed
+[root@stapp02 ~]# id javed
+uid=1002(javed) gid=1003(javed) groups=1003(javed),1002(sftpgroup)
+[root@stapp02 ~]# chown -R root:sftpgroup /var/www/opt
+
+
+# override default of no subsystems
+#Subsystem      sftp    /usr/libexec/openssh/sftp-server
+Subsystem sftp internal-sftp
+# Example of overriding settings on a per-user basis
+#Match User anoncvs
+#       X11Forwarding no
+#       AllowTcpForwarding no
+#       PermitTTY no
+#       ForceCommand cvs server
+Match Group sftpgroup
+ X11Forwarding no
+ AllowTcpForwarding no
+ ChrootDirectory /var/www/nfsshare
+ ForceCommand internal-sftp
+
+
+1. groupadd sftpgroup - create sftgroup if not exist
+2. useradd javed -s /sbin/nologin - create user with no login 
+3. set user javed passwd
+   passwd javed
+4. mkdir -R /var/www/app - create Root directoty 
+5. chown -R root:sftpgroup /var/www/app - change ownership of directory
+6. Then modify sshd_config file
+vi /etc/ssh/sshd_config
+Subsystem sftp internal-sftp
+Match Group sftpgroup
+ X11Forwarding no
+ AllowTcpForwarding no
+ ChrootDirectory /var/www/nfsshare
+ ForceCommand internal-sftp
+
+7. Save the file and restarte sshd service
+systemctl restart sshd
+
+8. then try sftp using javaed user
+   sftp javed@172.16.238.10
+

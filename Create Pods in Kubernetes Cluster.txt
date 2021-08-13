@@ -1,0 +1,103 @@
+The Nautilus DevOps team has started practicing some pods and services deployment on Kubernetes platform as 
+they are planning to migrate most of their applications on Kubernetes platform. Recently one of the team members has been assigned a task to create a pod as per details mentioned below:
+
+
+Create a pod named pod-httpd using the image httpd with latest tag only and remember to mention tag i.e httpd:latest.
+
+Labels app should be named as httpd_app, also container should be named as httpd-container.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-httpd
+  labels:
+    app: httpd_app
+spec:
+  containers:
+    - name: httpd-container
+      image: httpd:latest
+
+thor@jump_host /$ sudo vi pod.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl get pods
+No resources found in default namespace.
+thor@jump_host /$ kubectl create -f pod.yml
+pod/pod-httpd created
+thor@jump_host /$ kubectl get pods
+NAME        READY   STATUS              RESTARTS   AGE
+pod-httpd   0/1     ContainerCreating   0          6s
+thor@jump_host /$ kubectl get podsNAME        READY   STATUS              RESTARTS   AGE
+pod-httpd   0/1     ContainerCreating   0          9s
+thor@jump_host /$ kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+pod-httpd   1/1     Running   0          14s
+thor@jump_host /$ kubectl describe pods
+Name:         pod-httpd
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.14
+Start Time:   Sat, 19 Sep 2020 06:37:39 +0000
+Labels:       app=httpd_app
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:  10.44.0.1
+Containers:
+  httpd-container:
+    Container ID:   docker://1589e14273db2afcdecc7b3fbf3972ba417c485326ec4bc9ac14a7bebc416d87
+    Image:          httpd:latest
+    Image ID:       docker-pullable://httpd@sha256:5ce7c20e45b407607f30b8f8ba435671c2ff80440d12645527be670eb8ce1961
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sat, 19 Sep 2020 06:37:50 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-bpnq8 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-bpnq8:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-bpnq8
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/pod-httpd to node01
+  Normal  Pulling    33s        kubelet, node01    Pulling image "httpd:latest"
+  Normal  Pulled     24s        kubelet, node01    Successfully pulled image "httpd:latest"
+  Normal  Created    24s        kubelet, node01    Created container httpd-container
+  Normal  Started    23s        kubelet, node01    Started container httpd-container
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-httpd
+  labels:
+    app: httpd_app
+spec:
+  containers:
+    - name: httpd-container
+      image: httpd:latest

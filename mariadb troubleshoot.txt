@@ -1,0 +1,65 @@
+There is a critical issue going on with the Nautilus application in Stratos DC. The production support team identified that the application is unable to connect to the database. After digging into the issue, the team found that mariadb service is down on the database server.
+
+
+Look into the issue and fix the same.
+
+[root@stdb01 ~]# systemctl status mariadb
+● mariadb.service - MariaDB database server
+   Loaded: loaded (/usr/lib/systemd/system/mariadb.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+[root@stdb01 ~]# cd /var/lib
+[root@stdb01 lib]# ks -ktr
+-bash: ks: command not found
+[root@stdb01 lib]# ls -ltr
+total 48
+drwxr-xr-x 2 root root  4096 Apr 11  2018 rpm-state
+drwxr-xr-x 2 root root  4096 Apr 11  2018 misc
+drwxr-xr-x 2 root root  4096 Apr 11  2018 games
+drwxr-xr-x 2 root root  4096 Nov  2  2018 initramfs
+drwxr-xr-x 2 root root  4096 Mar 14  2019 dbus
+drwxr-xr-x 4 root root  4096 Aug  1  2019 systemd
+drwx------ 2 root root  4096 Aug  1  2019 machines
+drwxr-xr-x 1 root mysql 4096 Aug  8  2019 mysql
+drwxr-xr-x 4 root root  4096 Oct 15  2019 stateless
+drwxr-xr-x 6 root root  4096 Jan 27 11:05 yum
+drwxr-xr-x 2 root root  4096 Jan 27 11:05 alternatives
+drwxr-xr-x 1 root root  4096 Jul  6 17:20 rpm
+[root@stdb01 lib]# id mysql
+uid=27(mysql) gid=27(mysql) groups=27(mysql)
+[root@stdb01 lib]# chown -R mysql:mysql mysql
+[root@stdb01 lib]# ls -ltr
+total 48
+drwxr-xr-x 2 root  root  4096 Apr 11  2018 rpm-state
+drwxr-xr-x 2 root  root  4096 Apr 11  2018 misc
+drwxr-xr-x 2 root  root  4096 Apr 11  2018 games
+drwxr-xr-x 2 root  root  4096 Nov  2  2018 initramfs
+drwxr-xr-x 2 root  root  4096 Mar 14  2019 dbus
+drwxr-xr-x 4 root  root  4096 Aug  1  2019 systemd
+drwx------ 2 root  root  4096 Aug  1  2019 machines
+drwxr-xr-x 1 mysql mysql 4096 Aug  8  2019 mysql
+drwxr-xr-x 4 root  root  4096 Oct 15  2019 stateless
+drwxr-xr-x 6 root  root  4096 Jan 27 11:05 yum
+drwxr-xr-x 2 root  root  4096 Jan 27 11:05 alternatives
+drwxr-xr-x 1 root  root  4096 Jul  6 17:20 rpm
+[root@stdb01 lib]# systemctl restart mariadb
+[root@stdb01 lib]# systemctl status mariadb
+● mariadb.service - MariaDB database server
+   Loaded: loaded (/usr/lib/systemd/system/mariadb.service; disabled; vendor preset: disabled)
+   Active: active (running) since Mon 2020-07-06 17:23:00 UTC; 12s ago
+  Process: 221 ExecStartPost=/usr/libexec/mariadb-wait-ready $MAINPID (code=exited, status=0/SUCCESS)
+  Process: 135 ExecStartPre=/usr/libexec/mariadb-prepare-db-dir %n (code=exited, status=0/SUCCESS)
+ Main PID: 220 (mysqld_safe)
+   CGroup: /docker/4b9a049a294e31b0f4c48a06ff2f0e1ad4a198dee0263eec861a67b08336eae7/system.slice/mariadb.service
+           ├─220 /bin/sh /usr/bin/mysqld_safe --basedir=/usr
+           └─381 /usr/libexec/mysqld --basedir=/usr --datadir=/var/lib/mysql --plugin-dir=/usr/lib64/mysql...
+
+Jul 06 17:22:58 stdb01 systemd[220]: Executing: /usr/bin/mysqld_safe --basedir=/usr
+Jul 06 17:22:58 stdb01 systemd[221]: Executing: /usr/libexec/mariadb-wait-ready 220
+Jul 06 17:22:58 stdb01 mysqld_safe[220]: 200706 17:22:58 mysqld_safe Logging to '/var/log/mariadb/mari...og'.
+Jul 06 17:22:58 stdb01 mysqld_safe[220]: 200706 17:22:58 mysqld_safe Starting mysqld daemon with datab...ysql
+Jul 06 17:23:00 stdb01 systemd[1]: Child 221 belongs to mariadb.service
+Jul 06 17:23:00 stdb01 systemd[1]: mariadb.service: control process exited, code=exited status=0
+Jul 06 17:23:00 stdb01 systemd[1]: mariadb.service got final SIGCHLD for state start-post
+Jul 06 17:23:00 stdb01 systemd[1]: mariadb.service changed start-post -> running
+Jul 06 17:23:00 stdb01 systemd[1]: Job mariadb.service/start finished, result=done
+Jul 06 17:23:00 stdb01 systemd[1]: Started MariaDB database server

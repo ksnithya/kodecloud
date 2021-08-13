@@ -1,0 +1,37 @@
+The Nautilus system admins team recently deployed a web UI application for their backup utility running on the Nautilus backup server in Stratos Datacenter. The application is running on port 8086. They have firewalld installed on that server. The requirements that have come up include the following:
+
+
+Open all incoming connection on 8086/tcp port. Zone should be public.
+root@stbkp01 ~]# firewall-cmd --zone=public --list-all
+public
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+
+[root@stbkp01 ~]# firewall-cmd --zone=public --add-port=8081/tcp --permanent
+success
+[root@stbkp01 ~]# firewall-cmd --reload
+success
+[root@stbkp01 ~]# systemctl restart firewalld
+[root@stbkp01 ~]# firewall-cmd --zone=public --list-all
+public
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: dhcpv6-client ssh
+  ports: 8086/tcp
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:

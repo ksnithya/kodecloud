@@ -1,0 +1,91 @@
+The Nautilus DevOps team needs to set up several docker environments for different applications. One of the team members has been assigned a ticket where he has been asked to 
+create some docker networks to be used later. Complete the task based on the following ticket description:
+
+
+a. Create a docker network named as beta on App Server 2 in Stratos DC.
+
+b. Configure it to use bridge drivers.
+
+c. Set it to use subnet 192.168.0.0/24 and iprange 192.168.0.2/24.
+
+thor@jump_host /$ docker network ls
+bash: docker: command not found
+thor@jump_host /$ ssh steve@stapp02
+The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+ECDSA key fingerprint is SHA256:wakzP3Emrm8z+ZtSUlhv5dnCJvVm9OwPeJYw5w5CNr8.
+ECDSA key fingerprint is MD5:38:9a:b5:db:31:46:5a:a6:4b:04:c0:85:1f:b5:22:b7.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+steve@stapp02's password:
+[steve@stapp02 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for steve:
+[root@stapp02 ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+786dcf47b96b        bridge              bridge              local
+1ed6dd6da1f0        host                host                local
+0ec0fb323f8c        none                null                local
+[root@stapp02 ~]# docker network create -d bridge --subnet 192.168.0.0/24 --ip-range 192.168.0.2/24 --name beta
+unknown flag: --name
+See 'docker network create --help'.
+[root@stapp02 ~]# docker network create -d bridge --subnet 192.168.0.0/24 --ip-range 192.168.0.2/24 betaa674fa09da5c3a88d0877d3aad2de5cecd83855e67077853060814040385dd35
+[root@stapp02 ~]# docker network ls
+NETWORK ID          NAME                DRIVER              SCOPE
+a674fa09da5c        beta                bridge              local
+786dcf47b96b        bridge              bridge              local
+1ed6dd6da1f0        host                host                local
+0ec0fb323f8c        none                null                local
+[root@stapp02 ~]# docker network describe beta
+
+Usage:  docker network COMMAND
+
+Manage networks
+
+Commands:
+  connect     Connect a container to a network
+  create      Create a network
+  disconnect  Disconnect a container from a network
+  inspect     Display detailed information on one or more networks
+  ls          List networks
+  prune       Remove all unused networks
+  rm          Remove one or more networks
+
+Run 'docker network COMMAND --help' for more information on a command.
+[root@stapp02 ~]# docker network inspect beta
+[
+    {
+        "Name": "beta",
+        "Id": "a674fa09da5c3a88d0877d3aad2de5cecd83855e67077853060814040385dd35",
+        "Created": "2020-10-05T08:17:07.904691492Z",
+        "Scope": "local",
+        "Driver": "bridge",
+        "EnableIPv6": false,
+        "IPAM": {
+            "Driver": "default",
+            "Options": {},
+            "Config": [
+                {
+                    "Subnet": "192.168.0.0/24",
+                    "IPRange": "192.168.0.2/24"
+                }
+            ]
+        },
+        "Internal": false,
+        "Attachable": false,
+        "Ingress": false,
+        "ConfigFrom": {
+            "Network": ""
+        },
+        "ConfigOnly": false,
+        "Containers": {},
+        "Options": {},
+        "Labels": {}
+    }
+]
+[root@stapp02 ~]#

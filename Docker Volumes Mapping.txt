@@ -1,0 +1,140 @@
+The Nautilus DevOps team is testing applications containerization, which issupposed to be migrated on docker container-based environments soon. In today's stand-up meeting one of the team members has been assigned 
+a task to create and test a docker container with certain requirements. Below are more details:
+
+
+a. On App Server 2 in Stratos DC pull ubuntu image (preferably latest tag but others should work too).
+
+b. Create a new container with name apps from the image you just pulled.
+
+c. Map the host volume /opt/finance with container volume /tmp. There is an sample.txt file present on same server under /tmp; 
+copy that file to /opt/finance. Also please keep the container in running state.
+
+docker pull ubuntu:latest
+
+hor@jump_host /$ docker imagers
+bash: docker: command not found
+thor@jump_host /$ docker images
+bash: docker: command not found
+thor@jump_host /$ ssh steve@stapp02
+The authenticity of host 'stapp02 (172.16.238.11)' can't be established.
+ECDSA key fingerprint is SHA256:nBBfzVNxyVg7ejImIU431HFXdYWtdixyHgiy3YTJVs8.
+ECDSA key fingerprint is MD5:b0:af:a0:f1:94:ef:c0:4e:f2:fb:b4:98:f5:11:fd:05.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known hosts.
+steve@stapp02's password:
+[steve@stapp02 ~]$ sudo  su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for steve:
+[root@stapp02 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+[root@stapp02 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp02 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp02 ~]# docker pull ubuntu:latest
+latest: Pulling from library/ubuntu
+d72e567cc804: Pull complete
+0f3630e5ff08: Pull complete
+b6a83d81d1f4: Pull complete
+Digest: sha256:bc2f7250f69267c9c6b66d7b6a81a54d3878bb85f1ebb5f951c896d13e6ba537
+Status: Downloaded newer image for ubuntu:latest
+docker.io/library/ubuntu:latest
+[root@stapp02 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              9140108b62dc        3 weeks ago         72.9MB
+[root@stapp02 ~]# docker run -it -d --name apps -v /opt/finance:/tmp  ubuntu
+7a36b27b0cc735d5e74d7c2410e659022f218a839ca4981dc351b1523e7b9bd3
+[root@stapp02 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+7a36b27b0cc7        ubuntu              "/bin/bash"         8 seconds ago       Up 6 seconds           apps
+[root@stapp02 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+7a36b27b0cc7        ubuntu              "/bin/bash"         13 seconds ago      Up 11 seconds           apps
+[root@stapp02 ~]# cd /tmp
+[root@stapp02 tmp]# ls -l
+total 8
+-rwx------ 48 root root 836 Aug  1  2019 ks-script-rnBCJB
+-rw-r--r--  1 root root  23 Oct 21 13:17 sample.txt
+-rw------- 48 root root   0 Aug  1  2019 yum.log
+[root@stapp02 tmp]# cat sample.txt
+This is a sample file!![root@stapp02 tmp]#
+[root@stapp02 tmp]# docker exec -it apps -- /bin/bash
+OCI runtime exec failed: exec failed: container_linux.go:349: starting container process caused "exec: \"--\": executable file not found in $PATH": unknown
+[root@stapp02 tmp]# docker exec -it apps bash
+root@7a36b27b0cc7:/# cd /tmp
+root@7a36b27b0cc7:/tmp# ls -l
+total 0
+root@7a36b27b0cc7:/tmp# exit
+exit
+[root@stapp02 tmp]# ls -l
+total 8
+-rwx------ 48 root root 836 Aug  1  2019 ks-script-rnBCJB
+-rw-r--r--  1 root root  23 Oct 21 13:17 sample.txt
+-rw------- 48 root root   0 Aug  1  2019 yum.log
+[root@stapp02 tmp]# cp sample.txt /opt/finance/
+[root@stapp02 tmp]# docker exec -it apps bash
+root@7a36b27b0cc7:/# cd /tmp
+root@7a36b27b0cc7:/tmp# ls -l
+total 4
+-rw-r--r-- 1 root root 23 Oct 21 13:31 sample.txt
+root@7a36b27b0cc7:/tmp# cat sample.txt
+This is a sample file!!root@7a36b27b0cc7:/tmp# exit
+exit
+[root@stapp02 tmp]#
+
+thor@jump_host /$ ssh banner@stapp03
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:PJY1NJulgxa2dc/kzIJyRxyenYQnaAxm16HgeMzZVbA.
+ECDSA key fingerprint is MD5:9a:65:c8:15:16:98:5d:33:9c:ed:60:e4:98:af:15:28.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password:
+[banner@stapp03 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for banner:
+[root@stapp03 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+[root@stapp03 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp03 ~]# docker pull ubuntu:latest
+latest: Pulling from library/ubuntu
+d72e567cc804: Pull complete
+0f3630e5ff08: Pull complete
+b6a83d81d1f4: Pull complete
+Digest: sha256:bc2f7250f69267c9c6b66d7b6a81a54d3878bb85f1ebb5f951c896d13e6ba537
+Status: Downloaded newer image for ubuntu:latest
+docker.io/library/ubuntu:latest
+[root@stapp03 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              9140108b62dc        3 weeks ago         72.9MB
+[root@stapp03 ~]# cp /tmp/sample.txt /opt/data/
+[root@stapp03 ~]# docker run -it -d --name cluster -v /opt/data:/tmp ubuntu
+7f89fc2c849933261602d2138093c0396d9e3c1c23e1725b5b960594116583ed
+[root@stapp03 ~]# docker exec -it cluster bash
+root@7f89fc2c8499:/# cd /tmp
+root@7f89fc2c8499:/tmp# cat sample.txt
+This is a sample file!!root@7f89fc2c8499:/tmp#
+root@7f89fc2c8499:/tmp# exit
+exit
+[root@stapp03 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+7f89fc2c8499        ubuntu              "/bin/bash"         45 seconds ago      Up 40 seconds           cluster
+[root@stapp03 ~]# docker ps
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+7f89fc2c8499        ubuntu              "/bin/bash"         50 seconds ago      Up 45 seconds           cluster
+[root@stapp03 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              9140108b62dc        3 weeks ago         72.9MB
+[root@stapp03 ~]#

@@ -1,0 +1,212 @@
+For web service:
+
+a. Container name must be php_blog.
+
+b. Use image php with any apache tag. Check here for more details https://hub.docker.com/_/php?tab=tags.
+
+c. Map php_blog container's port 80 with blog port 8085
+
+d. Map php_blog container's /var/www/html volume with blog volume /var/www/html.
+
+For DB service:
+
+a. Container name must be mysql_blog.
+
+b. Use image mariadb with any tag (preferably latest). Check here for more details https://hub.docker.com/_/mariadb?tab=tags.
+
+c. Map mysql_blog container's port 3306 with blog port 3306
+
+d. Map mysql_blog container's /var/lib/mysql volume with blog volume /var/lib/mysql.
+
+e. Set MYSQL_DATABASE=database_blog and use any custom user ( except root ) with some complex password for DB connections.
+
+After running docker-compose up you can access the app with curl command curl <server-ip or blogname>:8085/
+For more details check here: https://hub.docker.com/_/mariadb?tab=description
+
+
+version: '3.3'
+services:
+   DB:
+     container_name: mysql_blog
+     image: mariadb:latest
+     ports:
+       - "3306:3306"
+     volumes:
+       - /var/lib/mysql:/var/lib/mysql
+     environment:
+       MYSQL_DATABASE: database_blog
+       MYSQL_USER: dbuser
+       MYSQL_PASSWORD: Db@123
+       MYSQL_ROOT_PASSWORD: test@123
+   web:
+     container_name: php_blog
+     image: php:rc-apache
+     ports: 
+       - "3003:80"
+     depends_on:
+       - DB
+     volumes:
+       - /var/www/html:/var/www/html    
+
+thor@jump_blog /$ ssh steve@stapp02
+The authenticity of blog 'stapp02 (172.16.238.11)' can't be established.
+ECDSA key fingerprint is SHA256:8DrAn/KdVM+uJNB6QnbFTK8BvGBeOBdRODwiTgTwDSU.
+ECDSA key fingerprint is MD5:a8:03:b1:58:4e:ef:5b:4f:d4:13:29:03:ea:bf:34:51.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp02,172.16.238.11' (ECDSA) to the list of known blogs.
+steve@stapp02's password:
+[steve@stapp02 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for steve:
+[root@stapp02 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+[root@stapp02 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+[root@stapp02 ~]# docker service
+
+Usage:  docker service COMMAND
+
+Manage services
+
+Commands:
+  create      Create a new service
+  inspect     Display detailed information on one or more services
+  logs        Fetch the logs of a service or task
+  ls          List services
+  ps          List the tasks of one or more services
+  rm          Remove one or more services
+  rollback    Revert changes to a service's configuration
+  scale       Scale one or multiple replicated services
+  update      Update a service
+
+Run 'docker service COMMAND --help' for more information on a command.
+[root@stapp02 ~]# docker ls
+docker: 'ls' is not a docker command.
+See 'docker --help'
+[root@stapp02 ~]# docler service ls
+-bash: docler: command not found
+[root@stapp02 ~]# docker service ls
+Error response from daemon: This node is not a swarm manager. Use "docker swarm init" or "docker swarm join"to connect this node to swarm and try again.
+[root@stapp02 ~]# cd /opt/sysops/
+[root@stapp02 sysops]# ls -l
+total 0
+[root@stapp02 sysops]# ls -l /var/lib/mysql
+ls: cannot access /var/lib/mysql: No such file or directory
+[root@stapp02 sysops]# ls -l /var/www/html
+total 4
+-rw-r--r-- 1 root root 199 Oct 31 13:25 index.php
+[root@stapp02 sysops]# pwd
+/opt/sysops
+[root@stapp02 sysops]# vi docker-compose.yml
+[root@stapp02 sysops]# docker-compose up -d
+Creating network "sysops_default" with the default driver
+Pulling web (php:rc-apache)...
+rc-apache: Pulling from library/php
+bb79b6b2107f: Pull complete
+80f7a64e4b25: Pull complete
+da391f3e81f0: Pull complete
+8199ae3052e1: Pull complete
+284fd0f314b2: Pull complete
+f38db365cd8a: Pull complete
+1416a501db13: Pull complete
+cbf72b4b3d52: Pull complete
+e8bedc104979: Pull complete
+10317c4b476e: Pull complete
+d898882c68e2: Pull complete
+b3e8d61d0cd6: Pull complete
+588d72b4a50f: Pull complete
+Pulling DB (mariadb:latest)...
+latest: Pulling from library/mariadb
+6a5697faee43: Pull complete
+ba13d3bc422b: Pull complete
+a254829d9e55: Pull complete
+2ee2cadd29fc: Pull complete
+6915a184049d: Pull complete
+5ca6ffdb5f56: Pull complete
+1537f7bbef8b: Pull complete
+5790e54322d1: Pull complete
+ea98cb829471: Pull complete
+70fc8a3858af: Pull complete
+a3e9e2269f96: Pull complete
+0e29f3e77757: Pull complete
+Creating mysql_blog ... done
+Creating php_blog   ... done
+[root@stapp02 sysops]# docker ps
+CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS              PORTS                  NAMES
+2319f5c2e303        php:rc-apache       "docker-php-entrypoi…"   About a minute ago   Up 52 seconds       0.0.0.0:3002->80/tcp   php_blog
+[root@stapp02 sysops]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED              STATUS     PORTS                  NAMES
+c82a4257ef93        mariadb:latest      "docker-entrypoint.s…"   About a minute ago   Exited (1) 56 seconds ago                          mysql_blog
+2319f5c2e303        php:rc-apache       "docker-php-entrypoi…"   About a minute ago   Up 55 seconds     0.0.0.0:3002->80/tcp   php_blog
+[root@stapp02 sysops]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+php                 rc-apache           f395a34c4c95        40 hours ago        415MB
+mariadb             latest              c4655f911514        7 days ago          406MB
+[root@stapp02 sysops]# docker service ls
+Error response from daemon: This node is not a swarm manager. Use "docker swarm init" or "docker swarm join"to connect this node to swarm and try again.
+[root@stapp02 sysops]# curl 172.16.238.11
+curl: (7) Failed connect to 172.16.238.11:80; Connection refused
+[root@stapp02 sysops]# curl 172.16.238.11:3002
+<html>
+    <head>
+        <title>Welcome to xFusionCorp Industries!</title>
+    </head>
+
+    <body>
+        Welcome to xFusionCorp Industries!    </body>
+</html>[root@stapp02 sysops]# curl stapp02:3002
+<html>
+    <head>
+        <title>Welcome to xFusionCorp Industries!</title>
+    </head>
+
+    <body>
+        Welcome to xFusionCorp Industries!    </body>
+</html>[root@stapp02 sysops]# cat docker-compose.yml
+version: '3.3'
+services:
+   DB:
+     container_name: mysql_blog
+     image: mariadb:latest
+     ports:
+       - "3306:3306"
+     volumes:
+       - /var/lib/mysql:/var/lib/mysql
+     environment:
+       MYSQL_DATABASE: database_blog
+       MYSQL_USER: dbuser
+       MYSQL_PASSWORD: Db@123
+   web:
+     container_name: php_blog
+     image: php:rc-apache
+     ports:
+       - "3002:80"
+     depends_on:
+       - db
+     volumes:
+       - /var/www/html:/var/www/html
+[root@stapp02 sysops]#
+
+
+[root@stapp02 sysops]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS   PORTS                  NAMES
+c82a4257ef93        mariadb:latest      "docker-entrypoint.s…"   3 minutes ago       Exited (1) 3 minutes ago                          mysql_blog
+2319f5c2e303        php:rc-apache       "docker-php-entrypoi…"   3 minutes ago       Up 3 minutes   0.0.0.0:3002->80/tcp   php_blog
+[root@stapp02 sysops]# docker exec -it mysql_blog
+"docker exec" requires at least 2 arguments.
+See 'docker exec --help'.
+
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Run a command in a running container
+[root@stapp02 sysops]# thor@jump_blog /$ docker up mysql_blog
+
+
+Task Status - Failed
+- There is no running container named 'mysql_blog' found on App Server 2 after runni

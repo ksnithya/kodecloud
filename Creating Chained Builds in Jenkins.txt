@@ -1,0 +1,82 @@
+The DevOps team was looking for a solution where they want to restart Apache service on all app servers in case the deployment goes fine on these servers in Stratos Datacenter. After having discussion they came up with a solution to use Jenkins chained builds so that they can use a downstream job for services which should only be triggered by the deployment job. So as per the requirements mentioned below configure the required Jenkins jobs.
+
+
+Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 8081 and click on Display Port. You should be able to access the 
+Jenkins login page. Login using username theadmin and Adm!n321 password.
+
+In the same way you can access Gitea UI on port 8000 and username and password for Git is sarah and Sarah_pass123 respectively. 
+There under user sarah you will find a repository named web which is already cloned on Storage server under sarah's home. sarah is a developer who is working on this repository.
+
+Apache is already installed and configured on all app server so no changes are needed there. The doc root /var/www/html on all these app servers is a NFS 
+shared mount so any data you keep on the Storage server under /data should reflect on all apps.
+
+Create a Jenkins job named nautilus-app-deployment and configure it in a way that if anyone pushes any new change to the origin repository on master branch then the job 
+should auto build and deploy the latest code on Storage server under /data directory. Since /data on Storage server is a NFS mount so changes should auto reflect on all apps.
+
+Create another Jenkins job named manage-services and make it a downstream job for nautilus-app-deployment job. Things to take care about this job:
+
+a. This job should restart httpd service on all app servers.
+
+b. Trigger this job only if the upstream job i.e nautilus-app-deployment is stable.
+
+SSH into Storage Server using sarah user credentials mentioned above. Under sarah user's home you will find a cloned Git repository named web. 
+Under this repository there is an index.html file, update its content to Welcome to the xFusionCorp Industries and then push the changes to the origin into master branch. 
+This push must trigger your Jenkins job and the latest changes must be deployed.
+
+LB server is already configured. Click on the + button in the top left corner and select option Select port to view on Host 1, enter port 80 and click on Display Port. You should be able to see the latest changes you made. Please make sure the required content is loading on the main URL https://<LBR-URL> i.e there should not be a sub-directory like https://<LBR-URL>/web etc.
+
+Note:
+
+You might need to install some plugins and restart Jenkins service. So, we recommend clicking on Restart Jenkins when installation is complete and no jobs are running on plugin installation/update page i.e update centre. Also some times Jenkins UI gets stuck when Jenkins service restarts in the back end so in such case please make sure to refresh the UI page.
+
+Make sure Jenkins job passes even on repetitive runs as validation may try to build the job multiple times.
+
+Deployment related tasks should be done by sudo user on the destination server to avoid any permission issues so make sure to configure your Jenkins job accordingly.
+
+For these kind of scenarios requiring changes to be done in a web UI, please take screenshots so that you can share it with us for review in case your task is marked incomplete. You may also consider using a screen recording software such as loom.com to record and share your work.
+
+
+1. Install git, ssh plugin
+2. Tnen add storage, app servers credential in ssh connection
+3. Create new job with name "nautilus-app-deployment". 
+Add source code from Git -> Poll sscm -> give schedule - * * * * *
+Then select build -> execute sheel using ssh -> echo "Sarah_pass123" | sudo -S cp /home/sarah/web/* /data
+4. create another job "manage-services".
+Then select build -> execute sheel using ssh -> echo "BigGr33n" | sudo -S systemctl restart httpd - for each app server
+echo "Ir0nM@n" | sudo -S systemctl restart httpd
+echo "Am3ric@" | sudo -S systemctl restart httpd
+echo "BigGr33n" | sudo -S systemctl restart httpd
+5. Then add "manage-services" job as downstream job for "nautilus-app-deployment"
+Under Post-build Actions - > Build other project - > Select "manage-services" job -> select "Trigger only if build is stable" - save
+
+
+hor@jump_host /$ ssh sarah@ststor01
+sarah@ststor01's password:
+Permission denied, please try again.
+sarah@ststor01's password:
+Last login: Thu Jan 21 05:45:52 2021 from jump_host.devops-jenkins-chained-builds_app_net
+[sarah@ststor01 ~]$ pwd
+/home/sarah
+[sarah@ststor01 ~]$ ls -l
+total 4
+drwxr-xr-x 3 sarah sarah 4096 Jan 21 05:37 web
+[sarah@ststor01 ~]$ cd web
+[sarah@ststor01 web]$ vi index.html
+[sarah@ststor01 web]$ git add .
+[sarah@ststor01 web]$ git commit index.html -m "index modified"
+[master 68918ad] index modified
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+[sarah@ststor01 web]$ git pish origin master
+git: 'pish' is not a git command. See 'git --help'.
+
+Did you mean this?
+        push
+[sarah@ststor01 web]$ git push origin master
+Counting objects: 5, done.
+Writing objects: 100% (3/3), 286 bytes | 0 bytes/s, done.
+Total 3 (delta 0), reused 0 (delta 0)
+remote: . Processing 1 references
+remote: Processed 1 references in total
+To http://sarah:Sarah_pass123@git.stratos.xfusioncorp.com/sarah/web.git
+   a276e3c..68918ad  master -> master
+[sarah@ststor01 web]$

@@ -1,0 +1,99 @@
+Several new developers and DevOps engineers just joined xFusionCorp industries. They have been assigned the Nautilus project, 
+and as per the usual initial process we need to create user accounts for new joinees on at least one app server in Stratos DC. We also need to create groups 
+and make new users members of those groups. We need to accomplish this task using Ansible. Below is more information about the task.
+
+
+There is already an inventory file ~/playbooks/inventory on jump host.
+
+On jump host itself there is a list of users in ~/playbooks/data/users.yml file and there are two groups — admins and developers —that have list of different users. 
+Create a playbook ~/playbooks/add_users.yml on jump host to perform the following tasks on app server 2 in Stratos DC.
+
+a. Add all users given in users.yml file on app server 2.
+
+b. Also add groups developers and admins on same server.
+
+c. As per the list given in users.yml file, make each user member of the respective group they are listed under.
+
+d. Make sure home directory for all users under developers group is /var/www (not /var/www/{USER}). Users under admins group should use the default home (i.e /home/devid for user devid).
+
+e. Set password ksH85UJjhb for all users under developers group and ksH85UJjhb for users under admins group. Make sure to use the password given in
+ ~/playbooks/secrets/vault.txt file as Ansible vault password to encrypt the original password strings. You can use ~/playbooks/secrets/vault.txt file as vault secret 
+file while running the playbook (make necessary changes in ~/playbooks/ansible.cfg file).
+
+f. All users under admins group must be added as sudo users. To do so, simply make them member of wheel group as well.
+
+Note: Validation will try to run playbook using command ansible-playbook -i inventory add_users.yml so please make sure playbook works this way, without passing any extra arguments.
+
+
+ Several new developers and DevOps engineers just joined xFusionCorp industries. They have been assigned the Nautilus project, and as per the usual initial process we need to create user accounts for new joinees on at least one app server in Stratos DC. We also need to create groups and make new users members of those groups. We need to accomplish this task using Ansible. Below is more information about the task.
+
+
+There is already an inventory file ~/playbooks/inventory on jump host.
+
+On jump host itself there is a list of users in ~/playbooks/data/users.yml file and there are two groups — admins and developers —that have list of different users. Create a playbook ~/playbooks/add_users.yml on jump host to perform the following tasks on app server 2 in Stratos DC.
+
+a. Add all users given in users.yml file on app server 2.
+
+b. Also add groups developers and admins on same server.
+
+c. As per the list given in users.yml file, make each user member of the respective group they are listed under.
+
+d. Make sure home directory for all users under developers group is /var/www (not /var/www/{USER}). Users under admins group should use the default home (i.e /home/devid for user devid).
+
+e. Set password B4zNgHA7Ya for all users under developers group and B4zNgHA7Ya for users under admins group. Make sure to use the password given in ~/playbooks/secrets/vault.txt file as Ansible vault password to encrypt the original password strings. You can use ~/playbooks/secrets/vault.txt file as vault secret file while running the playbook (make necessary changes in ~/playbooks/ansible.cfg file).
+
+f. All users under admins group must be added as sudo users. To do so, simply make them member of wheel group as well.
+
+Note: Validation will try to run playbook using command ansible-playbook -i inventory add_users.yml so please make sure playbook works this way, without passing any extra arguments.
+
+
+ ---
+- name: user and group creation
+  hosts:  stapp02
+  become: true
+  vars_files:
+    - ~/playbooks/data/users.yml
+    - ~/playbooks/adm.yml
+    - ~/playbooks/dev.yml
+
+  tasks:
+    - name: group creation
+      group:
+        name: "{{item}}"
+        state:  present
+      with_items:
+        - developers
+        - admins
+    - name: user creation
+      user:
+        name: "{{item}}"
+        state:  present
+        groups: "admins, wheel"
+        password: "{{ adm | password_hash('sha512')}}"
+      loop:
+        "{{admins}}"
+    - name: user creation
+      user:
+        name: "{{item}}"
+        state:  present
+        groups: developers
+        home: /var/www
+        password: "{{ dev | password_hash('sha512')}}"
+      loop:
+        "{{developers}}"
+thor@jump_host ~/playbooks$
+
+
+thor@jump_host ~/playbooks$ cat ansible.cfg
+[defaults]
+host_key_checking = False
+vault_password_file = ~/playbooks/secrets/vault.txt
+thor@jump_host ~/playbooks$
+
+ansible-vault encrypt_string 'B4zNgHA7Ya' --vault-password-file=~/playbooks/secrets/vault.txt
+
+ansible-vault create --vault-password-file=~/playbooks/secrets/vault.txt adm.yml
+adm: B4zNgHA7Ya
+
+ansible-vault create --vault-password-file=~/playbooks/secrets/vault.txt dev.yml
+adm: B4zNgHA7Ya

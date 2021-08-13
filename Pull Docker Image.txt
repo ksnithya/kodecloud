@@ -1,0 +1,30 @@
+Nautilus project developers are planning to start testing on a new project. As per their meeting with the DevOps team, they want to test containerized environment application features. As per details shared with DevOps team, we need to accomplish the following task:
+
+
+a. Pull busybox:musl image on App Server 2 in Stratos DC and re-tag (create new tag) this image as busybox:blog.
+
+
+[root@stapp02 ~]# docker pull busybox:musl
+musl: Pulling from library/busybox
+8f354ecd830e: Pull complete
+Digest: sha256:b87e98397b4b60b11dc136214fba2fded45196cef38e29d6a76b0d77f195594a
+Status: Downloaded newer image for busybox:musl
+docker.io/library/busybox:musl
+[root@stapp02 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+busybox             musl                e679a48187f5        4 weeks ago         1.47MB
+[root@stapp02 ~]# docker images tag blog busybox:musl
+"docker images" requires at most 1 argument.
+See 'docker images --help'.
+
+Usage:  docker images [OPTIONS] [REPOSITORY[:TAG]]
+
+List images
+[root@stapp02 ~]# docker tag blog busybox
+Error response from daemon: No such image: blog:latest
+[root@stapp02 ~]# docker tag e679a48187f5 busybox:blog
+[root@stapp02 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+busybox             blog                e679a48187f5        4 weeks ago         1.47MB
+busybox             musl                e679a48187f5        4 weeks ago         1.47MB
+[root@stapp02 ~]#

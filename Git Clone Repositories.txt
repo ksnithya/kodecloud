@@ -1,0 +1,33 @@
+ DevOps team created a new Git repository last week; however, as of now no team is using it. The Nautilus application development team recently asked for a copy of that repo on Storage server in Stratos DC. Please clone the repo as per details shared below:
+
+
+The repo that needs to be cloned is /opt/blog.git
+
+Clone this git repository under /usr/src/kodekloudrepos directory. Please do not try to make any changes in repo.
+
+[root@ststor01 /]# git clone /opt/blog.git /usr/src/kodekloudrepos/blog/
+Cloning into '/usr/src/kodekloudrepos/blog'...
+warning: You appear to have cloned an empty repository.
+done.
+[root@ststor01 /]# cd /usr/src/kodekloudrepos/blog/
+[root@ststor01 blog]# ls -l
+total 0
+[root@ststor01 blog]# ls -al
+total 12
+drwxr-xr-x 3 root root 4096 Dec 11 02:33 .
+drwxr-xr-x 3 root root 4096 Dec 11 02:33 ..
+drwxr-xr-x 7 root root 4096 Dec 11 02:33 .git
+[root@ststor01 blog]# cd .git
+[root@ststor01 .git]# ls -l
+total 32
+drwxr-xr-x 2 root root 4096 Dec 11 02:33 branches
+-rw-r--r-- 1 root root  238 Dec 11 02:33 config
+-rw-r--r-- 1 root root   73 Dec 11 02:33 description
+-rw-r--r-- 1 root root   23 Dec 11 02:33 HEAD
+drwxr-xr-x 2 root root 4096 Dec 11 02:33 hooks
+drwxr-xr-x 2 root root 4096 Dec 11 02:33 info
+drwxr-xr-x 4 root root 4096 Dec 11 02:33 objects
+drwxr-xr-x 4 root root 4096 Dec 11 02:33 refs
+[root@ststor01 .git]# pwd
+/usr/src/kodekloudrepos/blog/.git
+[root@ststor01 .git]#

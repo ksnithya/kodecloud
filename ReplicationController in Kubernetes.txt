@@ -1,0 +1,87 @@
+The Nautilus DevOps team wants to create a ReplicationController to deploy several pods. They are going to deploy applications on these pods, which need some highly available infrastructure. Below you can find exact details, and please create the ReplicationController accordingly.
+
+
+Create a ReplicationController using httpd image, preferably with latest tag, and name it as httpd-replicationcontroller.
+
+Labels app should be httpd_app, and labels type should be front-end. The container should be named as httpd-container and also make sure replica counts are 3.
+
+All pods should be running state.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+
+
+
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  name: httpd-replicationcontroller
+  labels:
+    app: httpd_app
+    type: front-end
+spec:
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: httpd_app
+        type: front-end
+    spec:
+      containers:
+      - name: httpd-container
+        image: httpd:latest
+
+hor@jump_host /$ sudo vi replica.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f replica.yml
+replicationcontroller/httpd-replicationcontroller created
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS              RESTARTS   AGE
+httpd-replicationcontroller-dmkrz   0/1     ContainerCreating   0          7s
+httpd-replicationcontroller-k66hm   0/1     ContainerCreating   0          7s
+httpd-replicationcontroller-w62tm   0/1     ContainerCreating   0          7s
+thor@jump_host /$ kubectl get ReplicationControllerNAME                          DESIRED   CURRENT   READY   AGE
+httpd-replicationcontroller   3         3         3       24s
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+httpd-replicationcontroller-dmkrz   1/1     Running   0          28s
+httpd-replicationcontroller-k66hm   1/1     Running   0          28s
+httpd-replicationcontroller-w62tm   1/1     Running   0          28s
+thor@jump_host /$ kubectl describe RC
+error: the server doesn't have a resource type "RC"
+thor@jump_host /$ kubectl describe rc
+Name:         httpd-replicationcontroller
+Namespace:    default
+Selector:     app=httpd_app,type=front-end
+Labels:       app=httpd_app
+              type=front-end
+Annotations:  <none>
+Replicas:     3 current / 3 desired
+Pods Status:  3 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=httpd_app
+           type=front-end
+  Containers:
+   httpd-container:
+    Image:        httpd:latest
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Events:
+  Type    Reason            Age   From                    Message
+  ----    ------            ----  ----                    -------
+  Normal  SuccessfulCreate  47s   replication-controller  Created pod: httpd-replicationcontroller-w62tm
+  Normal  SuccessfulCreate  47s   replication-controller  Created pod: httpd-replicationcontroller-k66hm
+  Normal  SuccessfulCreate  47s   replication-controller  Created pod: httpd-replicationcontroller-dmkrz
+thor@jump_host /$

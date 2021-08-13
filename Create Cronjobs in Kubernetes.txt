@@ -1,0 +1,163 @@
+There are some jobs/tasks that need to be run regularly on different schedules. Currently the Nautilus DevOps team is working 
+on developing some scripts that will be executed on different schedules, but for the time being the team is creating some cron jobs in 
+Kubernetes cluster with some dummy commands (which will be replaced by original scripts later). Create a cronjob as per details given below:
+
+
+Create a cronjob named devops.
+
+Set schedule to */12 * * * *.
+
+Container name should be cron-devops.
+
+Use httpd image with latest tag only and remember to mention tag i.e httpd:latest.
+
+Run a dummy command echo Welcome to xfusioncorp.
+
+Ensure restart policy is OnFailure.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: devops
+spec:
+  schedule: "*/12 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cron-devops
+            image: httpd:latest
+            args:
+            - /bin/sh
+            - -c
+            - echo Welcome to xfusioncorp
+          restartPolicy: OnFailure
+
+hor@jump_host /$ sudo vi cron.yml
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f cron.yml
+cronjob.batch/devops created
+thor@jump_host /$ kubectl get cron
+error: the server doesn't have a resource type "cron"
+thor@jump_host /$ kubectl get cronjob
+NAME     SCHEDULE       SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+devops   */12 * * * *   False     0        <none>          39s
+thor@jump_host /$ kubectl get jobs --watch^Cthor@jump_host /$ kubectl get jobs --watch
+NAME                COMPLETIONS   DURATION   AGE
+devops-1601054640   0/1                      0s
+devops-1601054640   0/1           0s         0s
+devops-1601054640   1/1           11s        11s
+^Cthor@jump_host /$ kubectl get cronjob
+NAME     SCHEDULE       SUSPEND   ACTIVE   LAST SCHEDULE   AGE
+devops   */12 * * * *   False     0        53s             4m43s
+thor@jump_host /$ kubectl get pods
+NAME                      READY   STATUS      RESTARTS   AGE
+devops-1601054640-nqgv7   0/1     Completed   0          68s
+thor@jump_host /$ kubectl logs $pods
+error: expected 'logs [-f] [-p] (POD | TYPE/NAME) [-c CONTAINER]'.
+POD or TYPE/NAME is a required argument for the logs command
+See 'kubectl logs -h' for help and examples
+thor@jump_host /$ kubectl logs pods
+Error from server (NotFound): pods "pods" not found
+thor@jump_host /$ kubectl log devops
+Error: unknown command "log" for "kubectl"
+
+Did you mean this?
+        top
+        logs
+
+Run 'kubectl --help' for usage.
+thor@jump_host /$ kubectl logs devops
+Error from server (NotFound): pods "devops" not found
+thor@jump_host /$ kubectl logs devops-1601054640-nqgv7
+Welcome to xfusioncorp
+thor@jump_host /$ cat cron.yml
+apiVersion: batch/v1beta1
+kind: CronJob
+metadata:
+  name: devops
+spec:
+  schedule: "*/12 * * * *"
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+          - name: cron-devops
+            image: httpd:latest
+            args:
+            - /bin/sh
+            - -c
+            - echo Welcome to xfusioncorp
+          restartPolicy: OnFailure
+thor@jump_host /$ kubectl describe pods
+Name:         devops-1601054640-nqgv7
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.63
+Start Time:   Fri, 25 Sep 2020 17:24:08 +0000
+Labels:       controller-uid=2055e61e-0436-4232-ada6-6e63f96bfbcd
+              job-name=devops-1601054640
+Annotations:  <none>
+Status:       Succeeded
+IP:           10.44.0.1
+IPs:
+  IP:           10.44.0.1
+Controlled By:  Job/devops-1601054640
+Containers:
+  cron-devops:
+    Container ID:  docker://d881996f4b28345a571266fc494873943bb8ee017dbb514ec678191d0e80b794
+    Image:         httpd:latest
+    Image ID:      docker-pullable://httpd@sha256:5ce7c20e45b407607f30b8f8ba435671c2ff80440d12645527be670eb8ce1961
+    Port:          <none>
+    Host Port:     <none>
+    Args:
+      /bin/sh
+      -c
+      echo Welcome to xfusioncorp
+    State:          Terminated
+      Reason:       Completed
+      Exit Code:    0
+      Started:      Fri, 25 Sep 2020 17:24:18 +0000
+      Finished:     Fri, 25 Sep 2020 17:24:18 +0000
+    Ready:          False
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-vj854 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             False
+  ContainersReady   False
+  PodScheduled      True
+Volumes:
+  default-token-vj854:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-vj854
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason          Age    From               Message
+  ----    ------          ----   ----               -------
+  Normal  Scheduled       3m15s  default-scheduler  Successfully assigned default/devops-1601054640-nqgv7 tonode01
+  Normal  Pulling         3m14s  kubelet, node01    Pulling image "httpd:latest"
+  Normal  Pulled          3m6s   kubelet, node01    Successfully pulled image "httpd:latest"
+  Normal  Created         3m5s   kubelet, node01    Created container cron-devops
+  Normal  Started         3m5s   kubelet, node01    Started container cron-devops
+  Normal  SandboxChanged  3m3s   kubelet, node01    Pod sandbox changed, it will be killed and re-created.
+thor@jump_host /$ Connection to host01 closed by remote host.
+Connection to host01 closed.

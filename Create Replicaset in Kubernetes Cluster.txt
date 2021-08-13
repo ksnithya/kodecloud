@@ -1,0 +1,325 @@
+The Nautilus DevOps team is going to deploy some applications on kubernetes cluster as they are planning 
+to migrate some of their applications there. Recently one of the team members has been assigned a task to write a template as per details mentioned below:
+
+
+Create a ReplicaSet using nginx image with latest tag only and remember to mention tag i.e nginx:latest and name it as nginx-replicaset.
+
+Labels app should be nginx_app, labels type should be front-end. The container should be named as nginx-container; also make sure replicas counts are 4.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+  labels:
+    app: nginx_app
+    type: front-end
+spec:
+  # modify replicas according to your case
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx_app
+      type: front-end
+  template:
+    metadata:
+      labels:
+        app: nginx_app
+        type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest
+
+thor@jump_host /$ sudo vi rs.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f rs.yml
+replicaset.apps/nginx-replicaset created
+thor@jump_host /$ kubectl get rs
+NAME               DESIRED   CURRENT   READY   AGE
+nginx-replicaset   4         4         0       6s
+thor@jump_host /$ kubectl get rs
+NAME               DESIRED   CURRENT   READY   AGE
+nginx-replicaset   4         4         0       10sthor@jump_host /$ kubectl get pods
+NAME                     READY   STATUS              RESTARTS   AGE
+nginx-replicaset-57bsl   0/1     ContainerCreating   0          15s
+nginx-replicaset-6tb77   1/1     Running             0          15s
+nginx-replicaset-b4w5x   1/1     Running             0          15s
+nginx-replicaset-rj89w   1/1     Running             0          15s
+thor@jump_host /$ kubectl get pods
+NAME                     READY   STATUS    RESTARTS   AGE
+nginx-replicaset-57bsl   1/1     Running   0          19s
+nginx-replicaset-6tb77   1/1     Running   0          19s
+nginx-replicaset-b4w5x   1/1     Running   0          19s
+nginx-replicaset-rj89w   1/1     Running   0          19s
+thor@jump_host /$ kubectl get rs
+NAME               DESIRED   CURRENT   READY   AGE
+nginx-replicaset   4         4         4       22s
+thor@jump_host /$ kubectl describe rs
+Name:         nginx-replicaset
+Namespace:    default
+Selector:     app=nginx_app,type=front-end
+Labels:       app=nginx_app
+              type=front-end
+Annotations:  <none>
+Replicas:     4 current / 4 desired
+Pods Status:  4 Running / 0 Waiting / 0 Succeeded / 0 Failed
+Pod Template:
+  Labels:  app=nginx_app
+           type=front-end
+  Containers:
+   nginx-container:
+    Image:        nginx:latest
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Events:
+  Type    Reason            Age   From                   Message
+  ----    ------            ----  ----                   -------
+  Normal  SuccessfulCreate  33s   replicaset-controller  Created pod: nginx-replicaset-rj89w
+  Normal  SuccessfulCreate  33s   replicaset-controller  Created pod: nginx-replicaset-b4w5x
+  Normal  SuccessfulCreate  33s   replicaset-controller  Created pod: nginx-replicaset-6tb77
+  Normal  SuccessfulCreate  33s   replicaset-controller  Created pod: nginx-replicaset-57bsl
+thor@jump_host /$ kubectl describe pod
+Name:         nginx-replicaset-57bsl
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.28
+Start Time:   Sun, 20 Sep 2020 11:15:00 +0000
+Labels:       app=nginx_app
+              type=front-end
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.4
+IPs:
+  IP:           10.44.0.4
+Controlled By:  ReplicaSet/nginx-replicaset
+Containers:
+  nginx-container:
+    Container ID:   docker://ca614aca9614d0a0141b835e50a3d38ed84c333551f7278d3bab95f956cea61f
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 20 Sep 2020 11:15:16 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-7ddlw (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-7ddlw:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-7ddlw
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/nginx-replicaset-57bsl to node01
+  Normal  Pulling    61s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     49s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    49s        kubelet, node01    Created container nginx-container
+  Normal  Started    48s        kubelet, node01    Started container nginx-container
+
+
+Name:         nginx-replicaset-6tb77
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.28
+Start Time:   Sun, 20 Sep 2020 11:15:00 +0000
+Labels:       app=nginx_app
+              type=front-end
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:           10.44.0.1
+Controlled By:  ReplicaSet/nginx-replicaset
+Containers:
+  nginx-container:
+    Container ID:   docker://45f6ff9721c4d2e9d8a25e6b57d9f26ab27ede15797df6473b9e0695f21d53cb
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 20 Sep 2020 11:15:11 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-7ddlw (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-7ddlw:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-7ddlw
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/nginx-replicaset-6tb77 to node01
+  Normal  Pulling    62s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     54s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    54s        kubelet, node01    Created container nginx-container
+  Normal  Started    53s        kubelet, node01    Started container nginx-container
+
+
+Name:         nginx-replicaset-b4w5x
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.28
+Start Time:   Sun, 20 Sep 2020 11:15:00 +0000
+Labels:       app=nginx_app
+              type=front-end
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.2
+IPs:
+  IP:           10.44.0.2
+Controlled By:  ReplicaSet/nginx-replicaset
+Containers:
+  nginx-container:
+    Container ID:   docker://1f7b150e4229a07d1370d8e5b7ce5d9c39d16d38949f9dd610c63dc62b419c4f
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 20 Sep 2020 11:15:13 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-7ddlw (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-7ddlw:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-7ddlw
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/nginx-replicaset-b4w5x to node01
+  Normal  Pulling    62s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     52s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    52s        kubelet, node01    Created container nginx-container
+  Normal  Started    51s        kubelet, node01    Started container nginx-container
+
+
+Name:         nginx-replicaset-rj89w
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.28
+Start Time:   Sun, 20 Sep 2020 11:15:00 +0000
+Labels:       app=nginx_app
+              type=front-end
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.3
+IPs:
+  IP:           10.44.0.3
+Controlled By:  ReplicaSet/nginx-replicaset
+Containers:
+  nginx-container:
+    Container ID:   docker://6ff789875eb59af4431c3c934fdd7447e80dddcbb3104b887d5eb8f7c27ea951
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 20 Sep 2020 11:15:15 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-7ddlw (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-7ddlw:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-7ddlw
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned default/nginx-replicaset-rj89w to node01
+  Normal  Pulling    62s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     50s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    50s        kubelet, node01    Created container nginx-container
+  Normal  Started    49s        kubelet, node01    Started container nginx-container
+thor@jump_host /$ cat rs.yml
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+  labels:
+    app: nginx_app
+    type: front-end
+spec:
+  # modify replicas according to your case
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx_app
+      type: front-end
+  template:
+    metadata:
+      labels:
+        app: nginx_app
+        type: front-end
+    spec:
+      containers:
+      - name: nginx-container
+        image: nginx:latest
+thor@jump_host /$

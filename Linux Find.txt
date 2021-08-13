@@ -1,0 +1,30 @@
+On Nautilus App Server 1 an issue was observed by security team. They found some malicious content within website code. After digging into the issue they found that there might be more infected files. Before doing a cleanup they would like to find out all similar files and copy them to a safe location for further investigation. Accomplish the task as per below mentioned requirements:
+
+
+a. On App Server 1 at location /var/www/html/official find out all files (not directories) having .php extension.
+a. On App Server 1 at location /var/www/html/news find out all files (not directories) having .js extension.
+
+b. Copy all those files along with their parent directory structure to location /official on same server.
+
+c. Please make sure not to copy entire /var/www/html/official directory content.
+
+[root@stapp01 official]# cd /var/www/html/official
+[root@stapp01 official]# find . -name '*.js' -exec cp --parents \{\} /news \;
+[root@stapp01 official]# cd /official/
+[root@stapp01 official]# ls -l
+total 180
+-rw-r--r--  1 root root   420 May 26 16:53 index.php
+-rw-r--r--  1 root root  6939 May 26 16:53 wp-activate.php
+drwxr-xr-x  6 root root  4096 May 26 16:53 wp-admin
+-rw-r--r--  1 root root   369 May 26 16:53 wp-blog-header.php
+-rw-r--r--  1 root root  2283 May 26 16:53 wp-comments-post.php
+-rw-r--r--  1 root root  2898 May 26 16:53 wp-config-sample.php
+drwxr-xr-x  4 root root  4096 May 26 16:53 wp-content
+-rw-r--r--  1 root root  3955 May 26 16:53 wp-cron.php
+drwxr-xr-x 16 root root 12288 May 26 16:53 wp-includes
+-rw-r--r--  1 root root  2504 May 26 16:53 wp-links-opml.php
+-rw-r--r--  1 root root  3326 May 26 16:53 wp-load.php
+-rw-r--r--  1 root root 47597 May 26 16:53 wp-login.php
+
+
+

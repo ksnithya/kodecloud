@@ -1,0 +1,130 @@
+The Nautilus DevOps team has set up a puppet master and an agent node in Stratos Datacenter. Puppet master is running on jump host itself 
+(also note that Puppet master node is also running as Puppet CA server) and Puppet agent is running on App Server 1. Since it is a fresh set up, the team wants to 
+sign certificates for puppet master as well as puppet agent nodes so that they can proceed with the next steps of set up. You can find more details about the task below:
+
+
+Puppet server and agent nodes are already have required packages, but you may need to start puppetserver (on master) and puppet service on both nodes.
+
+Assign and sign certificates for both master and agent node.
+
+root@jump_host /# ping jump_host
+PING jump_host.stratos.xfusioncorp.com (172.16.238.3) 56(84) bytes of data.
+64 bytes from jump_host.stratos.xfusioncorp.com (172.16.238.3): icmp_seq=1 ttl=64 time=0.053 ms
+64 bytes from jump_host.stratos.xfusioncorp.com (172.16.238.3): icmp_seq=2 ttl=64 time=0.035 ms
+64 bytes from jump_host.stratos.xfusioncorp.com (172.16.238.3): icmp_seq=3 ttl=64 time=0.050 ms
+^C
+--- jump_host.stratos.xfusioncorp.com ping statistics ---
+3 packets transmitted, 3 received, 0% packet loss, time 1998ms
+rtt min/avg/max/mdev = 0.035/0.046/0.053/0.007 ms
+root@jump_host /# vi /etc/hosts
+root@jump_host /# vi /etc/hosts
+root@jump_host /# systemctl status puppetserver
+● puppetserver.service - puppetserver Service
+   Loaded: loaded (/usr/lib/systemd/system/puppetserver.service; disabled; vendor preset: disabled)
+   Active: active (running) since Fri 2020-09-11 13:32:18 UTC; 49s ago  Process: 98 ExecStart=/opt/puppetlabs/server/apps/puppetserver/bin/puppetserver start (code=exited, status=0/SUCCESS)
+ Main PID: 107 (java)
+    Tasks: 43 (limit: 4915)
+   CGroup: /docker/4b928ec7d5cbdc96970ecfc9cccf1a5d2d0e6feb8fa3726ab54f5805354ecf1f/system.slice/puppetserver.service
+           └─107 /usr/bin/java -Xms512m -Xmx512m -Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf...
+
+Sep 11 13:31:40 jump_host systemd[1]: Starting puppetserver Service...
+Sep 11 13:32:18 jump_host systemd[1]: Started puppetserver Service.
+root@jump_host /# systemctl restart puppetserver
+root@jump_host /# systemctl status puppetserver
+● puppetserver.service - puppetserver Service
+   Loaded: loaded (/usr/lib/systemd/system/puppetserver.service; disabled; vendor preset: disabled)
+   Active: active (running) since Fri 2020-09-11 13:34:05 UTC; 16s ago
+  Process: 243 ExecStop=/opt/puppetlabs/server/apps/puppetserver/bin/puppetserver stop (code=exited, status=0/SUCCESS)
+  Process: 305 ExecStart=/opt/puppetlabs/server/apps/puppetserver/bin/puppetserver start (code=exited, status=0/SUCCESS)
+ Main PID: 312 (java)
+    Tasks: 42 (limit: 4915)
+   CGroup: /docker/4b928ec7d5cbdc96970ecfc9cccf1a5d2d0e6feb8fa3726ab54f5805354ecf1f/system.slice/puppetserver.service
+           └─312 /usr/bin/java -Xms512m -Xmx512m -Djruby.logger.class=com.puppetlabs.jruby_utils.jruby.Slf4jLogger -XX:OnOutOfMemoryError=kill -9 %p -cp /opt/puppetlabs/server...
+
+Sep 11 13:33:38 jump_host systemd[1]: Starting puppetserver Service...
+Sep 11 13:34:05 jump_host systemd[1]: Started puppetserver Service.
+root@jump_host /# systemctl status puppet
+● puppet.service - Puppet agent
+   Loaded: loaded (/usr/lib/systemd/system/puppet.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+root@jump_host /# systemctl start puppet
+root@jump_host /# systemctl status puppet
+● puppet.service - Puppet agent
+   Loaded: loaded (/usr/lib/systemd/system/puppet.service; disabled; vendor preset: disabled)
+   Active: active (running) since Fri 2020-09-11 13:34:37 UTC; 3s ago
+ Main PID: 447 (puppet)
+    Tasks: 2
+   CGroup: /docker/4b928ec7d5cbdc96970ecfc9cccf1a5d2d0e6feb8fa3726ab54f5805354ecf1f/system.slice/puppet.service
+           └─447 /opt/puppetlabs/puppet/bin/ruby /opt/puppetlabs/puppet/bin/puppet agent --no-daemonize
+
+Sep 11 13:34:40 jump_host puppet-agent[457]: (/File[/opt/puppetlabs/puppet/cache/lib]) Could not evaluate: Could not retrieve file metadata for puppet:///plugins: N... fileserver
+Sep 11 13:34:40 jump_host puppet-agent[457]: Request to https://puppet:8140/puppet/v3 failed after 0.014 seconds: Failed to open TCP connection to puppet:8140 (geta... not known)
+Sep 11 13:34:40 jump_host puppet-agent[457]: Wrapped exception:
+Sep 11 13:34:40 jump_host puppet-agent[457]: Failed to open TCP connection to puppet:8140 (getaddrinfo: Nameor service not known)
+Sep 11 13:34:40 jump_host puppet-agent[457]: Could not retrieve catalog from remote server: No more routes to puppet
+Sep 11 13:34:40 jump_host puppet-agent[457]: Could not retrieve catalog; skipping run
+Sep 11 13:34:40 jump_host puppet-agent[457]: Request to https://puppet:8140/puppet/v3 failed after 0.013 seconds: Failed to open TCP connection to puppet:8140 (geta... not known)
+Sep 11 13:34:40 jump_host puppet-agent[457]: Wrapped exception:
+Sep 11 13:34:40 jump_host puppet-agent[457]: Failed to open TCP connection to puppet:8140 (getaddrinfo: Nameor service not known)
+Sep 11 13:34:40 jump_host puppet-agent[457]: Could not send report: No more routes to report
+Hint: Some lines were ellipsized, use -l to show in full.
+root@jump_host /# vi /etc/hosts
+root@jump_host /# cat /etc/hosts
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.16.238.10   stapp01.stratos.xfusioncorp.com
+172.16.238.11   stapp02.stratos.xfusioncorp.com
+172.16.238.12   stapp03.stratos.xfusioncorp.com
+172.16.238.3    jump_host.stratos.xfusioncorp.com puppet
+172.16.239.3    jump_host.stratos.xfusioncorp.com jump_host
+root@jump_host /# systemctl restart puppet
+root@jump_host /# systemctl status puppet
+● puppet.service - Puppet agent
+   Loaded: loaded (/usr/lib/systemd/system/puppet.service; disabled; vendor preset: disabled)
+   Active: active (running) since Fri 2020-09-11 13:38:22 UTC; 4s ago
+ Main PID: 487 (puppet)
+    Tasks: 5
+   CGroup: /docker/4b928ec7d5cbdc96970ecfc9cccf1a5d2d0e6feb8fa3726ab54f5805354ecf1f/system.slice/puppet.service
+           ├─487 /opt/puppetlabs/puppet/bin/ruby /opt/puppetlabs/puppet/bin/puppet agent --no-daemonize
+           └─497 puppet agent: applying configuration
+
+Sep 11 13:38:22 jump_host systemd[1]: Stopped Puppet agent.
+Sep 11 13:38:22 jump_host systemd[1]: Started Puppet agent.
+Sep 11 13:38:24 jump_host puppet-agent[487]: Starting Puppet client version 6.17.0
+Sep 11 13:38:27 jump_host puppet-agent[497]: Applied catalog in 0.05 seconds
+root@jump_host /# puppetserver ca list --a
+Requested Certificates:
+    stapp03.stratos.xfusioncorp.com       (SHA256)  56:1F:80:0A:0E:88:57:1A:AC:3C:CD:51:50:70:36:09:AC:2E:39:0E:95:29:78:E6:6E:96:46:5A:E1:2B:C0:A9
+Signed Certificates:
+    jump_host.stratos.xfusioncorp.com       (SHA256)  C1:BB:5A:9F:5D:9A:97:1C:6F:B6:28:8D:52:A7:AA:9F:7E:1A:19:F3:40:1B:87:97:4B:73:9E:F3:88:EB:3A:C8        alt names: ["DNS:puppet", "DNS:jump_host.stratos.xfusioncorp.com"]   authorization extensions: [pp_cli_auth: true]
+root@jump_host /# puppetserver ca sign --all
+Successfully signed certificate request for stapp03.stratos.xfusioncorp.com
+root@jump_host /# puppetserver ca list --a
+Signed Certificates:
+    stapp03.stratos.xfusioncorp.com         (SHA256)  7E:5A:A8:1A:E6:EC:D0:28:C2:E1:25:96:BB:71:D4:56:52:19:E1:74:0A:26:AC:24:E7:28:D3:16:B5:57:F9:8C
+    jump_host.stratos.xfusioncorp.com       (SHA256)  C1:BB:5A:9F:5D:9A:97:1C:6F:B6:28:8D:52:A7:AA:9F:7E:1A:19:F3:40:1B:87:97:4B:73:9E:F3:88:EB:3A:C8        alt names: ["DNS:puppet", "DNS:jump_host.stratos.xfusioncorp.com"]   authorization extensions: [pp_cli_auth: true]
+root@jump_host /# vi /etc/puppetlabs/puppet/puppet.conf
+root@jump_host /# vi /etc/puppetlabs/puppet/autosign.conf
+root@jump_host /# cat /etc/puppetlabs/puppet/autosign.conf
+stapp03.stratos.xfusioncorp.com
+root@jump_host /# puppetserver ca list --a
+Signed Certificates:
+    stapp03.stratos.xfusioncorp.com         (SHA256)  7E:5A:A8:1A:E6:EC:D0:28:C2:E1:25:96:BB:71:D4:56:52:19:E1:74:0A:26:AC:24:E7:28:D3:16:B5:57:F9:8C
+    jump_host.stratos.xfusioncorp.com       (SHA256)  C1:BB:5A:9F:5D:9A:97:1C:6F:B6:28:8D:52:A7:AA:9F:7E:1A:19:F3:40:1B:87:97:4B:73:9E:F3:88:EB:3A:C8        alt names: ["DNS:puppet", "DNS:jump_host.stratos.xfusioncorp.com"]   authorization extensions: [pp_cli_auth: true]
+root@jump_host /# cat /etc/hosts
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.16.238.10   stapp01.stratos.xfusioncorp.com
+172.16.238.11   stapp02.stratos.xfusioncorp.com
+172.16.238.12   stapp03.stratos.xfusioncorp.com
+172.16.238.3    jump_host.stratos.xfusioncorp.com puppet
+172.16.239.3    jump_host.stratos.xfusioncorp.com jump_host
+root@jump_host /#

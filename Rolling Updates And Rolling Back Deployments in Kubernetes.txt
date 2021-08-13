@@ -1,0 +1,366 @@
+There is a production deployment planned for next week. The Nautilus DevOps team wants to test the deployment update and rollback on Dev environment first so that they can identify the risks in advance. Below you can find more details about the plan they want to execute.
+
+
+Create a namespace nautilus. Create a deployment called httpd-deploy under this new namespace, 
+It should have one container called httpd, use httpd:2.4.27 image and 3 replicas. The deployment should use RollingUpdate strategy with maxSurge=1, and maxUnavailable=2.
+
+Next upgrade the deployment to version httpd:2.4.43 using a rolling update.
+
+Finally, once all pods are updated undo the update and roll back to the previous/original version.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+kubectl create namespace nautilus
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deploy
+  namespace: nautilus
+  labels:
+    app: https
+spec:
+  replicas: 3
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 2
+  selector:
+    matchLabels:
+      app: https
+  template:
+    metadata:
+      labels:
+        app: https
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:2.4.27
+
+Rolling Updare
+one method
+kubectl set image deployment/httpd-deploy httpd=httpd:2.4.43 -n nautilus
+
+second method
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deploy
+  namespace: xfusion
+  labels:
+    app: https
+spec:
+  replicas: 6
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 2
+  selector:
+    matchLabels:
+      app: https
+  template:
+    metadata:
+      labels:
+        app: https
+    spec:
+      containers:
+      - name: httpd
+        image: httpd:2.4.43
+
+kubectl apply -f deploy.yml
+
+kubectl rollout status deployment/httpd-deploy -n nautilus
+
+Rollout:
+
+kubectl rollout undo deployment.v1.apps/httpd-deploy -n nautilus
+or
+kubectl rollout undo deployment.v1.apps/httpd-deploy --to-revision=1 -n nautilus
+
+
+-----------------------------------------------------
+Roll out:
+kubectl rollout history deployment/httpd-deploy --revision=[revision_number]
+
+Now you've decided to undo the current rollout and rollback to the previous revision:
+
+kubectl rollout undo deployment.v1.apps/httpd-deploy -n nautilus
+
+Alternatively, you can rollback to a specific revision by specifying it with --to-revision:
+
+kubectl rollout undo deployment.v1.apps/nginx-deployment --to-revision=2
+
+thor@jump_host /$ kubectl get pods
+No resources found in default namespace.
+thor@jump_host /$ kubectl get nodes
+NAME           STATUS     ROLES    AGE   VERSION
+controlplane   Ready      master   60s   v1.19.0
+node01         NotReady   <none>   19s   v1.19.0
+thor@jump_host /$ kubectl get nodes
+NAME           STATUS   ROLES    AGE   VERSION
+controlplane   Ready    master   65s   v1.19.0
+node01         Ready    <none>   24s   v1.19.0
+thor@jump_host /$ sudo vi deploy.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor: 
+thor@jump_host /$ kubectl create namespace nautilus
+namespace/nautilus created
+thor@jump_host /$ kubectl create -f deploy.yml 
+deployment.apps/httpd-deploy created
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           12s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           15s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           18s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           22s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           24s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           27s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   0/3     3            0           44s
+thor@jump_host /$ kubectl describe deploy -n nautilus
+Name:                   httpd-deploy
+Namespace:              nautilus
+CreationTimestamp:      Mon, 08 Mar 2021 14:55:25 +0000
+Labels:                 app=https
+Annotations:            deployment.kubernetes.io/revision: 1
+Selector:               app=https
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  2 max unavailable, 1 max surge
+Pod Template:
+  Labels:  app=https
+  Containers:
+   httpd:
+    Image:        httpd:2.4.27
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   httpd-deploy-58f6688b6b (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  90s   deployment-controller  Scaled up replica set httpd-deploy-58f6688b6b to 3
+thor@jump_host /$ kubectl get pods
+No resources found in default namespace.
+thor@jump_host /$ kubectl get pods -n nautilus
+NAME                            READY   STATUS    RESTARTS   AGE
+httpd-deploy-58f6688b6b-hlxb6   1/1     Running   0          107s
+httpd-deploy-58f6688b6b-x2jjb   1/1     Running   0          107s
+httpd-deploy-58f6688b6b-zhxmm   1/1     Running   0          107s
+thor@jump_host /$ kubectl get deploy -n nautilus
+NAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   3/3     3            3           116s
+thor@jump_host /$ kubectl set image deployment/httpd-deploy httpd=httpd:2.4.43 -n nautilus
+deployment.apps/httpd-deploy image updated
+thor@jump_host /$ kubectl describe deploy -n nautilusName:                   httpd-deploy
+Namespace:              nautilus
+CreationTimestamp:      Mon, 08 Mar 2021 14:55:25 +0000
+Labels:                 app=https
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=https
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  2 max unavailable, 1 max surge
+Pod Template:
+  Labels:  app=https
+  Containers:
+   httpd:
+    Image:        httpd:2.4.43
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   httpd-deploy-7bd95f648 (3/3 replicas created)
+Events:
+  Type    Reason             Age    From                   Message
+  ----    ------             ----   ----                   -------
+  Normal  ScalingReplicaSet  2m42s  deployment-controller  Scaled up replica set httpd-deploy-58f6688b6b to 3
+  Normal  ScalingReplicaSet  12s    deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 1
+  Normal  ScalingReplicaSet  12s    deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 1
+  Normal  ScalingReplicaSet  12s    deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 3
+  Normal  ScalingReplicaSet  3s     deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 0
+thor@jump_host /$ kubectl describe deploy -n nautilus
+Name:                   httpd-deploy
+Namespace:              nautilus
+CreationTimestamp:      Mon, 08 Mar 2021 14:55:25 +0000
+Labels:                 app=https
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=https
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  2 max unavailable, 1 max surge
+Pod Template:
+  Labels:  app=https
+  Containers:
+   httpd:
+    Image:        httpd:2.4.43
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   httpd-deploy-7bd95f648 (3/3 replicas created)
+Events:
+  Type    Reason             Age   From                   Message
+  ----    ------             ----  ----                   -------
+  Normal  ScalingReplicaSet  3m8s  deployment-controller  Scaled up replica set httpd-deploy-58f6688b6b to 3
+  Normal  ScalingReplicaSet  38s   deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 1
+  Normal  ScalingReplicaSet  38s   deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 1
+  Normal  ScalingReplicaSet  38s   deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 3
+  Normal  ScalingReplicaSet  29s   deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 0
+thor@jump_host /$ kubectl get deploy -n nautilusNAME           READY   UP-TO-DATE   AVAILABLE   AGE
+httpd-deploy   3/3     3            3           3m13s
+thor@jump_host /$ kubectl get pods -n nautilusNAME                           READY   STATUS    RESTARTS   AGE
+httpd-deploy-7bd95f648-b2njf   1/1     Running   0          49s
+httpd-deploy-7bd95f648-jc98k   1/1     Running   0          49s
+httpd-deploy-7bd95f648-rstng   1/1     Running   0          49s
+thor@jump_host /$ 
+thor@jump_host /$ kubectl rollout status deployment/httpd-deploy
+Error from server (NotFound): deployments.apps "httpd-deploy" not found
+thor@jump_host /$ kubectl rollout status deployment/httpd-deploy -n nautilus
+deployment "httpd-deploy" successfully rolled out
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy -n nautilus
+deployment.apps/httpd-deploy 
+REVISION  CHANGE-CAUSE
+1         <none>
+2         <none>
+
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy --revision=1 -n nautilus
+deployment.apps/httpd-deploy with revision #1
+Pod Template:
+  Labels:       app=https
+        pod-template-hash=58f6688b6b
+  Containers:
+   httpd:
+    Image:      httpd:2.4.27
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy --revision=2 -n nautilus
+deployment.apps/httpd-deploy with revision #2
+Pod Template:
+  Labels:       app=https
+        pod-template-hash=7bd95f648
+  Containers:
+   httpd:
+    Image:      httpd:2.4.43
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+thor@jump_host /$ kubectl rollout undo deployment.v1.apps/^C
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy --revision=1 -n nautilus^C
+thor@jump_host /$ kubectl rollout undo deployment.v1.apps/httpd-deploy -n nautilus
+deployment.apps/httpd-deploy rolled back
+thor@jump_host /$ kubectl rollout status deployment/httpd-deploy -n nautilusdeployment "httpd-deploy" successfully rolled out
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy -n nautilusdeployment.apps/httpd-deploy 
+REVISION  CHANGE-CAUSE
+2         <none>
+3         <none>
+
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy --revision=2 -n nautilus
+deployment.apps/httpd-deploy with revision #2
+Pod Template:
+  Labels:       app=https
+        pod-template-hash=7bd95f648
+  Containers:
+   httpd:
+    Image:      httpd:2.4.43
+    Port:       <none>
+    Host Port:  <none>
+    Environment:        <none>
+    Mounts:     <none>
+  Volumes:      <none>
+
+thor@jump_host /$ kubectl rollout history deployment/httpd-deploy --revision=1 -n nautilus
+error: unable to find the specified revision
+thor@jump_host /$ kubectl describe deploy -n nautilus
+Name:                   httpd-deploy
+Namespace:              nautilus
+CreationTimestamp:      Mon, 08 Mar 2021 14:55:25 +0000
+Labels:                 app=https
+Annotations:            deployment.kubernetes.io/revision: 3
+Selector:               app=https
+Replicas:               3 desired | 3 updated | 3 total | 3 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  2 max unavailable, 1 max surge
+Pod Template:
+  Labels:  app=https
+  Containers:
+   httpd:
+    Image:        httpd:2.4.27
+    Port:         <none>
+    Host Port:    <none>
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   httpd-deploy-58f6688b6b (3/3 replicas created)
+Events:
+  Type    Reason             Age                  From                   Message
+  ----    ------             ----                 ----                   -------
+  Normal  ScalingReplicaSet  6m11s                deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 1
+  Normal  ScalingReplicaSet  6m11s                deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 1
+  Normal  ScalingReplicaSet  6m11s                deployment-controller  Scaled up replica set httpd-deploy-7bd95f648 to 3
+  Normal  ScalingReplicaSet  6m2s                 deployment-controller  Scaled down replica set httpd-deploy-58f6688b6b to 0
+  Normal  ScalingReplicaSet  80s (x2 over 8m41s)  deployment-controller  Scaled up replica set httpd-deploy-58f6688b6b to 3
+  Normal  ScalingReplicaSet  80s                  deployment-controller  Scaled up replica set httpd-deploy-58f6688b6b to 1
+  Normal  ScalingReplicaSet  80s                  deployment-controller  Scaled down replica set httpd-deploy-7bd95f648 to 1
+  Normal  ScalingReplicaSet  69s                  deployment-controller  Scaled down replica set httpd-deploy-7bd95f648 to 0
+thor@jump_host /$ 

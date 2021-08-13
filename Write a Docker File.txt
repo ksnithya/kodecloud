@@ -1,0 +1,88 @@
+As per recent requirements shared by the Nautilus application development team, they need custom images created for one of their projects. 
+Several of the initial testing requirements are already been shared with DevOps team. Therefore, create a docker file /opt/docker/Dockerfile (please keep D capital of Dockerfile) on App server 3 in Stratos DC and configure to build an image with the following requirements:
+
+
+a. Use ubuntu as the base image.
+
+b. Install apache2 and configure it to work on 5004 port. (do not update any other Apache configuration settings like document root etc).
+
+FROM ubuntu
+RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" apt-get install -y apache2
+RUN apt-get update -y
+RUN apt-get install apache2 -y
+RUN sed -i 's/80/5003/' /etc/apache2/ports.conf
+ENTRYPOINT ["/usr/sbin/apache2ctl"]
+CMD ["-D", "FOREGROUND", "-k", "start"]
+
+
+FROM ubuntu
+RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" apt-get install -y apache2
+RUN sed -i 's/80/5003/' /etc/apache2/ports.conf
+RUN service apache2 start
+ENTRYPOINT ["/usr/sbin/apache2ctl"]
+CMD ["-D", "FOREGROUND", "-k", "start"]
+
+[root@stapp01 docker]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+<none>              <none>              df833f02084b        5 seconds ago       213MB
+ubuntu              latest              f643c72bc252        9 days ago          72.9MB
+[root@stapp01 docker]# docker run -d -it df833f02084b
+f494bd8b045923f525a92b32b3573e1105ffbfb171528fb2d27a7021feb5ac4a
+[root@stapp01 docker]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+f494bd8b0459        df833f02084b        "/usr/sbin/apache2ct…"   8 seconds ago       Up 5 seconds                zealous_gagarin
+[root@stapp01 docker]# docker exec -it f494bd8b0459
+"docker exec" requires at least 2 arguments.
+See 'docker exec --help'.
+
+Usage:  docker exec [OPTIONS] CONTAINER COMMAND [ARG...]
+
+Run a command in a running container
+[root@stapp01 docker]# docker exec -it f494bd8b0459 /bin/bash
+root@f494bd8b0459:/# service apache 2 status
+apache: unrecognized service
+root@f494bd8b0459:/# service apache2 status
+ * apache2 is running
+root@f494bd8b0459:/# apt-get update
+Hit:1 http://archive.ubuntu.com/ubuntu focal InRelease
+Hit:2 http://security.ubuntu.com/ubuntu focal-security InRelease
+Hit:3 http://archive.ubuntu.com/ubuntu focal-updates InRelease
+Hit:4 http://archive.ubuntu.com/ubuntu focal-backports InRelease
+Reading package lists... Done
+root@f494bd8b0459:/# apt-get install curl -y
+Reading package lists... Done
+Building dependency tree
+Reading state information... Done
+The following NEW packages will be installed:
+  curl
+0 upgraded, 1 newly installed, 0 to remove and 0 not upgraded.
+Need to get 161 kB of archives.
+After this operation, 411 kB of additional disk space will be used.
+Get:1 http://archive.ubuntu.com/ubuntu focal-updates/main amd64 curl amd64 7.68.0-1ubuntu2.2 [161 kB]
+Fetched 161 kB in 0s (1390 kB/s)
+debconf: delaying package configuration, since apt-utils is not installed
+Selecting previously unselected package curl.
+(Reading database ... 9377 files and directories currently installed.)
+Preparing to unpack .../curl_7.68.0-1ubuntu2.2_amd64.deb ...
+Unpacking curl (7.68.0-1ubuntu2.2) ...
+Setting up curl (7.68.0-1ubuntu2.2) ...
+root@f494bd8b0459:/# curl http://localhost
+curl: (7) Failed to connect to localhost port 80: Connection refused
+root@f494bd8b0459:/# curl http://localhost:80
+curl: (7) Failed to connect to localhost port 80: Connection refused
+root@f494bd8b0459:/# exit
+exit
+[root@stapp01 docker]# cat Dockerfile
+FROM ubuntu
+RUN apt-get update && DEBIAN_FRONTEND="noninteractive" TZ="America/New_York" apt-get install -y apache2
+RUN sed -i 's/80/5003/' /etc/apache2/ports.conf
+RUN service apache2 start
+ENTRYPOINT ["/usr/sbin/apache2ctl"]
+CMD ["-D", "FOREGROUND", "-k", "start"]
+[root@stapp01 docker]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+<none>              <none>              df833f02084b        2 minutes ago       213MB
+ubuntu              latest              f643c72bc252        9 days ago          72.9MB
+[root@stapp01 docker]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND                  CREATED             STATUS              PORTS               NAMES
+f494bd8b0459        df833f02084b        "/usr/sbin/apache2ct…"   2 minutes ago       Up 2 minutes                zealous_gagarin

@@ -1,0 +1,215 @@
+There is an application deployed on Kubernetes cluster. Recently Nautilus application development team developed a new version of the application that needs to be deployed now. As per new updates some new changes need to be made in this existing setup. So update the deployment and service as per details mentioned below:
+
+
+We already have a deployment named nginx-deployment and service named nginx-service. Some changes need to be made in this deployment and service, make sure not to delete the deployment and service.
+
+1.) Change the service nodeport from 30008 to 32165
+
+2.) Change replicas count from 1 to 5
+
+3.) Add command a command: ["sh","-c","while true; do apt update; apt install -y vim php ; sleep 3; done"]
+
+4.) Change the image from nginx:1.18 to nginx:latest
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   1/1     1            1           30s
+thor@jump_host /$ kubectl edit deploy nginx
+Error from server (NotFound): deployments.apps "nginx" not found
+thor@jump_host /$ kubectl edit deploy nginx-deployment
+deployment.apps/nginx-deployment edited
+thor@jump_host /$ kubectl get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        13h
+nginx-service   NodePort    10.110.213.54   <none>        80:30008/TCP   2m30s
+thor@jump_host /$ kubectl edit svc nginx-service
+service/nginx-service edited
+thor@jump_host /$ kubectl view deploy nginx-deployment
+Error: unknown command "view" for "kubectl"
+Run 'kubectl --help' for usage.
+thor@jump_host /$ kubectl edit deploy nginx-deployment -o yaml
+Edit cancelled, no changes made.thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-86cc465785-2cdhl   1/1     Running   0          2m31s
+nginx-deployment-86cc465785-c4pkn   1/1     Running   0          2m21s
+nginx-deployment-86cc465785-hkzp4   1/1     Running   0          2m24s
+nginx-deployment-86cc465785-hnsfm   1/1     Running   0          2m31s
+nginx-deployment-86cc465785-t2m57   1/1     Running   0          2m31s
+thor@jump_host /$ kubectl get deployment nginx-deployment -o yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    deployment.kubernetes.io/revision: "2"
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"apps/v1","kind":"Deployment","metadata":{"annotations":{},"labels":{"app":"nginx-app","type":"front-end"},"name":"nginx-deployment","namespace":"default"},"spec":{"replicas":1,"selector":{"matchLabels":{"app":"nginx-app"}},"template":{"metadata":{"labels":{"app":"nginx-app"},"name":"nginx-replica"},"spec":{"containers":[{"image":"nginx:1.18","name":"nginx-container"}]}}}}
+  creationTimestamp: "2020-10-20T07:02:59Z"
+  generation: 2
+  labels:
+    app: nginx-app
+    type: front-end
+  name: nginx-deployment
+  namespace: default
+  resourceVersion: "67113"
+  selfLink: /apis/apps/v1/namespaces/default/deployments/nginx-deployment
+  uid: 9fee4f94-c192-499d-90d0-52a2237dcbd2
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 5
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      app: nginx-app
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: nginx-app
+      name: nginx-replica
+    spec:
+      containers:
+      - command:
+        - sh
+        - -c
+        - while true; do apt update; apt install -y vim php ; sleep 3; done
+        image: nginx:latest
+        imagePullPolicy: IfNotPresent
+        name: nginx-container
+        resources: {}
+        terminationMessagePath: /dev/termination-log
+        terminationMessagePolicy: File
+      dnsPolicy: ClusterFirst
+      restartPolicy: Always
+      schedulerName: default-scheduler
+      securityContext: {}
+      terminationGracePeriodSeconds: 30
+status:
+  availableReplicas: 5
+  conditions:
+  - lastTransitionTime: "2020-10-20T07:05:25Z"
+    lastUpdateTime: "2020-10-20T07:05:25Z"
+    message: Deployment has minimum availability.
+    reason: MinimumReplicasAvailable
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2020-10-20T07:02:59Z"
+    lastUpdateTime: "2020-10-20T07:05:35Z"
+    message: ReplicaSet "nginx-deployment-86cc465785" has successfully progressed.
+    reason: NewReplicaSetAvailable
+    status: "True"
+    type: Progressing
+  observedGeneration: 2
+  readyReplicas: 5
+  replicas: 5
+  updatedReplicas: 5
+thor@jump_host /$ kubectl get svc nginx-service -o yaml
+apiVersion: v1
+kind: Service
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","kind":"Service","metadata":{"annotations":{},"name":"nginx-service","namespace":"default"},"spec":{"ports":[{"nodePort":30008,"port":80,"targetPort":80}],"selector":{"app":"nginx-app"},"type":"NodePort"}}
+  creationTimestamp: "2020-10-20T07:02:59Z"
+  name: nginx-service
+  namespace: default
+  resourceVersion: "67174"
+  selfLink: /api/v1/namespaces/default/services/nginx-service
+  uid: 29ea7500-a187-473d-a6d9-14cc95b2935a
+spec:
+  clusterIP: 10.110.213.54
+  externalTrafficPolicy: Cluster
+  ports:
+  - nodePort: 32165
+    port: 80
+    protocol: TCP
+    targetPort: 80
+  selector:
+    app: nginx-app
+  sessionAffinity: None
+  type: NodePort
+status:
+  loadBalancer: {}
+thor@jump_host /$ kubectl get pods
+NAME                                READY   STATUS    RESTARTS   AGE
+nginx-deployment-86cc465785-2cdhl   1/1     Running   0          6m35s
+nginx-deployment-86cc465785-c4pkn   1/1     Running   0          6m25s
+nginx-deployment-86cc465785-hkzp4   1/1     Running   0          6m28s
+nginx-deployment-86cc465785-hnsfm   1/1     Running   0          6m35s
+nginx-deployment-86cc465785-t2m57   1/1     Running   0          6m35s
+thor@jump_host /$ kubectl get deploy
+NAME               READY   UP-TO-DATE   AVAILABLE   AGE
+nginx-deployment   5/5     5            5           9m4s
+thor@jump_host /$ kubectl get svc
+NAME            TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)        AGE
+kubernetes      ClusterIP   10.96.0.1       <none>        443/TCP        13h
+nginx-service   NodePort    10.110.213.54   <none>        80:32165/TCP   9m10s
+thor@jump_host /$
+thor@jump_host /$ kubectl describe deploy
+Name:                   nginx-deployment
+Namespace:              default
+CreationTimestamp:      Tue, 20 Oct 2020 07:02:59 +0000
+Labels:                 app=nginx-app
+                        type=front-end
+Annotations:            deployment.kubernetes.io/revision: 2
+Selector:               app=nginx-app
+Replicas:               5 desired | 5 updated | 5 total | 5 available | 0 unavailable
+StrategyType:           RollingUpdate
+MinReadySeconds:        0
+RollingUpdateStrategy:  25% max unavailable, 25% max surge
+Pod Template:
+  Labels:  app=nginx-app
+  Containers:
+   nginx-container:
+    Image:      nginx:latest
+    Port:       <none>
+    Host Port:  <none>
+    Command:
+      sh
+      -c
+      while true; do apt update; apt install -y vim php ; sleep 3; done
+    Environment:  <none>
+    Mounts:       <none>
+  Volumes:        <none>
+Conditions:
+  Type           Status  Reason
+  ----           ------  ------
+  Available      True    MinimumReplicasAvailable
+  Progressing    True    NewReplicaSetAvailable
+OldReplicaSets:  <none>
+NewReplicaSet:   nginx-deployment-86cc465785 (5/5 replicas created)
+Events:
+  Type    Reason             Age                  From                   Message
+  ----    ------             ----                 ----                   -------
+  Normal  ScalingReplicaSet  9m41s                deployment-controller  Scaled up replica set nginx-deployment-fb65ddd4d to 1
+  Normal  ScalingReplicaSet  7m18s                deployment-controller  Scaled up replica set nginx-deployment-fb65ddd4d to 5
+  Normal  ScalingReplicaSet  7m18s                deployment-controller  Scaled up replica set nginx-deployment-86cc465785 to 2
+  Normal  ScalingReplicaSet  7m18s                deployment-controller  Scaled down replica set nginx-deployment-fb65ddd4d to 4
+  Normal  ScalingReplicaSet  7m18s                deployment-controller  Scaled up replica set nginx-deployment-86cc465785 to 3
+  Normal  ScalingReplicaSet  7m11s                deployment-controller  Scaled down replica set nginx-deployment-fb65ddd4d to 3
+  Normal  ScalingReplicaSet  7m11s                deployment-controller  Scaled up replica set nginx-deployment-86cc465785 to 4
+  Normal  ScalingReplicaSet  7m8s                 deployment-controller  Scaled down replica set nginx-deployment-fb65ddd4d to 2
+  Normal  ScalingReplicaSet  7m8s                 deployment-controller  Scaled up replica set nginx-deployment-86cc465785 to 5
+  Normal  ScalingReplicaSet  7m7s (x2 over 7m8s)  deployment-controller  (combined from similar events): Scaled down replica set nginx-deployment-fb65ddd4d to 0
+thor@jump_host /$ kubectl describe svc nginx-service
+Name:                     nginx-service
+Namespace:                default
+Labels:                   <none>
+Annotations:              Selector:  app=nginx-app
+Type:                     NodePort
+IP:                       10.110.213.54
+Port:                     <unset>  80/TCP
+TargetPort:               80/TCP
+NodePort:                 <unset>  32165/TCP
+Endpoints:                10.44.0.2:80,10.44.0.4:80,10.44.0.5:80 + 2 more...
+Session Affinity:         None
+External Traffic Policy:  Cluster
+Events:                   <none>
+thor@jump_host /$

@@ -1,0 +1,13 @@
+xFusionCorp Industries has hosted several static websites on Nautilus Application Servers in Stratos DC. There are some confidential directories on document root that need to be password protected. Because they are using Apache for hosting the websites, the production support team has decided to use .htaccess with basic auth. There is a website that needs to be uploaded to /var/www/html/dba on Nautilus App Server 2. However, we need to set up the authentication before that.
+
+
+Create /var/www/html/dba direcotry if doesn't exist.
+
+Add a user james in htpasswd and set its password to ksH85UJjhb.
+htpasswd -c /etc/httpd/.htpasswd mariyam
+
+There is a file /tmp/index.html placed on Jump Server. Copy the same to new directory you created, please make sure default document root should remain /var/www/html.
+
+curl -u mariyam http://127.0.0.1:8080/dba/index.html
+
+ 

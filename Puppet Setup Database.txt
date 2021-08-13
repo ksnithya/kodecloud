@@ -1,0 +1,142 @@
+The Nautilus DevOps team had a meeting with development team last week to discuss about some new requirements for an application deployment. Team is working on to setup a mariadb database server on Nautilus DB Server in Stratos Datacenter. They want to setup the same using Puppet. Below you can find more details about the requirements:
+
+
+Create a puppet programming file media.pp under /etc/puppetlabs/code/environments/production/manifests directory on puppet master node i.e on Jump Server. 
+Define a class mysql_database in puppet programming code and perform below mentioned tasks:
+
+Install package mariadb-server (whichever version is available by default in yum repo) on puppet agent node i.e on DB Server also start its service.
+
+Create a database kodekloud_db10 , a database user kodekloud_roy and set password GyQkFRVNr3 for this new user also remember host should be localhost. 
+Finally grant full permissions to this newly created user on newly created database.
+
+Make sure to create single puppet programming file media.pp to do these all tasks.
+
+
+class mysql_database {
+    include '::mysql::db'
+    package { 'mariadb-server':
+        ensure => installed,
+    }
+    service { 'mysql':
+        ensure => running,
+        enable => true,
+    }
+    exec { "create db user":
+      command => "/usr/bin/mysql -uroot -p -e \"CREATE USER 'kodekloud_rin' identified by 'GyQkFRVNr3';\"",
+      require => Service["mysqld"],
+    }
+    exec { "create dbatabase":
+      command => "/usr/bin/mysql -uroot -p -e \"create database 'kodekloud_db7'; grant all on `kodekloud_db7`.* to 'kodekloud_rin'@localhost identified by 'GyQkFRVNr3';FLUSH PRIVILEGES;\"",
+      require => Service["mysqld"],
+    }
+}
+node 'stdb01.stratos.xfusioncorp.com' {
+    include mysql_database
+}
+
+
+    mysql::db { 'mydb':
+      user     => 'myuser',
+      password => 'mypass',
+      host     => 'localhost',
+      grant    => ['*'],
+    }
+
+class mysql_database {
+    package { 'mariadb-server':
+        ensure => installed,    }
+    service { 'mariadb':
+        ensure => running,
+        enable => true,
+    }
+#    exec { "create db user":
+#      command => "/usr/bin/mysql -uroot -p -e \"CREATE USER 'kodekloud_rin' identified by 'GyQkFRVNr3';\"",
+#      require => Service["mariadb"],
+#    }
+    exec { "create dbatabase":
+      command => "/usr/bin/mysql -uroot -p -e \"CREATE DATABASE 'kodekloud_db7'; grant all on `kodekloud_db7`.* to 'kodekloud_rin'@localhost identified by 'GyQkFRVNr3';FLUSH PRIVILEGES;\"",
+      require => Service["mariadb"],
+    }
+}
+node 'stdb01.stratos.xfusioncorp.com' {
+    include mysql_database
+}
+
+
+node 'stdb01.stratos.xfusioncorp.com' {
+include mysql_database
+}
+
+class mysql_database {
+    package {'mariadb-server':
+        ensure => installed,
+    }
+    service { 'mariadb':
+        ensure => running,
+        enable => true,
+    }
+    mysql::db { 'kodekloud_db2':
+    user => 'kodekloud_aim',
+    password => 'ksH85UJjhb',
+    host => 'localhost',
+    grant => ['ALL'],
+    }
+}
+
+root@jump_host /# 
+root@jump_host /# ssh peter@stdb01
+The authenticity of host 'stdb01 (172.16.239.10)' can't be established.
+ECDSA key fingerprint is SHA256:NR20y7W0yOok0+OTjD+Bw8W5VXZASAKvcWRbsYMlgWY.
+ECDSA key fingerprint is MD5:f2:f6:f0:8e:28:11:2a:3b:23:9d:70:5d:7e:4c:9a:e1.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stdb01,172.16.239.10' (ECDSA) to the list of known hosts.
+peter@stdb01's password: 
+[peter@stdb01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for peter: 
+[root@stdb01 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Loading facts
+Info: Caching catalog for stdb01.stratos.xfusioncorp.com
+Info: Applying configuration version '1616588648'
+Notice: /Stage[main]/Mysql_database/Package[mariadb-server]/ensure: created
+Notice: /Stage[main]/Mysql_database/Service[mariadb]/ensure: ensure changed 'stopped' to 'running'
+Info: /Stage[main]/Mysql_database/Service[mariadb]: Unscheduling refresh on Service[mariadb]
+Notice: /Stage[main]/Mysql_database/Mysql::Db[kodekloud_db2]/Mysql_database[kodekloud_db2]/ensure: created
+Notice: /Stage[main]/Mysql_database/Mysql::Db[kodekloud_db2]/Mysql_user[kodekloud_aim@localhost]/ensure: created
+Notice: /Stage[main]/Mysql_database/Mysql::Db[kodekloud_db2]/Mysql_grant[kodekloud_aim@localhost/kodekloud_db2.*]/ensure: created
+Notice: Applied catalog in 23.77 seconds
+[root@stdb01 ~]# mysql -u kodekloud_aim -p kodekloud_db2
+Enter password: 
+Welcome to the MariaDB monitor.  Commands end with ; or \g.
+Your MariaDB connection id is 28
+Server version: 5.5.68-MariaDB MariaDB Server
+
+Copyright (c) 2000, 2018, Oracle, MariaDB Corporation Ab and others.
+
+Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
+
+MariaDB [kodekloud_db2]> show priveliage;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'priveliage' at line 1
+MariaDB [kodekloud_db2]> show priveliages;
+ERROR 1064 (42000): You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near 'priveliages' at line 1
+MariaDB [kodekloud_db2]> SHOW GRANTS FOR CURRENT_USER;
++----------------------------------------------------------------------------------------------------------------------+
+| Grants for kodekloud_aim@localhost                                                                                   |
++----------------------------------------------------------------------------------------------------------------------+
+| GRANT USAGE ON *.* TO 'kodekloud_aim'@'localhost' IDENTIFIED BY PASSWORD '*EA9DB4E40E56A4D2684320C021DF1D3B6FFECEE7' |
+| GRANT ALL PRIVILEGES ON `kodekloud_db2`.* TO 'kodekloud_aim'@'localhost'                                             |
++----------------------------------------------------------------------------------------------------------------------+
+2 rows in set (0.00 sec)
+
+MariaDB [kodekloud_db2]> 

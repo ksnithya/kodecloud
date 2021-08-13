@@ -1,0 +1,119 @@
+Recently some of the performance issues were observed with some applications hosted on Kubernetes cluster. The Nautilus DevOps team has observed some resources constraints where some 
+of the applications are running out 
+of resources like memory, cpu etc., and some of the applications are consuming more resources than needed. Therefore, the team has decided to add some limits for resources utilization.
+ Below you can find more details.
+
+
+Create a pod named httpd-pod and a container under it named as httpd-container, 
+use httpd image with latest tag only and remember to mention tag i.e httpd:latest and set the following limits:
+
+Requests: Memory: 15Mi, CPU: 1
+
+Limits: Memory: 20Mi, CPU: 2
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: httpd-pod
+spec:
+  containers:
+  - name: httpd-container
+    image: httpd:latest
+    resources:
+      requests:
+        memory: "15Mi"
+        cpu: 1
+      limits:
+        memory: "20Mi"
+        cpu: 2
+
+thor@jump_host /$ sudo vi pod.yml
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f pod.yml
+pod/httpd-pod created
+thor@jump_host /$ kubectl get pods
+NAME        READY   STATUS              RESTARTS   AGE
+httpd-pod   0/1     ContainerCreating   0          7s
+thor@jump_host /$ kubectl get pods
+NAME        READY   STATUS    RESTARTS   AGE
+httpd-pod   1/1     Running   0          10sthor@jump_host /$ kubectl describe pods
+Name:         httpd-pod
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.9
+Start Time:   Sat, 14 Nov 2020 15:17:45 +0000
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:  10.44.0.1
+Containers:
+  httpd-container:
+    Container ID:   docker://90addb4e552423c17cd6710c8fca234a1ae26f65842c8d22514bda363ce49e80
+    Image:          httpd:latest
+    Image ID:       docker-pullable://httpd@sha256:b82fb56847fcbcca9f8f162a3232acb4a302af96b1b2af1c4c3ac45ef0c9b968
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sat, 14 Nov 2020 15:17:53 +0000
+    Ready:          True
+    Restart Count:  0
+    Limits:
+      cpu:     2
+      memory:  20Mi
+    Requests:
+      cpu:        1
+      memory:     15Mi
+    Environment:  <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-bkqpd (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-bkqpd:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-bkqpd
+    Optional:    false
+QoS Class:       Burstable
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  23s   default-scheduler  Successfully assigned default/httpd-pod to node01
+  Normal  Pulling    22s   kubelet            Pulling image "httpd:latest"
+  Normal  Pulled     16s   kubelet            Successfully pulled image "httpd:latest"
+  Normal  Created    15s   kubelet            Created container httpd-container
+  Normal  Started    15s   kubelet            Started container httpd-container
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: httpd-pod
+spec:
+  containers:
+  - name: httpd-container
+    image: httpd:latest
+    resources:
+      requests:
+        memory: "15Mi"
+        cpu: 1
+      limits:
+        memory: "20Mi"
+        cpu: 2
+thor@jump_host /$

@@ -1,0 +1,95 @@
+One of the DevOps team members was working on to create a new custom docker image on App Server 1 in Stratos DC. He is done with his changes and image is saved on same server with name demo:devops. Recently a requirement has been raised by a team to use that image for testing, but the team wants to test the same on App Server 3. So we need to provide them that image on App Server 3 in Stratos DC.
+
+
+a. On App Server 1 save the image demo:devops in an archive.
+
+b. Transfer the image archive to App Server 3.
+
+thor@jump_host /$ ssh tony@stapp01
+The authenticity of host 'stapp01 (172.16.238.10)' can't be established.
+ECDSA key fingerprint is SHA256:0jB9qnQ6MxO9Fl1Kb5LC/jcqctQ0m8HP6NBEswyDzPE.
+ECDSA key fingerprint is MD5:2e:12:b3:c9:f7:4f:ba:f1:72:cf:6a:be:6f:29:e0:49.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp01,172.16.238.10' (ECDSA) to the list of known hosts.
+tony@stapp01's password:
+[tony@stapp01 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for tony:
+[root@stapp01 ~]# docker imagesREPOSITORY          TAG                 IMAGE ID            CREATED              SIZE
+demo                devops              9dcc7b98a348        About a minute ago   99.2MB
+ubuntu              latest              f643c72bc252        2 weeks ago          72.9MB
+[root@stapp01 ~]# docker save -o demo.tar demo:devops
+[root@stapp01 ~]# ls -ltr
+total 99252
+-rw------- 40 root root      3415 Aug  1  2019 anaconda-ks.cfg
+-rw-------  1 root root 101628416 Dec 16 20:56 demo.tar
+[root@stapp01 ~]# scp demo.tar banner@stapp03:/tmp
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:6UP1wKKKMkqTcAfV7u4QJPhZMmwLTOoo+fIoa6sSvOg.
+ECDSA key fingerprint is MD5:bf:74:a8:0d:af:19:96:07:82:54:57:7c:3c:81:2e:e8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password:
+demo.tar                                                                   100%   97MB 106.6MB/s   00:00
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                devops              9dcc7b98a348        8 minutes ago       99.2MB
+ubuntu              latest              f643c72bc252        2 weeks ago         72.9MB
+[root@stapp01 ~]#
+
+c. Load that image archive on App Server 3 with same name and tag which was used on App Server 1.
+
+hor@jump_host /$ ssh banner@stapp03
+The authenticity of host 'stapp03 (172.16.238.12)' can't be established.
+ECDSA key fingerprint is SHA256:6UP1wKKKMkqTcAfV7u4QJPhZMmwLTOoo+fIoa6sSvOg.
+ECDSA key fingerprint is MD5:bf:74:a8:0d:af:19:96:07:82:54:57:7c:3c:81:2e:e8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'stapp03,172.16.238.12' (ECDSA) to the list of known hosts.
+banner@stapp03's password:
+[banner@stapp03 ~]$ sudo su -
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for banner:
+[root@stapp03 ~]# cd /tmp
+[root@stapp03 tmp]# ls -l
+total 99252
+-rw-------  1 banner banner 101628416 Dec 16 20:57 demo.tar
+-rwx------ 40 root   root         836 Aug  1  2019 ks-script-rnBCJB
+-rw------- 40 root   root           0 Aug  1  2019 yum.log
+[root@stapp03 tmp]# docker images
+Cannot connect to the Docker daemon at unix:///var/run/docker.sock. Is the docker daemon running?
+[root@stapp03 tmp]# systemctl status docker
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/usr/lib/systemd/system/docker.service; disabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: https://docs.docker.com
+[root@stapp03 tmp]# systemctl start docker
+[root@stapp03 tmp]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+[root@stapp03 tmp]# docker load -i demo.tar
+bacd3af13903: Loading layer  75.27MB/75.27MB
+9069f84dbbe9: Loading layer  15.36kB/15.36kB
+f6253634dc78: Loading layer  3.072kB/3.072kB
+c25831f3787a: Loading layer  26.32MB/26.32MB
+Loaded image: demo:devops
+[root@stapp03 tmp]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                devops              9dcc7b98a348        8 minutes ago       99.2MB
+[root@stapp03 tmp]#
+
+Note: Docker is already installed on both servers; however, if its service is down please make sure to start it.
+
+

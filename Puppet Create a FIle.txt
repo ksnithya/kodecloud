@@ -1,0 +1,237 @@
+The Puppet master and Puppet agent nodes have been set up by the Nautilus DevOps team so they can perform testing. 
+In Stratos DC all app servers have been configured as Puppet agent nodes. Below are details about the testing scenario they want to proceed with.
+
+
+Use Puppet file resource and perform the task below:
+
+Create a Puppet programming file cluster.pp under /etc/puppetlabs/code/environments/production/manifests directory on master node i.e Jump Server.
+sh-4.2# cat init.pp
+class filetest {
+file { '/opt/security/news1.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+   }
+}
+sh-4.2# cat init.pp.bkup
+class filetest {
+file { '/opt/security/news.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+  source  => 'puppet:///modules/filetest/news.txt',
+   }
+}
+
+
+Using /etc/puppetlabs/code/environments/production/manifests/cluster.pp create a file news.txt under /opt/security directory on App Server 1.
+
+Note: Please perform this task using cluster.pp only, do not create any separate inventory file.
+
+h-4.2# cd /etc/puppetlabs/code/environments/production/manifests/
+sh-4.2# ls -l
+total 0
+sh-4.2# cd ..
+sh-4.2# ls -l
+total 20
+drwxr-xr-x 2 root root 4096 Mar  7 19:26 data
+-rw-r--r-- 2 root root  865 Mar  7 19:26 environment.conf
+-rw-r--r-- 2 root root  518 Mar  7 19:26 hiera.yaml
+drwxr-xr-x 2 root root 4096 Mar  7 19:26 manifests
+drwxr-xr-x 2 root root 4096 Mar  7 19:26 modules
+sh-4.2# cd  modules/
+sh-4.2# ls -l
+total 0
+sh-4.2# pwd/etc/puppetlabs/code/environments/production/modules
+sh-4.2# ls -l
+total 0
+sh-4.2# mkdir -p filetest/{files,templates,manifests}
+sh-4.2# tree filetest
+sh: tree: command not found
+sh-4.2# yum install tree
+Loaded plugins: fastestmirror, ovl
+Determining fastest mirrors
+epel/x86_64/metalink                                                                  |  32 kB  00:00:00
+ * base: linux.darkpenguin.net
+ * epel: ftp.fau.de
+ * extras: ftp.fau.de
+ * updates: linux.darkpenguin.net
+base                                                                                  | 3.6 kB  00:00:00
+epel                                                                                  | 4.7 kB  00:00:00
+extras                                                                                | 2.9 kB  00:00:00
+puppet6                                                                               | 2.5 kB  00:00:00
+updates                                                                               | 2.9 kB  00:00:00
+(1/6): extras/7/x86_64/primary_db                                                     | 205 kB  00:00:00
+(2/6): epel/x86_64/updateinfo                                                         | 1.0 MB  00:00:00
+(3/6): epel/x86_64/group_gz                                                           |  95 kB  00:00:00
+(4/6): puppet6/x86_64/primary_db                                                      | 311 kB  00:00:00
+(5/6): updates/7/x86_64/primary_db                                                    | 3.0 MB  00:00:00
+(6/6): epel/x86_64/primary_db                                                         | 6.9 MB  00:00:01
+Resolving Dependencies
+--> Running transaction check
+---> Package tree.x86_64 0:1.6.0-10.el7 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+=============================================================================================================
+ Package                Arch                     Version                        Repository              Size
+=============================================================================================================
+Installing:
+ tree                   x86_64                   1.6.0-10.el7                   base                    46 k
+
+Transaction Summary
+=============================================================================================================
+Install  1 Package
+
+Total download size: 46 k
+Installed size: 87 k
+Is this ok [y/d/N]: y
+Downloading packages:
+tree-1.6.0-10.el7.x86_64.rpm                                                          |  46 kB  00:00:00
+Running transaction check
+Running transaction test
+Transaction test succeeded
+Running transaction
+  Installing : tree-1.6.0-10.el7.x86_64                                                                  1/1
+  Verifying  : tree-1.6.0-10.el7.x86_64                                                                  1/1
+
+Installed:
+  tree.x86_64 0:1.6.0-10.el7
+
+Complete!
+sh-4.2# tree filetest/
+filetest/
+├── files
+├── manifests
+└── templates
+
+3 directories, 0 files
+sh-4.2# cd filetest/manifests/
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/filetest/manifests
+sh-4.2# vi init.pp
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/filetest/manifests
+sh-4.2# cd ..
+sh-4.2# cd files/
+sh-4.2# ls -l
+total 0
+sh-4.2# touch news.txt
+sh-4.2# ls -l
+total 0
+-rw-r--r-- 1 root root 0 Jul 29 14:22 news.txt
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/filetest/files
+sh-4.2# cd ../..
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules
+sh-4.2# cd ..
+sh-4.2# cd manifests/
+sh-4.2# ls -l
+total 0
+sh-4.2# vi cluster.pp
+sh-4.2# cat cluster.pp
+node stapp01 {
+  include filetest
+}
+
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/manifests
+sh-4.2# cd ../modules/
+sh-4.2# ls -l
+total 4
+drwxr-xr-x 5 root root 4096 Jul 29 14:16 filetest
+sh-4.2# cd filetest/
+sh-4.2# ls -l
+total 12
+drwxr-xr-x 2 root root 4096 Jul 29 14:22 files
+drwxr-xr-x 2 root root 4096 Jul 29 14:21 manifests
+drwxr-xr-x 2 root root 4096 Jul 29 14:16 templates
+sh-4.2# cd files/
+sh-4.2# ls -l
+total 0
+-rw-r--r-- 1 root root 0 Jul 29 14:22 news.txt
+sh-4.2# cd ../manifests/
+sh-4.2# ls -l
+total 4
+-rw-r--r-- 1 root root 192 Jul 29 14:21 init.pp
+sh-4.2# cat init.pp
+class filetest {
+file { '/opt/security/news.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+  source  => 'puppet:///modules/filetest/news.txt',
+   }
+sh-4.2# vi init.pp
+sh-4.2# vi init.pp
+sh-4.2# vi init.pp
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/filetest/manifests
+sh-4.2# cd ../..
+sh-4.2# ls -l
+total 4
+drwxr-xr-x 5 root root 4096 Jul 29 14:16 filetest
+sh-4.2# cd ..
+sh-4.2# ls -l
+total 20
+drwxr-xr-x 2 root root 4096 Mar  7 19:26 data
+-rw-r--r-- 2 root root  865 Mar  7 19:26 environment.conf
+-rw-r--r-- 2 root root  518 Mar  7 19:26 hiera.yaml
+drwxr-xr-x 1 root root 4096 Jul 29 14:24 manifests
+drwxr-xr-x 1 root root 4096 Jul 29 14:16 modules
+sh-4.2# cd  manifests/
+sh-4.2# ls -l
+total 4
+-rw-r--r-- 1 root root 37 Jul 29 14:24 cluster.pp
+sh-4.2# vi cluster.pp
+sh-4.2# vi /etc/puppetlabs/code/environments/production/modules/filetest/manifests/init.pp
+sh-4.2# cat /etc/puppetlabs/code/environments/production/modules/filetest/manifests/init.pp
+class filetest {
+file { '/opt/security/news.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+  source  => 'puppet:///modules/filetest/news.txt',
+   }
+}
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/manifests
+sh-4.2# ls -l
+total 4
+-rw-r--r-- 1 root root 61 Jul 29 14:33 cluster.pp
+sh-4.2# cd ../modules/filetest/manifests/
+sh-4.2# ls -l
+total 4
+-rw-r--r-- 1 root root 194 Jul 29 14:35 init.pp
+sh-4.2# cp init.pp init.pp .bkup
+cp: target ‘.bkup’ is not a directory
+sh-4.2# cp init.pp init.pp.bkup
+sh-4.2# vi init.pp
+sh-4.2# cat init.pp
+class filetest {
+file { '/opt/security/news1.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+   }
+}
+sh-4.2# cat init.pp.bkup
+class filetest {
+file { '/opt/security/news.txt':
+  ensure  => present,
+  owner   => 'root',
+  group   => 'root',
+  mode    => '0777',
+  source  => 'puppet:///modules/filetest/news.txt',
+   }
+}
+sh-4.2# pwd
+/etc/puppetlabs/code/environments/production/modules/filetest/manifests
+sh-4.2#

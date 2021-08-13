@@ -1,0 +1,39 @@
+The Nautilus DevOps team started experimenting with the Puppet server to manage some of their infrastructure in Stratos DC. For testing different scenarios, 
+the team will be using jump host as puppet master. At this point we just need to install puppet server package and ensure its service is up and running. 
+Below you can find more details about the task.
+
+
+Install puppetserver package on jump host and start its service.
+
+Before starting puppetserver service, you might need to change its memory allocation configuration. We recommend to allocating it 512m of memory.
+
+Note: Please make sure to install puppetserver package only not any other alternate package.
+
+rpm -ivh https://yum.puppetlabs.com/puppetlabs-release-pc1-el-7.noarch.rpm
+
+ yum -y install puppetserver
+
+root@jump_host /# cat /etc/sysconfig/puppetserver
+###########################################
+# Init settings for puppetserver
+###########################################
+
+# Location of your Java binary (version 7 or higher)
+JAVA_BIN="/usr/bin/java"
+
+# Modify this if you'd like to change the memory allocation, enable JMX, etc
+#JAVA_ARGS="-Xms2g -Xmx2g -XX:MaxPermSize=256m"
+JAVA_ARGS="-Xms512m -Xmx512m"
+
+root@jump_host /# systemctl start puppetserver
+root@jump_host /# systemctl status puppetserver
+● puppetserver.service - puppetserver Service
+   Loaded: loaded (/usr/lib/systemd/system/puppetserver.service; disabled; vendor preset: disabled)
+   Active: active (running) since Mon 2020-12-14 11:25:52 UTC; 17s ago
+  Process: 328 ExecStart=/opt/puppetlabs/server/apps/puppetserver/bin/puppetserver start(code=exited, status=0/SUCCESS)
+ Main PID: 337 (java)
+   CGroup: /docker/25645a17d4ffae38679d4c9fe76a288d92e0c8c75f268fbe20941f1e881e1b00/system.slice/puppetserver.service
+           └─337 /usr/bin/java -Xms512m -Xmx512m -Djava.security.egd=/dev/urandom -XX:...
+
+Dec 14 11:25:15 jump_host systemd[1]: Starting puppetserver Service...
+Dec 14 11:25:52 jump_host systemd[1]: Started puppetserver Service.

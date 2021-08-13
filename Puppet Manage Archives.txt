@@ -1,0 +1,107 @@
+The Nautilus DevOps team has zipped data on all app servers in Stratos DC that they want to extract to all app servers in the same data center. However, they want to extract that data in a different directory in the app servers. Perform the task using a Puppet programming file as per requirements mentioned below:
+
+
+Create a puppet programming file games.pp under /etc/puppetlabs/code/environments/production/manifests on master node i.e on Jump Server. Using Puppet, archive resource and perform the tasks below:
+
+There is a zip archive /usr/src/games/games.zip on all app servers. Unzip the archive to location /opt/games on each app server.
+
+Note: Please perform this task using games.pp only, do not create any separate inventory file.
+}
+
+
+
+
+class mymodule {
+
+  archive { '/opt/games/games.zip':
+    ensure => present,
+    extract => true,
+    extract_path => '/opt/games',
+    source => '/usr/src/games/games.zip',
+    cleanup => true,
+  }
+}
+
+node "stapp01.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp02.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp03.stratos.xfusioncorp.com" {
+        include mymodule
+}
+
+root@jump_host /etc/puppetlabs/code/environments/production/manifests# cat games.pp
+class mymodule {
+
+  archive { '/opt/games/games.zip':
+    ensure => present,
+    extract => true,
+    extract_path => '/opt/games',
+    source => '/usr/src/games/games.zip',
+    cleanup => true,
+  }
+}
+
+node "stapp01.stratos.xfusioncorp.com" {        include mymodule
+}
+node "stapp02.stratos.xfusioncorp.com" {
+        include mymodule
+}
+node "stapp03.stratos.xfusioncorp.com" {
+        include mymodule
+}
+root@jump_host /etc/puppetlabs/code/environments/production/manifests#
+
+[root@stapp01 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Loading facts
+Info: Caching catalog for stapp01.stratos.xfusioncorp.com
+Info: Applying configuration version '1601204342'
+Notice: /Stage[main]/Mymodule/Archive[/opt/games/games.zip]/ensure: download archive from /usr/src/games/games.zip to /opt/games/games.zip and extracted in /opt/games with cleanup
+Notice: Applied catalog in 0.14 seconds
+[root@stapp01 ~]# cd /opt/games
+[root@stapp01 games]# ls -l
+total 12
+-rw-r--r-- 1 root root  33 Sep 27 10:54 games2.txt
+-rw-r--r-- 1 root root  54 Sep 27 10:54 games.txt
+-rw-r--r-- 1 root root 403 Sep 27 10:59 games.zip
+[root@stapp01 games]#
+
+root@stapp02 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Loading facts
+Info: Caching catalog for stapp02.stratos.xfusioncorp.com
+Info: Applying configuration version '1601204369'
+Notice: /Stage[main]/Mymodule/Archive[/opt/games/games.zip]/ensure: download archive from /usr/src/games/games.zip to /opt/games/games.zip and extracted in /opt/games with cleanup
+Notice: Applied catalog in 0.28 seconds
+[root@stapp02 ~]# ls -l /opt/games
+total 12
+-rw-r--r-- 1 root root  33 Sep 27 10:54 games2.txt
+-rw-r--r-- 1 root root  54 Sep 27 10:54 games.txt
+-rw-r--r-- 1 root root 403 Sep 27 10:59 games.zip
+[root@stapp02 ~]#
+
+root@stapp03 ~]# puppet agent -tv
+Info: Using configured environment 'production'
+Info: Retrieving pluginfacts
+Info: Retrieving plugin
+Info: Retrieving locales
+Info: Loading facts
+Info: Caching catalog for stapp03.stratos.xfusioncorp.com
+Info: Applying configuration version '1601204391'
+Notice: /Stage[main]/Mymodule/Archive[/opt/games/games.zip]/ensure: download archive from /usr/src/games/games.zip to /opt/games/games.zip and extracted in /opt/games with cleanup
+Notice: Applied catalog in 0.13 seconds
+[root@stapp03 ~]# ls -l /opt/games
+total 12
+-rw-r--r-- 1 root root  33 Sep 27 10:54 games2.txt
+-rw-r--r-- 1 root root  54 Sep 27 10:54 games.txt
+-rw-r--r-- 1 root root 403 Sep 27 10:59 games.zip
+[root@stapp03 ~]#

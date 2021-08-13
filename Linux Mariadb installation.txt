@@ -1,0 +1,58 @@
+We recently migrated one of our WordPress website from old server to a new infrastructure in Stratos Datacenter. We have already setup LAMP except database. We have also restored website code however we need to restore database to make it work on new infra. Please perform the below given steps on DB host:
+
+
+
+a. Install/Configure MariaDB server.
+
+b. Create a database with name kodekloud_db5.
+
+c. There is a DB dump on jump_host under location /home/thor/db.sql. Restore this database in newly create database.
+
+d. Create a user kodekloud_pop and set any password you like.
+
+e. Grant full permissions to user kodekloud_pop on database kodekloud_db5.
+
+f. Update database related details in /data/wp-config.php file on storage server which is our NFS server having a share /data that is mounted on each app server on location /var/www/html. (for more details about how to update WordPress config file please visit https://wordpress.org/support/article/editing-wp-config-php/)
+
+g. You can access the website on LBR link, to do so click on the + button on top of your terminal and select option Select port to view on Host 1 and after adding port 80 click on Display Port.
+
+
+a. Install/Configure MariaDB server.
+yum groupinstall mariadb mariadb-client -y
+systemctl start mariadb
+systemctl enable mariadb
+systemctl status mariadb
+
+
+
+b. Create a database with name kodekloud_db9.
+CREATE DATABASE kodekloud_db9;
+
+c. There is a DB dump on jump_host under location /home/thor/db.sql. Restore this database in newly create database.
+mysql -u root -p kodekloud_db9 < /home/peter/db.sql
+
+
+d. Create a user kodekloud_pop and set any password you like.
+CREATE USER 'kodekloud_gem' IDENTIFIED BY 'test@123';
+
+e. Grant full permissions to user kodekloud_gem on database kodekloud_db8.
+GRANT ALL PRIVILEGES ON `kodekloud_db9`.* TO 'kodekloud_gem'@'%';
+GRANT USAGE ON `kodekloud_db5`.* TO 'kodekloud_gem'@'%' IDENTIFIED BY 'test@123';
+
+
+FLUSH PRIVILEGES;
+
+SHOW GRANTS FOR 'kodekloud_gem'@'%';
+
+
+f. Update database related details in /data/wp-config.php file on storage server which is our NFS server having a share /data that is mounted on each app server on location /var/www/html. 
+(for more details about how to update WordPress config file please visit https://wordpress.org/support/article/editing-wp-config-php/)
+define( 'DB_NAME', 'kodekloud_db9' );
+define( 'DB_USER', 'kodekloud_gem' );
+define( 'DB_PASSWORD', 'test@123' );
+define( 'DB_HOST', 'stdb01' );
+
+g. You can access the website on LBR link, to do so click on the + button on top of your terminal and select option Select port to view on Host 1 and after adding port 80 click on Display Port.
+
+
+ mysql -u kodekloud_pop -p -h stdb01

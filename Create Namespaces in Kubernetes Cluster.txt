@@ -1,0 +1,120 @@
+The Nautilus DevOps team is planning to deploy some micro services on Kubernetes platform. The team has already set up a Kubernetes cluster and now they want set up 
+some namespaces, deployments etc. Based on the current requirements the team has shared the details below:
+
+
+Create a namespace named dev and create a POD under it; name the pod dev-nginx-pod and use nginx image with latest tag only and remember to mention tag i.e nginx:latest.
+
+kubectl create namespace dev
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dev-nginx-pod
+  namespace:  dev
+spec:
+  containers:
+    - name: dev-nginx-pod
+      image: nginx:latest
+
+
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+hor@jump_host /$ kubectl create namespace dev
+namespace/dev created
+thor@jump_host /$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   23m
+dev               Active   9s
+kube-node-lease   Active   23m
+kube-public       Active   23m
+kube-system       Active   23m
+thor@jump_host /$ vi pod.yml
+thor@jump_host /$ sudo vi pod.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+[sudo] password for thor:
+thor@jump_host /$ kubectl get pods
+No resources found in default namespace.
+thor@jump_host /$ kubectl create -f pod.yml
+pod/dev-nginx-pod created
+thor@jump_host /$ kubectl get pods
+No resources found in default namespace.
+thor@jump_host /$ kubectl get pods -n dev
+NAME            READY   STATUS    RESTARTS   AGE
+dev-nginx-pod   1/1     Running   0          22s
+thor@jump_host /$ kubectl describe pods -n dev
+Name:         dev-nginx-pod
+Namespace:    dev
+Priority:     0
+Node:         node01/172.17.0.15
+Start Time:   Sun, 06 Sep 2020 13:46:32 +0000
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:  10.44.0.1
+Containers:
+  dev-nginx-pod:
+    Container ID:   docker://600bc36923a169f71c7879d1b6b812203cb17b91fb24d4e6cbb2e6301165390a
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:b0ad43f7ee5edbc0effbc14645ae7055e21bc1973aee5150745632a24a752661
+    Port:           <none>
+    Host Port:      <none>
+    State:          Running
+      Started:      Sun, 06 Sep 2020 13:46:41 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-fkqj6 (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  default-token-fkqj6:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-fkqj6
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age        From               Message
+  ----    ------     ----       ----               -------
+  Normal  Scheduled  <unknown>  default-scheduler  Successfully assigned dev/dev-nginx-pod to node01
+  Normal  Pulling    53s        kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     47s        kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    47s        kubelet, node01    Created container dev-nginx-pod
+  Normal  Started    46s        kubelet, node01    Started container dev-nginx-pod
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: dev-nginx-pod
+  namespace:  dev
+spec:
+  containers:
+    - name: dev-nginx-pod
+      image: nginx:latest
+thor@jump_host /$ kubectl get namespace
+NAME              STATUS   AGE
+default           Active   26m
+dev               Active   3m4s
+kube-node-lease   Active   26m
+kube-public       Active   26m
+kube-system       Active   26m
+thor@jump_host /$ kubectl get pods -n dev
+NAME            READY   STATUS    RESTARTS   AGE
+dev-nginx-pod   1/1     Running   0          82s
+thor@jump_host /$

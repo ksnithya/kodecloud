@@ -1,0 +1,23 @@
+One of the Nautilus developer was working to test new changes on a container. He wants to keep a backup of his changes to the container. A new request has been raised for the DevOps team to create a new image from this container. Below are more details about it:
+
+
+a. Create an image demo:xfusion on Application Server 1 from a container ubuntu_latest that is running on same server.
+
+[root@stapp01 ~]# docker ps -aCONTAINER ID        IMAGE               COMMAND             CREATED              STATUS              PORTS            NAMES
+686573c165e9        ubuntu              "/bin/bash"         About a minute ago   Up About a minute            ubuntu_latest
+[root@stapp01 ~]# docker imaghes
+docker: 'imaghes' is not a docker command.
+See 'docker --help'
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+ubuntu              latest              f643c72bc252        4 weeks ago         72.9MB
+[root@stapp01 ~]# docker commit ubuntu_latest demo:xfusion
+sha256:ca574c8fd821c740d963ee3fe6cc4b861e89c65bd11acbeb60ef0b306ecf6936
+[root@stapp01 ~]# docker images
+REPOSITORY          TAG                 IMAGE ID            CREATED             SIZE
+demo                xfusion             ca574c8fd821        5 seconds ago       99.2MB
+ubuntu              latest              f643c72bc252        4 weeks ago         72.9MB
+[root@stapp01 ~]# docker ps -a
+CONTAINER ID        IMAGE               COMMAND             CREATED             STATUS              PORTS           NAMES
+686573c165e9        ubuntu              "/bin/bash"         6 minutes ago       Up 6 minutes           ubuntu_latest
+[root@stapp01 ~]#

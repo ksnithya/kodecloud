@@ -1,0 +1,237 @@
+The Nautilus project team needs to setup a HaProxy app on Kubernetes cluster. In the recent meeting they discussed all requirements and how implementation details will proceed. Below you can find more details and proceed accordingly:
+
+
+Create a namespace haproxy-controller-nautilus.
+kubectl create namespace haproxy-controller-nautilus
+
+Create a ServiceAccount haproxy-service-account-nautilus under the same namespace.
+
+kubectl create serviceaccount -n haproxy-controller-nautilus haproxy-service-account-nautilus
+
+Create a ClusterRole which should be named as haproxy-cluster-role-nautilus, rules are placed under location /tmp/rules.yml on jump_host. 
+Use the content of file /tmp/rules.yml to configure ClusterRole.
+
+rules:
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - endpoints
+  - nodes
+  - pods
+  - services
+  - namespaces
+  - events
+  - serviceaccounts
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - "extensions"
+  resources:
+  - ingresses
+  - ingresses/status
+  verbs:
+  - get
+  - list
+  - watch
+  - update
+- apiGroups:
+  - ""
+  resources:
+  - secrets
+  verbs:
+  - get
+  - list
+  - watch
+  - create
+  - patch
+
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+ name: haproxy-cluster-role-nautilus
+ namespace: haproxy-controller-nautilus
+rules:
+- apiGroups: [""]
+  resources: ["configmaps", "endpoints", "nodes", "pods", "services", "namespaces", "events", "serviceaccounts"]
+  verbs: ["get", "list", "watch"]
+- apiGroups: ["extensions"]
+  resources: ["ingresses", "ingresses/status"]
+  verbs: ["get", "list", "watch", "update"]
+- apiGroups: [""]
+  resources: ["secrets"]
+  verbs: ["get", "list", "watch", "create", "patch"]
+
+
+
+Create a ClusterRoleBinding which should be named as haproxy-cluster-role-binding-nautilus under the same namespace. 
+Define roleRef apiGroup should be rbac.authorization.k8s.io, kind should be ClusterRole, name should be haproxy-cluster-role-nautilus and 
+subjects kind should be ServiceAccount, name should be haproxy-service-account-nautilus and namespace should be haproxy-controller-nautilus.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: haproxy-cluster-role-binding-nautilus
+  namespace: haproxy-controller-nautilus
+subjects:
+- kind: ServiceAccount
+  name: haproxy-service-account-nautilus
+  namespace: haproxy-controller-nautilus
+roleRef:
+  kind: ClusterRole
+  name: haproxy-cluster-role-nautilus
+  apiGroup: rbac.authorization.k8s.io
+
+Create a backend deployment which should be named as backend-deployment-nautilus under the same namespace, 
+labels run should be ingress-default-backend under metadata. Configure spec as replica should be 1, selector's 
+matchLabels run should be ingress-default-backend. Template's labels run under metadata should be ingress-default-backend. 
+The container should named as backend-container-nautilus, use image gcr.io/google_containers/defaultbackend:1.0 
+( use exact name of image as mentioned ) and its containerPort should be 8080.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend-deployment-nautilus
+  namespace: haproxy-controller-nautilus
+  labels:
+    run: ingress-default-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: ingress-default-backend
+  template:
+    metadata:
+      labels:
+        run: ingress-default-backend
+    spec:
+      containers:
+      - name: backend-container-nautilus
+        image: gcr.io/google_containers/defaultbackend:1.0
+        ports:
+        - containerPort: 8080
+
+Create a service for backend which should be named as service-backend-nautilus under the same namespace, 
+labels run should be ingress-default-backend. Configure spec as selector's run should be ingress-default-backend, 
+port should be named as port-backend, protocol should be TCP, port should be 8080 and targetPort should be 8080.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: service-backend-nautilus
+  namespace: haproxy-controller-nautilus
+  labels:
+    run: ingress-default-backend
+spec:
+  ports:
+  - port: 8080
+    name: port-backend
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    run: ingress-default-backend
+
+Create a deployment for frontend which should be named haproxy-ingress-nautilus under the same namespace. 
+Configure spec as replica should be 1, selector's matchLabels should be haproxy-ingress, template's labels run 
+should be haproxy-ingress under metadata. The container name should be ingress-container-nautilus under the same service account
+ haproxy-service-account-nautilus, use image haproxytech/kubernetes-ingress, give args as --default-backend-service=haproxy-controller-nautilus/service-backend-nautilus, 
+resources requests for cpu should be 500m and for memory should be 50Mi, livenessProbe httpGet path should be /healthz its port should be 1024. The first port name 
+should be http and its containerPort should be 80, second port name should be https and its containerPort should be 443 and third port name should be stat its containerPort should be 1024.
+ Define environment as first env name should be TZ its value should be Etc/UTC, second env name should be POD_NAME its valueFrom fieldRef fieldPath should be metadata.name and 
+third env name should be POD_NAMESPACE its valueFrom fieldRef fieldPath should be metadata.namespace.
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: haproxy-ingress-nautilus
+  namespace: haproxy-controller-nautilus
+  labels:
+    run: haproxy-ingress
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: haproxy-ingress
+  template:
+    metadata:
+      labels:
+        run: haproxy-ingress
+    spec:
+      serviceAccountName: haproxy-service-account-nautilus
+      containers:
+      - name: ingress-container-nautilus
+        image: haproxytech/kubernetes-ingress
+        args:
+        - --default-backend-service=haproxy-controller-nautilus/service-backend-nautilus
+        livenessProbe:
+          httpGet:
+            path: /healthz
+            port: 1024
+        ports:
+        - containerPort: 80
+          name: http
+        - name: https
+          containerPort: 443
+        - name: stat
+          containerPort: 1024
+        resources:
+          requests:
+            memory: "50Mi"
+            cpu: "500m"
+        env:
+          - name: TZ
+            value: "Etc/UTC"
+          - name: POD_NAME
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.name
+          - name: POD_NAMESPACE
+            valueFrom:
+              fieldRef:
+                fieldPath: metadata.namespace
+
+
+
+Create a service for frontend which should be named as ingress-service-nautilus under same namespace, 
+labels run should be haproxy-ingress. Configure spec as selectors' run should be haproxy-ingress, type should be NodePort. 
+The first port name should be http, its port should be 80, protocol should be TCP, targetPort should be 80 and nodePort should be 32456. 
+The second port name should be https, its port should be 443, protocol should be TCP, targetPort should be 443 and nodePort should be 32567. 
+The third port name should be stat, its port should be 1024, protocol should be TCP, targetPort should be 1024 and nodePort should be 32678.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ingress-service-nautilus
+  namespace: haproxy-controller-nautilus
+  labels:
+    run: haproxy-ingress
+spec:
+  type: NodePort
+  ports:
+  - port: 80
+    name: http
+    protocol: TCP
+    targetPort: 80
+    nodePort: 32456
+  - port: 443
+    name: https
+    protocol: TCP
+    targetPort: 443
+    nodePort: 32567
+  - port: 1024
+    name: stat
+    protocol: TCP
+    targetPort: 1024
+    nodePort: 32678
+  selector:
+    run: haproxy-ingress
+
+Note: The kubectl on jump_host has been configured to work with the kubernetes cluster.
+
+
+Task Status - Failed
+service spec's 'nodePort' of 'https' for frontend is not '32567' under na
+
+ 

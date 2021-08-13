@@ -1,0 +1,336 @@
+The Nautilus DevOps team is working on a Kubernetes template to deploy a web application on the cluster. There are some requirements to create/use persistent
+ volumes to store the application code, and the template needs to be designed accordingly. Please find more details below:
+
+
+
+We already created a directory /mnt/sysops and a file index.html under the same on node01 (you need not to access node01), 
+that location should be mounted within the container to web server's document root (keep in mind doc root can be different for Apache and Nginx web servers).
+
+Create a PersistentVolume named as pv-devops. Configure the spec as storage class should be manual, set capacity to 7Gi, 
+set access mode to ReadWriteOnce , volume type should be hostPath and set path to /mnt/sysops.
+
+apiVersion: v1
+kind: PersistentVolume
+metadata: 
+  name: pv-devops
+spec:
+  capacity: 
+     storage: 7Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual 
+  hostPath:
+    path: /mnt/sysops
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+            - node01
+
+Create a PersistentVolumeClaim named as pvc-devops. Configure the spec as storage class should be manual, set request storage to 3Gi, set access mode to ReadWriteOnce.
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-devops
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeName: pv-devops
+  resources: 
+    requests:
+      storage: 3Gi
+  storageClassName: manual 
+
+Create a pod named as pod-devops, set volume as storage-devops, and persistent volume claim to be named as pvc-devops. 
+Container name should be container-devops, use image httpd with latest tag only and remember to mention tag i.e httpd:latest , 
+container port should be default port 80, mount the volume to mount path to default doc root of web server and should be named storage-devops.
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-devops
+spec: 
+  containers:
+    - image: nginx:latest
+      name: container-devops
+      ports:
+        - containerPort: 80 
+          name: web
+      volumeMounts: 
+      - name: storage-devops
+        mountPath: /usr/share/nginx/html
+        
+  volumes: 
+    - name: storage-devops
+      persistentVolumeClaim:
+          claimName: pvc-devops
+
+You can check your static website, exec into the pod and use curl command, i.e curl http://localhost.
+
+Note: The kubectl utility on jump_host has been configured to work with the kubernetes cluster.
+
+
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-xfusion
+spec:
+  containers:
+    - image: nginx:latest
+      name: container-xfusion
+      ports:
+        - containerPort: 80
+          name: web
+      volumeMounts:
+      - name: storage-xfusion
+        mountPath: /usr/share/nginx/html
+
+  volumes:
+    - name: storage-xfusion
+      persistentVolumeClaim:
+          claimName: pvc-xfusion
+thor@jump_host /$ cat pvc.yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-xfusion
+spec:
+  capacity:
+     storage: 8Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /mnt/devops
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+            - node01
+thor@jump_host /$ cat pv.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-xfusion
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeName: pv-xfusion
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: manual
+thor@jump_host /$
+
+ thor@jump_host /$ vi pv.ymlthor@jump_host /$ sudo vi pv.yml
+
+We trust you have received the usual lecture from the local System
+Administrator. It usually boils down to these three things:
+
+    #1) Respect the privacy of others.
+    #2) Think before you type.
+    #3) With great power comes great responsibility.
+
+[sudo] password for thor:
+thor@jump_host /$ kubectl create -f pv.yml
+persistentvolume/pv-devops created
+thor@jump_host /$ sudo vi pvc.yml
+thor@jump_host /$ kubectl create -f pvc.yml
+persistentvolumeclaim/pvc-devops created
+thor@jump_host /$ kubectl get pvc
+NAME         STATUS   VOLUME      CAPACITY   ACCESS MODES   STORAGECLASS   AGEpvc-devops   Bound    pv-devops   7Gi        RWO            manual         24s
+thor@jump_host /$ kubectl get pv
+NAME        CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM                STORAGECLASS   REASONAGE
+pv-devops   7Gi        RWO            Retain           Bound    default/pvc-devops   manual2m20s
+thor@jump_host /$ vi pod.yml
+thor@jump_host /$ sudo vi pod.yml
+thor@jump_host /$ kubectl create -f pod.yml
+pod/pod-devops created
+thor@jump_host /$ kubectl get pods
+NAME         READY   STATUS              RESTARTS   AGE
+pod-devops   0/1     ContainerCreating   0          6s
+thor@jump_host /$ kubectl get pods
+NAME         READY   STATUS              RESTARTS   AGE
+pod-devops   0/1     ContainerCreating   0          10s
+thor@jump_host /$ kubectl get pods
+NAME         READY   STATUS    RESTARTS   AGE
+pod-devops   1/1     Running   0          14s
+thor@jump_host /$ kubectl exec -it pod-devops bash
+kubectl exec [POD] [COMMAND] is DEPRECATED and will be removed in a future version. Use kubectl kubectl exec[POD] -- [COMMAND] instead.
+root@pod-devops:/# curl http://localhost
+Welcome to xFusionCorp Industries
+root@pod-devops:/# exit
+exit
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-devops
+spec:
+  containers:
+    - image: nginx:latest
+      name: container-devops
+      ports:
+        - containerPort: 80
+          name: web
+      volumeMounts:
+      - name: storage-devops
+        mountPath: /usr/share/nginx/html
+
+  volumes:
+    - name: storage-devops
+      persistentVolumeClaim:
+          claimName: pvc-devops
+thor@jump_host /$ cat pvc.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-devops
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeName: pv-devops
+  resources:
+    requests:
+      storage: 3Gi
+  storageClassName: manual
+thor@jump_host /$ cat pv.yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-devops
+spec:
+  capacity:
+     storage: 7Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /mnt/sysops
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+            - node01
+thor@jump_host /$
+thor@jump_host /$ kubectl describe pod
+Name:         pod-devops
+Namespace:    default
+Priority:     0
+Node:         node01/172.17.0.11
+Start Time:   Tue, 15 Sep 2020 14:58:18 +0000
+Labels:       <none>
+Annotations:  <none>
+Status:       Running
+IP:           10.44.0.1
+IPs:
+  IP:  10.44.0.1
+Containers:
+  container-devops:
+    Container ID:   docker://6d703488a95fa34a5bca90101438cfeeeb9d22e3b39404bf4d2b8b0aaa75bf6b
+    Image:          nginx:latest
+    Image ID:       docker-pullable://nginx@sha256:c628b67d21744fce822d22fdcc0389f6bd763daac23a6b77147d0712ea7102d0
+    Port:           80/TCP
+    Host Port:      0/TCP
+    State:          Running
+      Started:      Tue, 15 Sep 2020 14:58:30 +0000
+    Ready:          True
+    Restart Count:  0
+    Environment:    <none>
+    Mounts:
+      /usr/share/nginx/html from storage-devops (rw)
+      /var/run/secrets/kubernetes.io/serviceaccount from default-token-5z22r (ro)
+Conditions:
+  Type              Status
+  Initialized       True
+  Ready             True
+  ContainersReady   True
+  PodScheduled      True
+Volumes:
+  storage-devops:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  pvc-devops
+    ReadOnly:   false
+  default-token-5z22r:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-5z22r
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  <none>
+Tolerations:     node.kubernetes.io/not-ready:NoExecute for 300s
+                 node.kubernetes.io/unreachable:NoExecute for 300s
+Events:
+  Type    Reason     Age   From               Message
+  ----    ------     ----  ----               -------
+  Normal  Scheduled  108s  default-scheduler  Successfully assigned default/pod-devops to node01
+  Normal  Pulling    106s  kubelet, node01    Pulling image "nginx:latest"
+  Normal  Pulled     98s   kubelet, node01    Successfully pulled image "nginx:latest"
+  Normal  Created    96s   kubelet, node01    Created container container-devops
+  Normal  Started    96s   kubelet, node01    Started container container-devops
+thor@jump_host /$
+----------------------
+
+thor@jump_host /$ cat pod.yml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pod-nautilus
+spec:
+  containers:
+    - image: nginx:latest
+      name: container-nautilus
+      ports:
+        - containerPort: 80
+      volumeMounts:
+      - name: storage-nautilus
+        mountPath: /usr/share/nginx/html
+
+  volumes:
+    - name: storage-devops
+      persistentVolumeClaim:
+          claimName: pvc-nautilus
+thor@jump_host /$ cat pvc.yml
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: pvc-nautilus
+spec:
+  accessModes:
+  - ReadWriteOnce
+  volumeName: pv-nautilus
+  resources:
+    requests:
+      storage: 4Gi
+  storageClassName: manual
+thor@jump_host /$ cat pv.yml
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: pv-nautilus
+spec:
+  capacity:
+     storage: 7Gi
+  accessModes:
+  - ReadWriteOnce
+  storageClassName: manual
+  hostPath:
+    path: /mnt/data
+  nodeAffinity:
+    required:
+      nodeSelectorTerms:
+      - matchExpressions:
+        - key: kubernetes.io/hostname
+          operator: In
+          values:
+            - node01

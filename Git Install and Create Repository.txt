@@ -1,0 +1,29 @@
+The Nautilus development team shared with the DevOps team requirements for new application development, 
+setting up a Git repository for that project. Create a Git repository on Storage server in Stratos DC as per details given below:
+
+
+Install git package using yum on Storage server.
+
+yum install git
+systemctl status git;systemctl enable git;systemctl start git
+systemctl enable git
+systemctl start git
+
+
+After that create/init a git repository /opt/apps.git (use the exact name as asked and make sure not to create a bare repository).
+
+[root@ststor01 ~]# cd /opt
+[root@ststor01 opt]# mkdir games.git
+[root@ststor01 opt]# cd games.git/
+[root@ststor01 games.git]# git init
+Initialized empty Git repository in /opt/games.git/.git/
+[root@ststor01 games.git]# cd .gut
+-bash: cd: .gut: No such file or directory
+[root@ststor01 games.git]# cd .git
+[root@ststor01 .git]# ks -l
+-bash: ks: command not found
+[root@ststor01 .git]# ls -l
+total 32
+drwxr-xr-x 2 root root 4096 Aug  7 11:59 branches
+-rw-r--r-- 1 root root   92 Aug  7 11:59 config
+-rw-r--r-- 1 root root   73 Aug  7 11:59 description
